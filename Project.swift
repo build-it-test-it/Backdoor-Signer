@@ -4,7 +4,7 @@ let project = Project(
     name: "backdoor",
     organizationName: "backdoor",
     packages: [
-        .local(path: ".") // Using your local Package.swift
+        .local(path: ".") // Using local Package.swift
     ],
     settings: .settings(
         base: [
@@ -30,10 +30,10 @@ let project = Project(
     targets: [
         .target(
             name: "backdoor",
-            destinations: [.iPhone, .iPad], // Correct destinations for iOS devices
+            destinations: [.iPhone, .iPad], // Fix: Added required destinations
             product: .app,
             bundleId: "com.bdg.backdoor",
-            deploymentTargets: .iOS("15.0"), // Correct syntax for iOS 15.0
+            deploymentTargets: .iOS("15.0"), // Fix: Corrected from deploymentTarget
             infoPlist: .file(path: "iOS/Info.plist"),
             sources: ["iOS/**", "Shared/**"],
             resources: [
@@ -45,7 +45,7 @@ let project = Project(
                 private: [],
                 project: ["Shared/Magic/backdoor-Bridging-Header.h"]
             ),
-            entitlements: .file(path: "iOS/backdoor.entitlements"), // Use .file for entitlements
+            entitlements: "iOS/backdoor.entitlements",
             dependencies: [
                 .package(product: "Nuke"),
                 .package(product: "NukeUI"),
@@ -73,18 +73,18 @@ let project = Project(
         .scheme(
             name: "backdoor (Debug)",
             shared: true,
-            buildAction: .buildAction(targets: [.init(stringLiteral: "backdoor")]),
+            buildAction: .buildAction(targets: ["backdoor"]),
             testAction: .targets([]),
-            runAction: .runAction(configuration: .custom("Debug")),
-            archiveAction: .archiveAction(configuration: .custom("Debug"))
+            runAction: .runAction(configuration: "Debug"),
+            archiveAction: .archiveAction(configuration: "Debug")
         ),
         .scheme(
             name: "backdoor (Release)",
             shared: true,
-            buildAction: .buildAction(targets: [.init(stringLiteral: "backdoor")]),
+            buildAction: .buildAction(targets: ["backdoor"]),
             testAction: .targets([]),
-            runAction: .runAction(configuration: .custom("Release")),
-            archiveAction: .archiveAction(configuration: .custom("Release"))
+            runAction: .runAction(configuration: "Release"),
+            archiveAction: .archiveAction(configuration: "Release")
         )
     ]
 )
