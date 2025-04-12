@@ -4,7 +4,7 @@ let project = Project(
     name: "backdoor",
     organizationName: "backdoor",
     packages: [
-        .local(path: ".")  // Using your local Package.swift
+        .local(path: ".") // Using your local Package.swift
     ],
     settings: .settings(
         base: [
@@ -31,9 +31,10 @@ let project = Project(
     targets: [
         .target(
             name: "backdoor",
+            destinations: [.iPhone, .iPad], // Added destinations
             product: .app,
             bundleId: "com.bdg.backdoor",
-            deploymentTarget: DeploymentTarget.iOS(targetVersion: "15.0"),
+            deploymentTargets: .iOS("15.0"), // Updated syntax
             infoPlist: .file(path: "iOS/Info.plist"),
             sources: ["iOS/**", "Shared/**"],
             resources: [
@@ -47,7 +48,6 @@ let project = Project(
             ),
             entitlements: "iOS/backdoor.entitlements",
             dependencies: [
-                // Only include dependencies from Package.swift
                 .package(product: "Nuke"),
                 .package(product: "NukeUI"),
                 .package(product: "NukeExtensions"),
