@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Backdoor",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v15)
     ],
