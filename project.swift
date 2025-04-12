@@ -2,12 +2,12 @@ import ProjectDescription
 
 let project = Project(
     name: "backdoor",
-    organizationName: "Your Organization",
+    organizationName: "backdoor",
     packages: [
         .local(path: ".")  // Using your local Package.swift
     ],
     settings: .settings(
-        base: ["DEVELOPMENT_TEAM": "YOUR_TEAM_ID"],
+        base: ["DEVELOPMENT_TEAM": "B2D4G5"],
         configurations: [
             .debug(name: "Debug"),
             .release(name: "Release")
@@ -18,7 +18,7 @@ let project = Project(
             name: "backdoor",
             platform: .iOS,
             product: .app,
-            bundleId: "com.yourorganization.backdoor",
+            bundleId: "com.bdg.backdoor",
             deploymentTarget: .iOS(targetVersion: "15.0", devices: [.iphone, .ipad]),
             infoPlist: .file(path: "iOS/Info.plist"),
             sources: ["iOS/**"],
