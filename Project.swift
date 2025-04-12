@@ -48,7 +48,7 @@ let project = Project(
             ),
             entitlements: "iOS/backdoor.entitlements",
             dependencies: [
-                // Reference all the package products you need
+                // Only include dependencies from Package.swift
                 .package(product: "Nuke"),
                 .package(product: "NukeUI"),
                 .package(product: "NukeExtensions"),
