@@ -23,7 +23,7 @@ class TerminalService {
     static let shared = TerminalService()
     
     // Set your render.com URL here
-    private let baseURL = "https://your-termux-web-api.onrender.com"
+    private let baseURL = "https://termux-web-terminal.onrender.com"
     private var sessionId: String?
     private let logger = Debug.shared
     
