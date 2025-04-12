@@ -22,11 +22,9 @@ typealias TerminalResult<T> = Result<T, TerminalError>
 class TerminalService {
     static let shared = TerminalService()
     
-    // Hardcoded server credentials as requested
-    private let baseURL = "https://terminal-server-2hg1.onrender.com"
-    let apiKey = "B2D4G5"
+    // Set your render.com URL here
+    private let baseURL = "https://your-termux-web-api.onrender.com"
     private var sessionId: String?
-    private var userId: String?
     private let logger = Debug.shared
     
     // WebSocket properties
@@ -37,10 +35,9 @@ class TerminalService {
     private let maxReconnectAttempts = 5
     private let session = URLSession(configuration: .default)
     
-    // Command callbacks and buffers for WebSocket
-    private var commandCallbacks: [String: (TerminalResult<String>) -> Void] = [:]
-    private var streamHandlers: [String: (String) -> Void] = [:]
-    private var commandBuffer: [String: String] = [:]
+    // Output and command callbacks
+    private var outputHandlers: [String: (String) -> Void] = [:]
+    private var sessionCallbacks: [String: (TerminalResult<String>) -> Void] = [:]
     
     private init() {
         logger.log(message: "TerminalService initialized")
@@ -58,14 +55,13 @@ class TerminalService {
             urlString = "ws://" + urlString.dropFirst(7)
         }
         
-        guard let url = URL(string: "\(urlString)/terminal-ws") else {
+        guard let url = URL(string: urlString) else {
             logger.log(message: "Invalid WebSocket URL", type: .error)
             useWebSockets = false
             return
         }
         
         var request = URLRequest(url: url)
-        request.addValue(apiKey, forHTTPHeaderField: "X-API-Key")
         
         logger.log(message: "Setting up WebSocket connection to \(url.absoluteString)", type: .info)
         webSocketTask = session.webSocketTask(with: request)
@@ -73,9 +69,6 @@ class TerminalService {
         
         // Set up message receiving
         receiveMessage()
-        
-        // Schedule a ping to keep connection alive
-        schedulePing()
     }
     
     private func receiveMessage() {
@@ -122,9 +115,9 @@ class TerminalService {
                 return
             }
             
-            // Handle different message types
-            if let type = json["type"] as? String {
-                switch type {
+            // Handle different message types from our backend
+            if let event = json["event"] as? String {
+                switch event {
                 case "connected":
                     isWebSocketConnected = true
                     reconnectAttempt = 0
@@ -132,86 +125,60 @@ class TerminalService {
                     
                     // If we have a session ID, join that session
                     if let sessionId = sessionId {
-                        sendWebSocketMessage(["action": "join_session", "sessionId": sessionId])
+                        joinSession(sessionId)
                     }
                     
-                case "session_created":
-                    if let newSessionId = json["sessionId"] as? String {
-                        sessionId = newSessionId
-                        userId = json["userId"] as? String
-                        logger.log(message: "WebSocket session created: \(newSessionId)", type: .info)
+                case "joined":
+                    if let sessionData = json["session"] as? [String: Any],
+                       let joinedSessionId = json["session_id"] as? String {
+                        logger.log(message: "Joined session: \(joinedSessionId)", type: .info)
                         
-                        // Call any pending session creation callbacks
-                        if let commandId = json["commandId"] as? String, let callback = commandCallbacks[commandId] {
-                            callback(.success(newSessionId))
-                            commandCallbacks.removeValue(forKey: commandId)
+                        // Call any pending session callbacks
+                        if let callback = sessionCallbacks[joinedSessionId] {
+                            callback(.success(joinedSessionId))
+                            sessionCallbacks.removeValue(forKey: joinedSessionId)
                         }
                     }
                     
-                case "command_output":
-                    if let commandId = json["commandId"] as? String, 
-                       let output = json["output"] as? String {
+                case "output":
+                    if let sessionId = json["session_id"] as? String,
+                       let output = json["data"] as? String {
                         
-                        // Handle streaming output if a stream handler exists
-                        if let streamHandler = streamHandlers[commandId] {
-                            streamHandler(output)
+                        // If we have a handler for this session, call it
+                        if let handler = outputHandlers[sessionId] {
+                            handler(output)
                         }
                         
-                        // Accumulate output in buffer
-                        var currentOutput = commandBuffer[commandId] ?? ""
-                        currentOutput += output
-                        commandBuffer[commandId] = currentOutput
-                        
-                        logger.log(message: "Received partial command output via WebSocket", type: .debug)
+                        logger.log(message: "Received output for session \(sessionId)", type: .debug)
                     }
                     
-                    // Handle session renewal
-                    if let renewed = json["sessionRenewed"] as? Bool, renewed,
-                       let newSessionId = json["newSessionId"] as? String {
-                        sessionId = newSessionId
-                        logger.log(message: "Session renewed via WebSocket: \(newSessionId)", type: .info)
-                        sendWebSocketMessage(["action": "join_session", "sessionId": newSessionId])
+                case "terminated":
+                    if let terminatedSessionId = json["session_id"] as? String {
+                        logger.log(message: "Session terminated: \(terminatedSessionId)", type: .info)
+                        
+                        // If this is our current session, clear it
+                        if sessionId == terminatedSessionId {
+                            sessionId = nil
+                        }
+                        
+                        // Clear any handlers for this session
+                        outputHandlers.removeValue(forKey: terminatedSessionId)
                     }
                     
-                case "command_complete":
-                    if let commandId = json["commandId"] as? String, let callback = commandCallbacks[commandId] {
-                        // Get accumulated output
-                        let output = commandBuffer[commandId] ?? ""
+                case "error":
+                    if let errorMessage = json["message"] as? String {
+                        logger.log(message: "WebSocket error: \(errorMessage)", type: .error)
                         
-                        logger.log(message: "Command completed via WebSocket", type: .info)
-                        
-                        // Call callback with complete output
-                        callback(.success(output))
-                        
-                        // Clean up
-                        commandCallbacks.removeValue(forKey: commandId)
-                        streamHandlers.removeValue(forKey: commandId)
-                        commandBuffer.removeValue(forKey: commandId)
+                        // If an error occurs for a specific session, notify the callback
+                        if let sessionId = json["session_id"] as? String,
+                           let callback = sessionCallbacks[sessionId] {
+                            callback(.failure(TerminalError.webSocketError(errorMessage)))
+                            sessionCallbacks.removeValue(forKey: sessionId)
+                        }
                     }
-                    
-                case "command_error":
-                    if let commandId = json["commandId"] as? String,
-                       let errorMessage = json["error"] as? String,
-                       let callback = commandCallbacks[commandId] {
-                        
-                        logger.log(message: "Command error via WebSocket: \(errorMessage)", type: .error)
-                        
-                        // Call callback with error
-                        callback(.failure(TerminalError.responseError(errorMessage)))
-                        
-                        // Clean up
-                        commandCallbacks.removeValue(forKey: commandId)
-                        streamHandlers.removeValue(forKey: commandId)
-                        commandBuffer.removeValue(forKey: commandId)
-                    }
-                    
-                case "session_expired":
-                    // Session expired, will create new one when needed
-                    sessionId = nil
-                    logger.log(message: "WebSocket session expired", type: .warning)
                     
                 default:
-                    logger.log(message: "Unknown WebSocket message type: \(type)", type: .warning)
+                    logger.log(message: "Unknown WebSocket event: \(event)", type: .warning)
                 }
             }
         } catch {
@@ -228,7 +195,7 @@ class TerminalService {
         do {
             let data = try JSONSerialization.data(withJSONObject: message)
             if let messageString = String(data: data, encoding: .utf8) {
-                logger.log(message: "Sending WebSocket message: \(message["action"] as? String ?? "unknown")", type: .debug)
+                logger.log(message: "Sending WebSocket message", type: .debug)
                 let message = URLSessionWebSocketTask.Message.string(messageString)
                 webSocketTask.send(message) { [weak self] error in
                     guard let self = self else { return }
@@ -242,26 +209,6 @@ class TerminalService {
             }
         } catch {
             logger.log(message: "Failed to serialize WebSocket message: \(error.localizedDescription)", type: .error)
-        }
-    }
-    
-    private func schedulePing() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { [weak self] in
-            guard let self = self, self.isWebSocketConnected else { return }
-            
-            self.logger.log(message: "Sending WebSocket ping", type: .debug)
-            self.webSocketTask?.sendPing { [weak self] error in
-                guard let self = self else { return }
-                
-                if let error = error {
-                    self.logger.log(message: "WebSocket ping error: \(error.localizedDescription)", type: .error)
-                    self.isWebSocketConnected = false
-                    self.reconnectWebSocket()
-                }
-            }
-            
-            // Schedule next ping
-            self.schedulePing()
         }
     }
     
@@ -289,72 +236,11 @@ class TerminalService {
         }
     }
     
-    // MARK: - Public API
+    // MARK: - Session Management
     
-    /// Creates a new terminal session for the user
-    /// - Parameter completion: Called with the session ID or an error
+    /// Creates a new terminal session via API
     func createSession(completion: @escaping (TerminalResult<String>) -> Void) {
-        // Check if we already have a valid session
-        if let existingSession = sessionId {
-            // Validate existing session
-            validateSession { result in
-                switch result {
-                case .success(_):
-                    // Session is still valid
-                    self.logger.log(message: "Using existing terminal session")
-                    completion(.success(existingSession))
-                case .failure(_):
-                    // Session is invalid, create a new one
-                    self.logger.log(message: "Terminal session expired, creating new one")
-                    self.createNewSession(completion: completion)
-                }
-            }
-        } else {
-            // No existing session, create a new one
-            self.logger.log(message: "Creating new terminal session")
-            createNewSession(completion: completion)
-        }
-    }
-    
-    private func createNewSession(completion: @escaping (TerminalResult<String>) -> Void) {
-        // Use WebSockets if available and connected
-        if useWebSockets && webSocketTask != nil && isWebSocketConnected {
-            logger.log(message: "Creating new terminal session via WebSocket", type: .info)
-            
-            let commandId = UUID().uuidString
-            commandCallbacks[commandId] = completion
-            
-            // Create device identifier
-            let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-            
-            // Send via WebSocket
-            sendWebSocketMessage([
-                "action": "create_session",
-                "userId": deviceId,
-                "commandId": commandId,
-                "apiKey": apiKey
-            ])
-            
-            // Set a timeout to fall back to HTTP if WebSocket doesn't respond
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
-                guard let self = self,
-                      self.commandCallbacks[commandId] != nil else { return }
-                
-                // Still waiting for WebSocket, try HTTP
-                self.logger.log(message: "WebSocket session creation timed out, falling back to HTTP", type: .warning)
-                self.commandCallbacks.removeValue(forKey: commandId)
-                self.createNewSessionHTTP(completion: completion)
-            }
-            
-            return
-        }
-        
-        // Fall back to HTTP
-        createNewSessionHTTP(completion: completion)
-    }
-    
-    private func createNewSessionHTTP(completion: @escaping (TerminalResult<String>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/create-session") else {
+        guard let url = URL(string: "\(baseURL)/api/terminal/sessions") else {
             logger.log(message: "Invalid URL for terminal session creation", type: .error)
             completion(.failure(TerminalError.invalidURL))
             return
@@ -363,14 +249,18 @@ class TerminalService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(apiKey, forHTTPHeaderField: "X-API-Key")
         
-        // Include device identifier to ensure uniqueness
-        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-        let body: [String: Any] = ["userId": deviceId]
+        // Create session with appropriate size for device
+        let body: [String: Any] = [
+            "shell": "/bin/bash",
+            "cols": 80,
+            "rows": 24,
+            "env": ["TERM": "xterm-256color"]
+        ]
+        
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
-        logger.log(message: "Creating new terminal session via HTTP", type: .info)
+        logger.log(message: "Creating new terminal session", type: .info)
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
@@ -395,16 +285,15 @@ class TerminalService {
                         return
                     }
                     
-                    if let newSessionId = json["sessionId"] as? String {
+                    if let newSessionId = json["id"] as? String {
                         self.sessionId = newSessionId
-                        self.userId = json["userId"] as? String
                         
                         // If WebSocket is connected, join the session
                         if self.isWebSocketConnected {
-                            self.sendWebSocketMessage(["action": "join_session", "sessionId": newSessionId])
+                            self.joinSession(newSessionId)
                         }
                         
-                        self.logger.log(message: "Terminal session created successfully via HTTP", type: .info)
+                        self.logger.log(message: "Terminal session created successfully: \(newSessionId)", type: .info)
                         completion(.success(newSessionId))
                     } else {
                         self.logger.log(message: "Invalid terminal session response format", type: .error)
@@ -421,121 +310,81 @@ class TerminalService {
         }.resume()
     }
     
-    private func validateSession(completion: @escaping (TerminalResult<Bool>) -> Void) {
+    /// Joins a terminal session via WebSocket
+    private func joinSession(_ sessionId: String) {
+        // Join via WebSocket
+        sendWebSocketMessage([
+            "event": "join",
+            "session_id": sessionId
+        ])
+        
+        // Store this as our current session
+        self.sessionId = sessionId
+    }
+    
+    /// Executes a command in the current session
+    func executeCommand(
+        _ command: String,
+        outputHandler: @escaping (String) -> Void,
+        completion: @escaping (TerminalResult<Void>) -> Void
+    ) {
+        // Make sure we have a session
+        if sessionId == nil {
+            createSession { [weak self] result in
+                guard let self = self else { return }
+                
+                switch result {
+                case .success(let newSessionId):
+                    self.sessionId = newSessionId
+                    self.executeCommandInSession(command, outputHandler: outputHandler, completion: completion)
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        } else {
+            executeCommandInSession(command, outputHandler: outputHandler, completion: completion)
+        }
+    }
+    
+    /// Executes a command in a specific session
+    private func executeCommandInSession(
+        _ command: String,
+        outputHandler: @escaping (String) -> Void,
+        completion: @escaping (TerminalResult<Void>) -> Void
+    ) {
         guard let sessionId = sessionId else {
-            logger.log(message: "No active terminal session to validate", type: .error)
             completion(.failure(TerminalError.sessionError("No active session")))
             return
         }
         
-        guard let url = URL(string: "\(baseURL)/session") else {
-            logger.log(message: "Invalid URL for terminal session validation", type: .error)
-            completion(.failure(TerminalError.invalidURL))
-            return
-        }
+        // Register output handler for this session
+        outputHandlers[sessionId] = outputHandler
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.addValue(apiKey, forHTTPHeaderField: "X-API-Key")
-        request.addValue(sessionId, forHTTPHeaderField: "X-Session-Id")
-        
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
+        if isWebSocketConnected {
+            // Send command via WebSocket
+            sendWebSocketMessage([
+                "event": "input",
+                "session_id": sessionId,
+                "data": command + "\n"
+            ])
             
-            if let error = error {
-                self.logger.log(message: "Network error validating terminal session: \(error.localizedDescription)", type: .error)
-                completion(.failure(TerminalError.networkError(error.localizedDescription)))
-                return
-            }
-            
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
-                // Session is invalid
-                self.sessionId = nil
-                self.logger.log(message: "Terminal session expired (HTTP \(httpResponse.statusCode))", type: .warning)
-                completion(.failure(TerminalError.sessionError("Session expired")))
-                return
-            }
-            
-            self.logger.log(message: "Terminal session validated successfully", type: .info)
-            completion(.success(true))
-        }.resume()
-    }
-    
-    /// Executes a command in the user's terminal session
-    /// - Parameters:
-    ///   - command: The command to execute
-    ///   - streamHandler: Optional handler for real-time streaming output updates (WebSocket only)
-    ///   - completion: Called with the final command output or an error
-    func executeCommand(
-        _ command: String,
-        streamHandler: ((String) -> Void)? = nil,
-        completion: @escaping (TerminalResult<String>) -> Void
-    ) {
-        logger.log(message: "Executing terminal command: \(command)", type: .info)
-        
-        // First ensure we have a valid session
-        createSession { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let sessionId):
-                // Check if WebSocket is available for streaming
-                if self.useWebSockets && self.isWebSocketConnected && streamHandler != nil {
-                    self.logger.log(message: "Executing command with WebSocket streaming", type: .info)
-                    self.executeCommandWithWebSocket(command, sessionId: sessionId, streamHandler: streamHandler, completion: completion)
-                } else {
-                    // Fall back to HTTP for non-streaming requests
-                    self.executeCommandWithSession(command, sessionId: sessionId, completion: completion)
-                }
-            case .failure(let error):
-                self.logger.log(message: "Failed to create session for command execution: \(error.localizedDescription)", type: .error)
-                completion(.failure(error))
-            }
+            // Command is sent - consider it successful immediately
+            // Output will come through the WebSocket channel
+            completion(.success(()))
+        } else {
+            // Fall back to HTTP API if WebSocket isn't available
+            executeCommandViaHTTP(command, sessionId: sessionId, outputHandler: outputHandler, completion: completion)
         }
     }
     
-    private func executeCommandWithWebSocket(
+    /// Executes a command via HTTP API as fallback
+    private func executeCommandViaHTTP(
         _ command: String,
         sessionId: String,
-        streamHandler: ((String) -> Void)?,
-        completion: @escaping (TerminalResult<String>) -> Void
+        outputHandler: @escaping (String) -> Void,
+        completion: @escaping (TerminalResult<Void>) -> Void
     ) {
-        let commandId = UUID().uuidString
-        
-        // Register callbacks
-        commandCallbacks[commandId] = completion
-        
-        // Register stream handler if provided
-        if let streamHandler = streamHandler {
-            streamHandlers[commandId] = streamHandler
-        }
-        
-        // Send command via WebSocket
-        sendWebSocketMessage([
-            "action": "execute_command",
-            "command": command,
-            "sessionId": sessionId,
-            "commandId": commandId,
-            "apiKey": apiKey
-        ])
-        
-        // Fallback to HTTP if no response after a timeout
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
-            guard let self = self,
-                  self.commandCallbacks[commandId] != nil else { return }
-            
-            // No complete response from WebSocket yet, try HTTP
-            self.logger.log(message: "WebSocket command execution taking too long, falling back to HTTP", type: .warning)
-            self.commandCallbacks.removeValue(forKey: commandId)
-            self.streamHandlers.removeValue(forKey: commandId)
-            self.commandBuffer.removeValue(forKey: commandId)
-            self.executeCommandWithSession(command, sessionId: sessionId, completion: completion)
-        }
-    }
-    
-    private func executeCommandWithSession(_ command: String, sessionId: String, completion: @escaping (TerminalResult<String>) -> Void) {
-        guard let url = URL(string: "\(baseURL)/execute-command") else {
-            logger.log(message: "Invalid URL for command execution", type: .error)
+        guard let url = URL(string: "\(baseURL)/api/terminal/sessions/\(sessionId)") else {
             completion(.failure(TerminalError.invalidURL))
             return
         }
@@ -543,25 +392,20 @@ class TerminalService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(apiKey, forHTTPHeaderField: "X-API-Key")
-        request.addValue(sessionId, forHTTPHeaderField: "X-Session-Id")
         
-        let body = ["command": command]
+        let body: [String: Any] = [
+            "command": command + "\n"
+        ]
+        
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
-        logger.log(message: "Executing command via HTTP", type: .info)
-        
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
-            
+        URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                self.logger.log(message: "Network error executing command: \(error.localizedDescription)", type: .error)
                 completion(.failure(TerminalError.networkError(error.localizedDescription)))
                 return
             }
             
             guard let data = data else {
-                self.logger.log(message: "No data received from command execution", type: .error)
                 completion(.failure(TerminalError.responseError("No data received")))
                 return
             }
@@ -569,97 +413,129 @@ class TerminalService {
             do {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     if let errorMessage = json["error"] as? String {
-                        self.logger.log(message: "Command execution error: \(errorMessage)", type: .error)
                         completion(.failure(TerminalError.responseError(errorMessage)))
                         return
                     }
                     
-                    // Check for session renewal
-                    if let renewed = json["sessionRenewed"] as? Bool, renewed,
-                       let newSessionId = json["newSessionId"] as? String {
-                        self.sessionId = newSessionId
-                        
-                        // If websocket is connected, join the new session
-                        if self.isWebSocketConnected {
-                            self.sendWebSocketMessage(["action": "join_session", "sessionId": newSessionId])
-                        }
-                    }
-                    
                     if let output = json["output"] as? String {
-                        self.logger.log(message: "Command executed successfully via HTTP", type: .info)
-                        completion(.success(output))
+                        // Call the output handler with the response
+                        outputHandler(output)
+                        completion(.success(()))
                     } else {
-                        self.logger.log(message: "Invalid command response format", type: .error)
-                        completion(.failure(TerminalError.responseError("Invalid response format")))
+                        completion(.failure(TerminalError.responseError("No output received")))
                     }
                 } else {
-                    self.logger.log(message: "Could not parse command response", type: .error)
-                    completion(.failure(TerminalError.parseError("Could not parse response")))
+                    completion(.failure(TerminalError.parseError("Invalid response format")))
                 }
             } catch {
-                self.logger.log(message: "JSON parsing error in command response: \(error.localizedDescription)", type: .error)
                 completion(.failure(TerminalError.parseError("JSON parsing error: \(error.localizedDescription)")))
             }
         }.resume()
     }
     
-    /// Terminates the current session
-    func endSession(completion: @escaping (TerminalResult<Void>) -> Void) {
+    /// Resizes the terminal session
+    func resizeSession(cols: Int, rows: Int, completion: @escaping (TerminalResult<Void>) -> Void) {
         guard let sessionId = sessionId else {
-            logger.log(message: "No active terminal session to end", type: .info)
-            completion(.success(()))
+            completion(.failure(TerminalError.sessionError("No active session")))
             return
         }
         
-        // Use WebSockets if available
-        if useWebSockets && isWebSocketConnected {
-            logger.log(message: "Ending session via WebSocket", type: .info)
+        if isWebSocketConnected {
+            // Resize via WebSocket
             sendWebSocketMessage([
-                "action": "end_session",
-                "sessionId": sessionId,
-                "apiKey": apiKey
+                "event": "resize",
+                "session_id": sessionId,
+                "cols": cols,
+                "rows": rows
             ])
-            self.sessionId = nil
-            completion(.success(()))
-            return
-        }
-        
-        // Fall back to HTTP
-        guard let url = URL(string: "\(baseURL)/session") else {
-            logger.log(message: "Invalid URL for terminal session termination", type: .error)
-            completion(.failure(TerminalError.invalidURL))
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
-        request.addValue(apiKey, forHTTPHeaderField: "X-API-Key")
-        request.addValue(sessionId, forHTTPHeaderField: "X-Session-Id")
-        
-        logger.log(message: "Ending session via HTTP", type: .info)
-        
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
             
-            if let error = error {
-                self.logger.log(message: "Network error ending terminal session: \(error.localizedDescription)", type: .error)
-                completion(.failure(TerminalError.networkError(error.localizedDescription)))
+            completion(.success(()))
+        } else {
+            // Fall back to HTTP API
+            guard let url = URL(string: "\(baseURL)/api/terminal/sessions/\(sessionId)/size") else {
+                completion(.failure(TerminalError.invalidURL))
                 return
             }
             
-            self.sessionId = nil
-            self.logger.log(message: "Terminal session ended successfully", type: .info)
-            completion(.success(()))
-        }.resume()
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let body: [String: Any] = [
+                "cols": cols,
+                "rows": rows
+            ]
+            
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    completion(.failure(TerminalError.networkError(error.localizedDescription)))
+                    return
+                }
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
+                        completion(.success(()))
+                    } else {
+                        completion(.failure(TerminalError.responseError("HTTP error: \(httpResponse.statusCode)")))
+                    }
+                } else {
+                    completion(.success(()))
+                }
+            }.resume()
+        }
     }
     
-    /// Checks if WebSocket connection is active
-    var isWebSocketActive: Bool {
-        return isWebSocketConnected
+    /// Terminates the current session
+    func terminateSession(completion: @escaping (TerminalResult<Void>) -> Void) {
+        guard let sessionId = sessionId else {
+            // No session to terminate
+            completion(.success(()))
+            return
+        }
+        
+        if isWebSocketConnected {
+            // Terminate via WebSocket
+            sendWebSocketMessage([
+                "event": "terminate",
+                "session_id": sessionId
+            ])
+            
+            // Clear session
+            self.sessionId = nil
+            outputHandlers.removeValue(forKey: sessionId)
+            
+            completion(.success(()))
+        } else {
+            // Fall back to HTTP API
+            guard let url = URL(string: "\(baseURL)/api/terminal/sessions/\(sessionId)") else {
+                completion(.failure(TerminalError.invalidURL))
+                return
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "DELETE"
+            
+            URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    completion(.failure(TerminalError.networkError(error.localizedDescription)))
+                    return
+                }
+                
+                // Clear session regardless of response
+                self.sessionId = nil
+                self.outputHandlers.removeValue(forKey: sessionId)
+                
+                completion(.success(()))
+            }.resume()
+        }
     }
 }
 
-// Legacy compatibility wrapper
+// Legacy wrapper class for compatibility
 class ProcessUtility {
     static let shared = ProcessUtility()
     private let logger = Debug.shared
@@ -671,17 +547,17 @@ class ProcessUtility {
     ///   - command: The shell command to be executed.
     ///   - completion: A closure to be called with the command's output or an error message.
     func executeShellCommand(_ command: String, completion: @escaping (String?) -> Void) {
+        var output = ""
+        
         logger.log(message: "ProcessUtility executing command: \(command)", type: .info)
         
-        TerminalService.shared.executeCommand(command) { [weak self] result in
-            guard let self = self else { return }
-            
+        TerminalService.shared.executeCommand(command, outputHandler: { newOutput in
+            output += newOutput
+        }) { result in
             switch result {
-            case .success(let output):
-                self.logger.log(message: "ProcessUtility command executed successfully", type: .info)
+            case .success:
                 completion(output)
             case .failure(let error):
-                self.logger.log(message: "ProcessUtility command failed: \(error.localizedDescription)", type: .error)
                 completion("Error: \(error.localizedDescription)")
             }
         }
@@ -693,17 +569,21 @@ class ProcessUtility {
     ///   - outputHandler: Real-time handler for command output chunks.
     ///   - completion: A closure to be called when the command completes.
     func executeShellCommandWithStreaming(_ command: String, outputHandler: @escaping (String) -> Void, completion: @escaping (String?) -> Void) {
+        var fullOutput = ""
+        
         logger.log(message: "ProcessUtility executing streaming command: \(command)", type: .info)
         
-        TerminalService.shared.executeCommand(command, streamHandler: outputHandler) { [weak self] result in
-            guard let self = self else { return }
+        TerminalService.shared.executeCommand(command, outputHandler: { newOutput in
+            // Send chunk to handler
+            outputHandler(newOutput)
             
+            // Accumulate for final output
+            fullOutput += newOutput
+        }) { result in
             switch result {
-            case .success(let output):
-                self.logger.log(message: "ProcessUtility streaming command executed successfully", type: .info)
-                completion(output)
+            case .success:
+                completion(fullOutput)
             case .failure(let error):
-                self.logger.log(message: "ProcessUtility streaming command failed: \(error.localizedDescription)", type: .error)
                 completion("Error: \(error.localizedDescription)")
             }
         }
