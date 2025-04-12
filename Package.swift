@@ -15,17 +15,18 @@ let package = Package(
         // MARK: - Core Dependencies (Actually used in the codebase)
 
         // UI and Image handling
-        .package(url: "https://github.com/kean/Nuke.git", from: "12.1.0"),
-        .package(url: "https://github.com/sparrowcode/AlertKit.git", from: "5.0.0"),
+        .package(url: "https://github.com/kean/Nuke.git", from: "12.7.0"),
+        .package(url: "https://github.com/sparrowcode/AlertKit.git", from: "5.1.9"),
         // Onboarding - IMPORTANT: Using original package for API compatibility
         .package(url: "https://github.com/khcrysalis/UIOnboarding-18.git", branch: "main"),
 
         // File and Archive Management
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.16"),
-        .package(url: "https://github.com/tsolomko/SWCompression.git", from: "4.8.0"),
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.19"),
+        .package(url: "https://github.com/tsolomko/SWCompression.git", from: "4.8.6"),
         .package(url: "https://github.com/tsolomko/BitByteData.git", from: "2.0.0"),
         // Security and Cryptography
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.7.0"),
+        .package(url: "https://github.com/HAHALOSAH/OpenSSL-Swift-Package.git", branch: "main"),
 
         // UI Enhancement
         .package(url: "https://github.com/SnapKit/SnapKit.git", from: "5.0.1"),
@@ -53,7 +54,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.4"),
 
         // Simplified Vapor dependencies
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.83.1")
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.104.0")
     ],
     targets: [
         .target(
@@ -69,6 +70,7 @@ let package = Package(
                 .product(name: "ZIPFoundation", package: "ZIPFoundation"),
                 .product(name: "SWCompression", package: "SWCompression"),
                 .product(name: "BitByteData", package: "BitByteData"),
+                .product(name: "OpenSSL", package: "OpenSSL-Swift-Package"),
 
                 // Server-side components (Simplified)
                 .product(name: "Vapor", package: "vapor"),
