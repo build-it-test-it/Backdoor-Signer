@@ -4,31 +4,49 @@ let project = Project(
     name: "backdoor",
     organizationName: "backdoor",
     packages: [
-        .local(path: ".")  // Using your local Package.swift
+        .local(path: ".") // Using your local Package.swift
     ],
     settings: .settings(
-        base: ["DEVELOPMENT_TEAM": "B2D4G5"],
+        base: [
+            "MARKETING_VERSION": "1.4.1",
+            "CURRENT_PROJECT_VERSION": "6",
+            "INFOPLIST_KEY_CFBundleDisplayName": "backdoor",
+            "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.utilities",
+            "INFOPLIST_KEY_NSHumanReadableCopyright": "Copyright (c) 2025 Joseph C (backdoor)",
+            "SWIFT_VERSION": "5.0"
+        ],
         configurations: [
-            .debug(name: "Debug"),
-            .release(name: "Release")
+            .debug(name: "Debug", settings: [
+                "SWIFT_OPTIMIZATION_LEVEL": "-Onone",
+                "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "",
+                "GCC_OPTIMIZATION_LEVEL": "0"
+            ]),
+            .release(name: "Release", settings: [
+                "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "",
+                "SWIFT_COMPILATION_MODE": "wholemodule"
+            ])
         ]
     ),
     targets: [
         .target(
             name: "backdoor",
-            platform: .iOS,
+            destinations: [.iPhone, .iPad], // Correct destinations for iOS devices
             product: .app,
             bundleId: "com.bdg.backdoor",
-            deploymentTarget: .iOS(targetVersion: "15.0", devices: [.iphone, .ipad]),
+            deploymentTargets: .iOS("15.0"), // Correct syntax for iOS 15.0
             infoPlist: .file(path: "iOS/Info.plist"),
-            sources: ["iOS/**"],
-            resources: ["iOS/Resources/**"],
-            entitlements: "iOS/backdoor.entitlements",
-            scripts: [
-                // Add any build scripts you need here
+            sources: ["iOS/**", "Shared/**"],
+            resources: [
+                "iOS/Resources/**",
+                "Shared/Localizations/**/*.strings"
             ],
+            headers: .headers(
+                public: [],
+                private: [],
+                project: ["Shared/Magic/backdoor-Bridging-Header.h"]
+            ),
+            entitlements: .file(path: "iOS/backdoor.entitlements"), // Use .file for entitlements
             dependencies: [
-                // Reference all the package products you need
                 .package(product: "Nuke"),
                 .package(product: "NukeUI"),
                 .package(product: "NukeExtensions"),
@@ -37,39 +55,36 @@ let project = Project(
                 .package(product: "AlertKit"),
                 .package(product: "ZIPFoundation"),
                 .package(product: "SWCompression"),
-                .package(product: "BitByteData"),
                 .package(product: "Vapor"),
-                .package(product: "CryptoSwift"),
-                .package(product: "SnapKit"),
-                .package(product: "Lottie"),
-                .package(product: "Moya"),
-                .package(product: "RswiftLibrary"),
-                .package(product: "SSNaturalLanguage"),
-                .package(product: "NIO"),
-                .package(product: "NIOTransportServices"),
-                .package(product: "Logging"),
-                .package(product: "Algorithms"),
-                .package(product: "Collections"),
-                // Add any other dependencies from your Package.swift
-            ]
+                .package(product: "OpenSSL")
+            ],
+            settings: .settings(
+                base: [
+                    "SWIFT_OBJC_BRIDGING_HEADER": "Shared/Magic/backdoor-Bridging-Header.h",
+                    "LIBRARY_SEARCH_PATHS": "$(inherited) $(PROJECT_DIR)/Shared/Magic $(PROJECT_DIR)/Shared/Resources",
+                    "SUPPORTS_MACCATALYST": "NO",
+                    "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD": "YES",
+                    "OTHER_CPLUSPLUSFLAGS[arch=*]": "$(OTHER_CFLAGS) -w -Wno-everything"
+                ]
+            )
         )
     ],
     schemes: [
         .scheme(
             name: "backdoor (Debug)",
             shared: true,
-            buildAction: .buildAction(targets: ["backdoor"]),
+            buildAction: .buildAction(targets: [.init(stringLiteral: "backdoor")]),
             testAction: .targets([]),
-            runAction: .runAction(configuration: "Debug"),
-            archiveAction: .archiveAction(configuration: "Debug")
+            runAction: .runAction(configuration: .custom("Debug")),
+            archiveAction: .archiveAction(configuration: .custom("Debug"))
         ),
         .scheme(
             name: "backdoor (Release)",
             shared: true,
-            buildAction: .buildAction(targets: ["backdoor"]),
+            buildAction: .buildAction(targets: [.init(stringLiteral: "backdoor")]),
             testAction: .targets([]),
-            runAction: .runAction(configuration: "Release"),
-            archiveAction: .archiveAction(configuration: "Release")
+            runAction: .runAction(configuration: .custom("Release")),
+            archiveAction: .archiveAction(configuration: .custom("Release"))
         )
     ]
 )
