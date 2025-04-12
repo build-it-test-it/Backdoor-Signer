@@ -31,10 +31,9 @@ let project = Project(
     targets: [
         .target(
             name: "backdoor",
-            platform: .iOS,
             product: .app,
             bundleId: "com.bdg.backdoor",
-            deploymentTarget: .iOS(targetVersion: "15.0", devices: [.iphone, .ipad]),
+            deploymentTarget: DeploymentTarget.iOS(targetVersion: "15.0"),
             infoPlist: .file(path: "iOS/Info.plist"),
             sources: ["iOS/**", "Shared/**"],
             resources: [
