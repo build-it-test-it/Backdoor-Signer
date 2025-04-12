@@ -30,10 +30,10 @@ let project = Project(
     targets: [
         .target(
             name: "backdoor",
-            destinations: [.iPhone, .iPad], // Added destinations
+            destinations: [.iPhone, .iPad], // Correct destinations for iOS devices
             product: .app,
             bundleId: "com.bdg.backdoor",
-            deploymentTargets: .iOS("15.0"), // Corrected syntax
+            deploymentTargets: .iOS("15.0"), // Correct syntax for iOS 15.0
             infoPlist: .file(path: "iOS/Info.plist"),
             sources: ["iOS/**", "Shared/**"],
             resources: [
@@ -45,7 +45,7 @@ let project = Project(
                 private: [],
                 project: ["Shared/Magic/backdoor-Bridging-Header.h"]
             ),
-            entitlements: "iOS/backdoor.entitlements",
+            entitlements: .file(path: "iOS/backdoor.entitlements"), // Use .file for entitlements
             dependencies: [
                 .package(product: "Nuke"),
                 .package(product: "NukeUI"),
@@ -73,18 +73,18 @@ let project = Project(
         .scheme(
             name: "backdoor (Debug)",
             shared: true,
-            buildAction: .buildAction(targets: ["backdoor"]),
+            buildAction: .buildAction(targets: [.init(stringLiteral: "backdoor")]),
             testAction: .targets([]),
-            runAction: .runAction(configuration: "Debug"),
-            archiveAction: .archiveAction(configuration: "Debug")
+            runAction: .runAction(configuration: .custom("Debug")),
+            archiveAction: .archiveAction(configuration: .custom("Debug"))
         ),
         .scheme(
             name: "backdoor (Release)",
             shared: true,
-            buildAction: .buildAction(targets: ["backdoor"]),
+            buildAction: .buildAction(targets: [.init(stringLiteral: "backdoor")]),
             testAction: .targets([]),
-            runAction: .runAction(configuration: "Release"),
-            archiveAction: .archiveAction(configuration: "Release")
+            runAction: .runAction(configuration: .custom("Release")),
+            archiveAction: .archiveAction(configuration: .custom("Release"))
         )
     ]
 )
