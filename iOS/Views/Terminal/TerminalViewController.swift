@@ -7,6 +7,27 @@
 
 import UIKit
 
+// MARK: - WebDAV Models
+struct WebDAVCredentials: Codable {
+    let url: String
+    let username: String
+    let password: String
+    let protocol: String
+}
+
+struct WebDAVResponse: Codable {
+    let credentials: WebDAVCredentials
+    let instructions: [String]
+    let clients: WebDAVClients?
+}
+
+struct WebDAVClients: Codable {
+    let ios: [String]?
+    let macos: [String]?
+    let windows: [String]?
+    let android: [String]?
+}
+
 class TerminalViewController: UIViewController {
     // MARK: - UI Components
     private let terminalOutputTextView = TerminalTextView()
@@ -275,7 +296,16 @@ class TerminalViewController: UIViewController {
         )
         wsButton.accessibilityLabel = isWebSocketConnected ? "Disable WebSocket" : "Enable WebSocket"
         
-        toolbar.items = [clearButton, flexSpace, historyUpButton, historyDownButton, flexSpace, tabButton, flexSpace, ctrlCButton, flexSpace, wsButton]
+        // NEW: Added View Files button
+        let viewFilesButton = UIBarButtonItem(
+            image: UIImage(systemName: "folder"),
+            style: .plain,
+            target: self,
+            action: #selector(viewFiles)
+        )
+        viewFilesButton.accessibilityLabel = "View Files"
+        
+        toolbar.items = [clearButton, flexSpace, historyUpButton, historyDownButton, flexSpace, tabButton, flexSpace, ctrlCButton, flexSpace, viewFilesButton, flexSpace, wsButton]
         toolbar.sizeToFit()
         commandInputView.inputAccessoryView = toolbar
     }
@@ -561,6 +591,252 @@ class TerminalViewController: UIViewController {
         // Dismiss the terminal view controller
         dismiss(animated: true)
     }
+    
+    // MARK: - WebDAV File Access
+    
+    /// Opens Files app with WebDAV connection to view terminal files
+    @objc private func viewFiles() {
+        // Show loading indicator
+        activityIndicator.startAnimating()
+        
+        // Get WebDAV credentials for the current session
+        getWebDAVCredentials { [weak self] result in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+                
+                switch result {
+                case .success(let credentials):
+                    // Open Files app with WebDAV connection
+                    self.openWebDAVLocation(credentials: credentials)
+                    
+                case .failure(let error):
+                    // Show error alert
+                    self.showErrorAlert(title: "Failed to Access Files", message: error.localizedDescription)
+                    self.logger.log(message: "WebDAV access error: \(error.localizedDescription)", type: .error)
+                }
+            }
+        }
+    }
+    
+    /// Fetches WebDAV credentials from the server
+    private func getWebDAVCredentials(completion: @escaping (Result<WebDAVCredentials, Error>) -> Void) {
+        // First ensure we have a session
+        TerminalService.shared.getCurrentSessionId { [weak self] sessionId in
+            guard let self = self else { return }
+            guard let sessionId = sessionId else {
+                completion(.failure(NSError(domain: "terminal", code: 1, userInfo: [NSLocalizedDescriptionKey: "No active terminal session"])))
+                return
+            }
+            
+            self.logger.log(message: "Fetching WebDAV credentials for session \(sessionId)", type: .info)
+            
+            // Get base URL from TerminalService
+            guard let baseURL = TerminalService.shared.baseURL else {
+                completion(.failure(NSError(domain: "terminal", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid server URL"])))
+                return
+            }
+            
+            // Create URL for WebDAV credentials
+            guard let url = URL(string: "\(baseURL)/api/webdav/credentials?session_id=\(sessionId)") else {
+                completion(.failure(NSError(domain: "terminal", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid URL for WebDAV credentials"])))
+                return
+            }
+            
+            // Create request
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            
+            // Send request
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    self.logger.log(message: "Network error fetching WebDAV credentials: \(error.localizedDescription)", type: .error)
+                    completion(.failure(error))
+                    return
+                }
+                
+                guard let data = data else {
+                    completion(.failure(NSError(domain: "terminal", code: 3, userInfo: [NSLocalizedDescriptionKey: "No data received from server"])))
+                    return
+                }
+                
+                do {
+                    let decoder = JSONDecoder()
+                    let webDAVResponse = try decoder.decode(WebDAVResponse.self, from: data)
+                    self.logger.log(message: "Successfully fetched WebDAV credentials", type: .info)
+                    completion(.success(webDAVResponse.credentials))
+                } catch {
+                    self.logger.log(message: "Error parsing WebDAV credentials: \(error.localizedDescription)", type: .error)
+                    completion(.failure(error))
+                }
+            }.resume()
+        }
+    }
+    
+    /// Opens the WebDAV location in Files app
+    private func openWebDAVLocation(credentials: WebDAVCredentials) {
+        // Create WebDAV URL with embedded credentials
+        guard var urlComponents = URLComponents(string: credentials.url) else {
+            showErrorAlert(title: "Invalid URL", message: "The WebDAV URL provided by the server is invalid.")
+            return
+        }
+        
+        // Add credentials to URL for auto-login
+        urlComponents.user = credentials.username
+        urlComponents.password = credentials.password
+        
+        guard let finalURL = urlComponents.url else {
+            showErrorAlert(title: "Invalid URL", message: "Could not create WebDAV URL with credentials.")
+            return
+        }
+        
+        logger.log(message: "Opening WebDAV location: \(credentials.url) (credentials hidden)", type: .info)
+        
+        // Try to open the URL directly (iOS 13+ can handle webdav:// URLs)
+        if UIApplication.shared.canOpenURL(finalURL) {
+            UIApplication.shared.open(finalURL, options: [:]) { success in
+                if !success {
+                    self.showWebDAVInstructions(credentials: credentials)
+                }
+            }
+        } else {
+            // Try to create a WebDAV bookmark file
+            createWebDAVBookmark(for: finalURL) { [weak self] result in
+                guard let self = self else { return }
+                
+                switch result {
+                case .success(let bookmarkURL):
+                    // Try to open the bookmark file
+                    UIApplication.shared.open(bookmarkURL, options: [:]) { success in
+                        if !success {
+                            // If all fails, show manual instructions
+                            self.showWebDAVInstructions(credentials: credentials)
+                        }
+                    }
+                    
+                case .failure:
+                    // Show manual instructions if bookmark creation fails
+                    self.showWebDAVInstructions(credentials: credentials)
+                }
+            }
+        }
+    }
+    
+    /// Creates a temporary WebDAV bookmark file
+    private func createWebDAVBookmark(for url: URL, completion: @escaping (Result<URL, Error>) -> Void) {
+        let tempDir = FileManager.default.temporaryDirectory
+        let bookmarkFile = tempDir.appendingPathComponent("webdav_bookmark.webdavloc")
+        
+        let plistContent = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>URL</key>
+            <string>\(url.absoluteString)</string>
+        </dict>
+        </plist>
+        """
+        
+        do {
+            try plistContent.write(to: bookmarkFile, atomically: true, encoding: .utf8)
+            completion(.success(bookmarkFile))
+        } catch {
+            logger.log(message: "Error creating WebDAV bookmark: \(error.localizedDescription)", type: .error)
+            completion(.failure(error))
+        }
+    }
+    
+    /// Show instructions for manually connecting to WebDAV
+    private func showWebDAVInstructions(credentials: WebDAVCredentials) {
+        // Create alert with instructions and credentials
+        let alert = UIAlertController(
+            title: "Connect to Files",
+            message: """
+            To access your terminal files:
+            
+            1. Open the Files app
+            2. Tap Browse > Three dots (•••) > Connect to Server
+            3. Enter the following:
+               
+               URL: \(credentials.url)
+               Username: \(credentials.username)
+               Password: \(credentials.password)
+            """,
+            preferredStyle: .alert
+        )
+        
+        // Add copy buttons for convenience
+        alert.addAction(UIAlertAction(title: "Copy URL", style: .default) { _ in
+            UIPasteboard.general.string = credentials.url
+            self.showToast(message: "URL copied to clipboard")
+        })
+        
+        alert.addAction(UIAlertAction(title: "Copy Username", style: .default) { _ in
+            UIPasteboard.general.string = credentials.username
+            self.showToast(message: "Username copied to clipboard")
+        })
+        
+        alert.addAction(UIAlertAction(title: "Copy Password", style: .default) { _ in
+            UIPasteboard.general.string = credentials.password
+            self.showToast(message: "Password copied to clipboard")
+        })
+        
+        // Add option to open Files app
+        alert.addAction(UIAlertAction(title: "Open Files App", style: .default) { _ in
+            let filesAppURL = URL(string: "shareddocuments://")!
+            if UIApplication.shared.canOpenURL(filesAppURL) {
+                UIApplication.shared.open(filesAppURL, options: [:], completionHandler: nil)
+            }
+        })
+        
+        alert.addAction(UIAlertAction(title: "Close", style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// Show a quick toast message
+    private func showToast(message: String) {
+        let toastLabel = UILabel()
+        toastLabel.backgroundColor = UIColor.black.withAlphaComponent(0.7)
+        toastLabel.textColor = .white
+        toastLabel.textAlignment = .center
+        toastLabel.font = UIFont.systemFont(ofSize: 14)
+        toastLabel.text = message
+        toastLabel.alpha = 0
+        toastLabel.layer.cornerRadius = 10
+        toastLabel.clipsToBounds = true
+        toastLabel.numberOfLines = 0
+        
+        view.addSubview(toastLabel)
+        toastLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            toastLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -100),
+            toastLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            toastLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            toastLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 40)
+        ])
+        
+        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+            toastLabel.alpha = 1
+        }, completion: { _ in
+            UIView.animate(withDuration: 0.5, delay: 1.5, options: .curveEaseInOut, animations: {
+                toastLabel.alpha = 0
+            }, completion: { _ in
+                toastLabel.removeFromSuperview()
+            })
+        })
+    }
+    
+    /// Show error alert
+    private func showErrorAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
 }
 
 // MARK: - UITextFieldDelegate
@@ -572,5 +848,30 @@ extension TerminalViewController: UITextFieldDelegate {
             textField.text = ""
         }
         return false
+    }
+}
+
+// MARK: - TerminalService Extensions
+extension TerminalService {
+    /// Get the current session ID
+    func getCurrentSessionId(completion: @escaping (String?) -> Void) {
+        // Get current session ID from the service
+        // This is a placeholder method - implement according to your TerminalService
+        // It should return the active session ID or fetch it if needed
+        
+        if let currentSessionId = self.currentSessionId {
+            completion(currentSessionId)
+            return
+        }
+        
+        // If no current session, create one
+        createSession { result in
+            switch result {
+            case .success(let sessionId):
+                completion(sessionId)
+            case .failure:
+                completion(nil)
+            }
+        }
     }
 }
