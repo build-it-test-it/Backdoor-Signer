@@ -4,7 +4,7 @@ let project = Project(
     name: "backdoor",
     organizationName: "backdoor",
     packages: [
-        .local(path: ".") // Using your local Package.swift
+        .local(path: ".")
     ],
     settings: .settings(
         base: [
@@ -30,10 +30,10 @@ let project = Project(
     targets: [
         .target(
             name: "backdoor",
-            destinations: [.iPhone, .iPad], // Correct destinations for iOS devices
+            destinations: [.iPhone, .iPad],
             product: .app,
             bundleId: "com.bdg.backdoor",
-            deploymentTargets: .iOS("15.0"), // Correct syntax for iOS 15.0
+            deploymentTargets: .iOS("15.0"),
             infoPlist: .file(path: "iOS/Info.plist"),
             sources: ["iOS/**", "Shared/**"],
             resources: [
@@ -45,7 +45,7 @@ let project = Project(
                 private: [],
                 project: ["Shared/Magic/backdoor-Bridging-Header.h"]
             ),
-            entitlements: .file(path: "iOS/backdoor.entitlements"), // Use .file for entitlements
+            entitlements: .file(path: "iOS/backdoor.entitlements"),
             dependencies: [
                 .package(product: "Nuke"),
                 .package(product: "NukeUI"),
@@ -75,16 +75,16 @@ let project = Project(
             shared: true,
             buildAction: .buildAction(targets: [.init(stringLiteral: "backdoor")]),
             testAction: .targets([]),
-            runAction: .runAction(configuration: .custom("Debug")),
-            archiveAction: .archiveAction(configuration: .custom("Debug"))
+            runAction: .runAction(configuration: "Debug"), // Changed to string literal
+            archiveAction: .archiveAction(configuration: "Debug") // Changed to string literal
         ),
         .scheme(
             name: "backdoor (Release)",
             shared: true,
             buildAction: .buildAction(targets: [.init(stringLiteral: "backdoor")]),
             testAction: .targets([]),
-            runAction: .runAction(configuration: .custom("Release")),
-            archiveAction: .archiveAction(configuration: .custom("Release"))
+            runAction: .runAction(configuration: "Release"), // Changed to string literal
+            archiveAction: .archiveAction(configuration: "Release") // Changed to string literal
         )
     ]
 )
