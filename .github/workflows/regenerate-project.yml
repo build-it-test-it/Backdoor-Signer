@@ -32,7 +32,7 @@ jobs:
           tuist generate --no-open
           
       - name: Save regenerated files as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: regenerated-project-files
           path: |
