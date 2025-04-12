@@ -8,7 +8,6 @@ let project = Project(
     ],
     settings: .settings(
         base: [
-            "IPHONEOS_DEPLOYMENT_TARGET": "15.0",
             "MARKETING_VERSION": "1.4.1",
             "CURRENT_PROJECT_VERSION": "6",
             "INFOPLIST_KEY_CFBundleDisplayName": "backdoor",
@@ -34,7 +33,7 @@ let project = Project(
             destinations: [.iPhone, .iPad], // Added destinations
             product: .app,
             bundleId: "com.bdg.backdoor",
-            deploymentTargets: .iOS("15.0"), // Updated syntax
+            deploymentTargets: .iOS("15.0"), // Corrected syntax
             infoPlist: .file(path: "iOS/Info.plist"),
             sources: ["iOS/**", "Shared/**"],
             resources: [
