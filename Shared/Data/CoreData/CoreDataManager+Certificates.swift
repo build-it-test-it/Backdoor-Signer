@@ -513,9 +513,9 @@ extension CoreDataManager {
         }
     }
     
-    /// Clear the update state for a signed app
+    /// Clear the update state for a signed app (alternative implementation)
     /// - Parameter signedApp: The app to update
-    func clearUpdateState(for signedApp: SignedApps) throws {
+    func clearUpdateStateForCertificate(for signedApp: SignedApps) throws {
         let ctx = try context
         
         // Make sure we have the app in the right context
@@ -526,7 +526,7 @@ extension CoreDataManager {
                     domain: "CoreDataManager",
                     code: 1016,
                     userInfo: [NSLocalizedDescriptionKey: "App not found in context"]
-                )
+                ) as Error
             }
             appInContext = fetchedApp
         } else {

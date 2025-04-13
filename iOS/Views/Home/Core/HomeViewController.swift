@@ -331,7 +331,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         activityIndicator.startAnimating()
 
         // Generate a unique name if a file with the same name exists
-        let fileName = getUniqueFileName(for: url.lastPathComponent)
+        let fileName = HomeViewController.getUniqueFileNameShared(for: url.lastPathComponent)
         let destinationURL = documentsDirectory.appendingPathComponent(fileName)
 
         Debug.shared.log(message: "Importing file from \(url.path) to \(destinationURL.path)", type: .info)
@@ -446,11 +446,17 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     /// Generates a unique filename if the original already exists
     /// - Parameter filename: The original filename
     /// - Returns: A unique filename
-    private func getUniqueFileName(for filename: String) -> String {
-        let fileURL = documentsDirectory.appendingPathComponent(filename)
+    // Changed to static method so it can be shared
+    static func getUniqueFileNameShared(for filename: String) -> String {
+        // Get documents directory since we're in a static context
+        guard let documentsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("files") else {
+            return filename + "_unique"
+        }
+        
+        let fileURL = documentsDir.appendingPathComponent(filename)
 
         // If the file doesn't exist, return the original name
-        if !fileManager.fileExists(atPath: fileURL.path) {
+        if !FileManager.default.fileExists(atPath: fileURL.path) {
             return filename
         }
 
@@ -1203,7 +1209,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
                 // Check if destination already exists
                 if self.fileManager.fileExists(atPath: destinationURL.path) {
                     // Create a unique name if needed
-                    let uniqueName = self.getUniqueFileName(for: destinationName)
+                    let uniqueName = HomeViewController.getUniqueFileNameShared(for: destinationName)
                     let uniqueURL = self.documentsDirectory.appendingPathComponent(uniqueName)
 
                     // Create extraction directory

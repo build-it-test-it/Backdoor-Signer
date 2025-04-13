@@ -93,7 +93,10 @@ extension PopupViewController {
             
             // Prevent user from dismissing by dragging (forces use of buttons)
             if hasUpdate {
-                sheet.prefersModalPresentation = true
+                if #available(iOS 15.0, *) {
+                    sheet.prefersGrabberVisible = false
+                    sheet.detents = [.medium()]
+                }
             }
         }
     }
@@ -282,7 +285,14 @@ extension PopupViewController {
                 // Refresh sheet presentation if needed
                 if let presentationController = presentationController as? UISheetPresentationController {
                     // Force update the presentation controller's layout
-                    presentationController.invalidateDetents()
+                    if #available(iOS 16.0, *) {
+                        presentationController.invalidateDetents()
+                    } else {
+                        // Fall back for iOS 15
+                        if let sheet = presentationController as? UISheetPresentationController {
+                            sheet.detents = [.medium(), .large()]
+                        }
+                    }
                 }
                 
                 // Ensure buttons are still correctly displayed
@@ -296,7 +306,14 @@ extension PopupViewController {
         // Fix presentation issues that might occur when app returns to foreground
         if let presentationController = presentationController as? UISheetPresentationController {
             // Force update the presentation controller's layout
-            presentationController.invalidateDetents()
+            if #available(iOS 16.0, *) {
+                presentationController.invalidateDetents()
+            } else {
+                // Fall back for iOS 15
+                if let sheet = presentationController as? UISheetPresentationController {
+                    sheet.detents = [.medium(), .large()]
+                }
+            }
             
             // Ensure buttons are still correctly displayed
             view.setNeedsLayout()
