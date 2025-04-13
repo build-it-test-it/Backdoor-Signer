@@ -427,7 +427,7 @@ class TerminalViewController: UIViewController {
             // Legacy HTTP-based execution without streaming
             logger.log(message: "Executing command via HTTP: \(command)", type: .info)
             
-            TerminalService.shared.executeCommand(command, outputHandler: { _ in }, completion: { [weak self] result in
+            TerminalService.shared.executeCommand(command, outputHandler: { _ in /* No streaming needed here */ }, completion: { [weak self] result in
                 DispatchQueue.main.async {
                     guard let self = self else { return }
                     
@@ -641,9 +641,7 @@ class TerminalViewController: UIViewController {
             
             // Get base URL from TerminalService
             guard let baseURL = TerminalService.shared.baseURL else {
-                if let errorCompletion = completion {
-                    errorCompletion(.failure(NSError(domain: "terminal", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid server URL"])))
-                }
+                completion(.failure(NSError(domain: "terminal", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid server URL"])))
                 return
             }
             

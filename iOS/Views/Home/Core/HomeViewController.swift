@@ -446,17 +446,18 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     /// Generates a unique filename if the original already exists
     /// - Parameter filename: The original filename
     /// - Returns: A unique filename
-    // Static version of getUniqueFileName
+    // Static version of getUniqueFileName - fully implemented to avoid instance member access
     static func getUniqueFileNameShared(for filename: String) -> String {
-        // Get documents directory since we're in a static context
-        guard let documentsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("files") else {
+        // Get the documents directory in a static-friendly way
+        let fileManager = FileManager.default
+        guard let documentsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("files") else {
             return filename + "_unique"
         }
         
         let fileURL = documentsDir.appendingPathComponent(filename)
 
         // If the file doesn't exist, return the original name
-        if !FileManager.default.fileExists(atPath: fileURL.path) {
+        if !fileManager.fileExists(atPath: fileURL.path) {
             return filename
         }
 
@@ -479,7 +480,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
             } else {
                 newName = "\(baseName) (\(counter)).\(fileExtension)"
             }
-            newURL = documentsDirectory.appendingPathComponent(newName)
+            newURL = documentsDir.appendingPathComponent(newName)
             counter += 1
         } while fileManager.fileExists(atPath: newURL.path)
 

@@ -57,7 +57,8 @@ extension HomeViewController {
     }
     
     /// Fixed implementation for document picker delegate method
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    // Renamed to avoid conflict with base implementation
+    func documentPickerExtension(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         // Enable activity indicator to show loading state
         activityIndicator.startAnimating()
         
@@ -268,8 +269,8 @@ extension HomeViewController {
         }
     }
     
-    /// Override the original importFile to use the enhanced version
-    @objc override func importFile() {
+    /// Alternative implementation of importFile
+    @objc func enhancedImportFileMethod() {
         enhancedImportFile()
     }
 }
