@@ -8,7 +8,6 @@ let package = Package(
         .iOS(.v15)
     ],
     products: [
-        // Define as an executable app target, not a library
         .executable(
             name: "Backdoor",
             targets: ["Backdoor"])
@@ -17,7 +16,7 @@ let package = Package(
         // UI and Image handling
         .package(url: "https://github.com/kean/Nuke.git", from: "12.7.0"),
         .package(url: "https://github.com/sparrowcode/AlertKit.git", from: "5.1.9"),
-        .package(url: "https://github.com/airbnb/lottie-spm.git", from: "4.5.1")
+        .package(url: "https://github.com/airbnb/lottie-spm.git", from: "4.5.1"),
         
         // Onboarding
         .package(url: "https://github.com/khcrysalis/UIOnboarding-18.git", branch: "main"),
@@ -33,7 +32,6 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "4.104.0")
     ],
     targets: [
-        // Define as an executable target since this is an app, not a library
         .executableTarget(
             name: "Backdoor",
             dependencies: [
@@ -43,9 +41,7 @@ let package = Package(
                 .product(name: "NukeExtensions", package: "Nuke"),
                 .product(name: "NukeVideo", package: "Nuke"),
                 .product(name: "AlertKit", package: "AlertKit"),
-                .product(name: "lottie-spm", package: "lottie-spm"),
-                
-                // Onboarding
+                .product(name: "Lottie", package: "lottie-spm"), // Fixed
                 .product(name: "UIOnboarding", package: "UIOnboarding-18"),
                 
                 // File Management
@@ -54,41 +50,29 @@ let package = Package(
                 
                 // Security
                 .product(name: "OpenSSL", package: "OpenSSL-Swift-Package"),
-
+                
                 // Server-side components
                 .product(name: "Vapor", package: "vapor")
             ],
             path: ".",
             exclude: [
-                // Project files
                 "backdoor.xcodeproj",
                 "backdoor.xcworkspace",
-
-                // Documentation
                 "FAQ.md",
                 "CODE_OF_CONDUCT.md",
-
-                // Tools and scripts
                 "scripts",
                 "Makefile",
                 "Clean",
                 "app-repo.json",
-                
-                // Mixed language source files - handled specially
                 "Shared/Magic/openssl_tools.mm",
                 "Shared/Magic/openssl_tools.hpp",
                 "Shared/Magic/zsign",
-
-                // Backup and temporary files
                 "backup",
                 "Project.swift"
             ],
             swiftSettings: [
-                // Debug optimization settings
                 .define("DEBUG", .when(configuration: .debug)),
                 .unsafeFlags(["-Onone"], .when(configuration: .debug)),
-                
-                // Release optimization settings
                 .define("RELEASE", .when(configuration: .release)),
                 .unsafeFlags(["-O"], .when(configuration: .release))
             ]
