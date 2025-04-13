@@ -2,10 +2,16 @@
 import PackageDescription
 
 let package = Package(
-    name: "BackdoorDependencies",
+    name: "Backdoor",
     defaultLocalization: "en",
     platforms: [
         .iOS(.v15)
+    ],
+    products: [
+        // Define as an executable app target, not a library
+        .executable(
+            name: "Backdoor",
+            targets: ["Backdoor"])
     ],
     dependencies: [
         // UI and Image handling
@@ -24,6 +30,69 @@ let package = Package(
 
         // Server-side components
         .package(url: "https://github.com/vapor/vapor.git", from: "4.104.0")
+    ],
+    targets: [
+        // Define as an executable target since this is an app, not a library
+        .executableTarget(
+            name: "Backdoor",
+            dependencies: [
+                // UI and Image handling
+                .product(name: "Nuke", package: "Nuke"),
+                .product(name: "NukeUI", package: "Nuke"),
+                .product(name: "NukeExtensions", package: "Nuke"),
+                .product(name: "NukeVideo", package: "Nuke"),
+                .product(name: "AlertKit", package: "AlertKit"),
+                
+                // Onboarding
+                .product(name: "UIOnboarding", package: "UIOnboarding-18"),
+                
+                // File Management
+                .product(name: "ZIPFoundation", package: "ZIPFoundation"),
+                .product(name: "SWCompression", package: "SWCompression"),
+                
+                // Security
+                .product(name: "OpenSSL", package: "OpenSSL-Swift-Package"),
+
+                // Server-side components
+                .product(name: "Vapor", package: "vapor")
+            ],
+            path: ".",
+            exclude: [
+                // Project files
+                "backdoor.xcodeproj",
+                "backdoor.xcworkspace",
+
+                // Documentation
+                "FAQ.md",
+                "CODE_OF_CONDUCT.md",
+
+                // Tools and scripts
+                "scripts",
+                "Makefile",
+                "Clean",
+                "app-repo.json",
+                "fix_license_headers.sh",
+                "localization_changes.patch",
+
+                // Mixed language source files - handled specially
+                "Shared/Magic/openssl_tools.mm",
+                "Shared/Magic/openssl_tools.hpp",
+                "Shared/Magic/zsign",
+
+                // Backup and temporary files
+                ".project_backup",
+                "Project.swift"
+            ],
+            swiftSettings: [
+                // Debug optimization settings
+                .define("DEBUG", .when(configuration: .debug)),
+                .unsafeFlags(["-Onone"], .when(configuration: .debug)),
+                
+                // Release optimization settings
+                .define("RELEASE", .when(configuration: .release)),
+                .unsafeFlags(["-O"], .when(configuration: .release))
+            ]
+        )
     ],
     swiftLanguageVersions: [.v5]
 )

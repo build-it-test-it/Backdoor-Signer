@@ -48,6 +48,9 @@ let project = Project(
             ),
             entitlements: "iOS/backdoor.entitlements",
             dependencies: [
+                // Reference the executable target from Package.swift
+                .package(product: "Backdoor"),
+                
                 // External dependencies from Package.swift
                 .package(product: "Nuke"),
                 .package(product: "NukeUI"),
