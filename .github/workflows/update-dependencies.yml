@@ -43,7 +43,8 @@ jobs:
       - name: Update dependencies
         run: |
           # Run the dependency script with the default dep-bdg.json file
-          python scripts/add_dependency.py
+          # Include debug flag for detailed output if there are errors
+          python scripts/add_dependency.py --debug
       
       - name: Commit changes if any
         run: |
