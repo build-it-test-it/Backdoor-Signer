@@ -276,6 +276,12 @@ def backup_files():
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     os.makedirs('backups', exist_ok=True)
     
+    # Create .gitignore if it doesn't exist to ensure backups aren't tracked
+    gitignore_path = os.path.join('backups', '.gitignore')
+    if not os.path.exists(gitignore_path):
+        with open(gitignore_path, 'w') as f:
+            f.write("*\n")
+    
     subprocess.run(['cp', PROJECT_FILE, f'backups/project.pbxproj.{timestamp}'])
     subprocess.run(['cp', PACKAGE_RESOLVED_FILE, f'backups/Package.resolved.{timestamp}'])
     
