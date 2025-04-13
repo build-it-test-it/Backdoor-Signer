@@ -78,7 +78,7 @@ let package = Package(
                 "Shared/Magic/zsign",
 
                 // Backup and temporary files
-                "Backup",
+                "backup",
                 "Project.swift"
             ],
             swiftSettings: [
