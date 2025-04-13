@@ -1,20 +1,11 @@
 [
   {
-    "name": "SDWebImage",
-    "url": "https://github.com/SDWebImage/SDWebImage.git",
+    "name": "Lottie",
+    "url": "https://github.com/airbnb/lottie-spm.git",
     "requirement": {
-      "kind": "upToNextMajorVersion",
-      "minimumVersion": "5.18.3"
+      "kind": "branch",
+      "branch": "main"
     },
-    "products": ["SDWebImage", "SDWebImageMapKit"]
-  },
-  {
-    "name": "KeychainAccess",
-    "url": "https://github.com/kishikawakatsumi/KeychainAccess.git",
-    "requirement": {
-      "kind": "exactVersion",
-      "version": "4.2.2"
-    },
-    "products": ["KeychainAccess"]
+    "products": ["Lottie"]
   }
 ]
