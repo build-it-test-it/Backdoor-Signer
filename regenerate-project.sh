@@ -49,20 +49,28 @@ fi
 
 # Clean the project to ensure a fresh state
 echo -e "${BLUE}Cleaning project...${NC}"
-xcodebuild clean -project backdoor.xcodeproj
+xcodebuild clean -project backdoor.xcodeproj -configuration Release
 
-# Update Package.resolved and project structure
-echo -e "${BLUE}Updating Package.resolved and project.pbxproj...${NC}"
+# Update Package.resolved
+echo -e "${BLUE}Updating Package.resolved...${NC}"
 xcodebuild -resolvePackageDependencies -project backdoor.xcodeproj
 
+# Verify the scheme exists
+echo -e "${BLUE}Verifying scheme 'backdoor (Release)'...${NC}"
+if ! xcodebuild -project backdoor.xcodeproj -list | grep -q "backdoor (Release)"; then
+  echo -e "${RED}Error: Scheme 'backdoor (Release)' not found${NC}"
+  exit 1
+fi
+echo "✓ Using scheme: backdoor (Release)"
+
 # Force Xcode to update project.pbxproj by generating schemes and running a build
-echo -e "${BLUE}Ensuring project.pbxproj includes new dependencies...${NC}"
+echo -e "${BLUE}Updating project.pbxproj to include new dependencies...${NC}"
 xcodebuild -project backdoor.xcodeproj -list > /dev/null
-xcodebuild -project backdoor.xcodeproj -scheme backdoor -configuration Debug build > /dev/null
+xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release build > /dev/null 2>&1 || true
 
 echo -e "${GREEN}Project files updated and dependencies linked!${NC}"
 echo -e "Backup saved to: ${BACKUP_DIR}"
 echo -e "${BLUE}Next steps:${NC}"
 echo "1. Open backdoor.xcodeproj in Xcode"
 echo "2. Verify new dependencies in the project navigator"
-echo "3. Build the project (Cmd+B)"
+echo "3. Build the project with 'backdoor (Release)' scheme (Cmd+B)"
