@@ -128,8 +128,9 @@ class EntitlementsEditorViewController: FRSITableViewController {
             textField.applyEntitlementFieldStyle()
             
             // Reduce animation intensity for better readability
-            if let animations = textField.layer.animations {
-                if let borderAnimation = animations["borderColor"] as? CABasicAnimation {
+            if let animationKeys = textField.layer.animationKeys() {
+                if animationKeys.contains("borderColor"), 
+                   let borderAnimation = textField.layer.animation(forKey: "borderColor") as? CABasicAnimation {
                     borderAnimation.fromValue = UIColor.systemBlue.withAlphaComponent(0.2).cgColor
                     borderAnimation.toValue = UIColor.systemBlue.withAlphaComponent(0.4).cgColor
                 }

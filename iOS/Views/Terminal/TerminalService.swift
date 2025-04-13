@@ -24,7 +24,7 @@ class TerminalService {
     static let shared = TerminalService()
     
     // Set your render.com URL here
-    private let baseURL = "https://termux-web-terminal.onrender.com"
+    let baseURL = "https://termux-web-terminal.onrender.com"
     private var sessionId: String?
     private let logger = Debug.shared
     
@@ -32,6 +32,11 @@ class TerminalService {
     private var webSocketTask: URLSessionWebSocketTask?
     private var isWebSocketConnected = false
     private var useWebSockets = true
+    
+    // Public accessor for WebSocket status
+    var isWebSocketActive: Bool {
+        return isWebSocketConnected
+    }
     private var reconnectAttempt = 0
     private let maxReconnectAttempts = 5
     private let session = URLSession(configuration: .default)
@@ -533,6 +538,11 @@ class TerminalService {
                 completion(.success(()))
             }.resume()
         }
+    }
+    
+    /// Alias for terminateSession to maintain backward compatibility
+    func endSession(completion: @escaping (TerminalResult<Void>) -> Void) {
+        terminateSession(completion: completion)
     }
 }
 
