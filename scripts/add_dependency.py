@@ -4,9 +4,10 @@ Script to add Swift Package Manager dependencies to the backdoor.xcodeproj proje
 This script updates both project.pbxproj and Package.resolved files.
 
 Usage:
-    python3 add_dependency.py dependencies.json
+    python3 add_dependency.py [dependencies_file]
 
-Where dependencies.json is a file with the following format:
+Where dependencies_file is a JSON file with dependencies (defaults to dep-bdg.json if not provided).
+The file should have the following format:
 [
     {
         "name": "Example",
@@ -31,6 +32,7 @@ from datetime import datetime
 # Path constants
 PROJECT_FILE = 'backdoor.xcodeproj/project.pbxproj'
 PACKAGE_RESOLVED_FILE = 'backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved'
+DEFAULT_DEPENDENCY_FILE = 'dep-bdg.json'
 
 def generate_uuid_like_id():
     """Generate a UUID-like ID similar to those used in the project file."""
@@ -281,10 +283,19 @@ def backup_files():
 
 def main():
     parser = argparse.ArgumentParser(description='Add Swift Package Manager dependencies to Xcode project')
-    parser.add_argument('dependency_file', help='JSON file containing dependencies to add')
+    parser.add_argument('dependency_file', nargs='?', default=DEFAULT_DEPENDENCY_FILE,
+                       help=f'JSON file containing dependencies to add (defaults to {DEFAULT_DEPENDENCY_FILE})')
     args = parser.parse_args()
     
     try:
+        # Print which file we're using
+        print(f"Using dependency file: {args.dependency_file}")
+        
+        # Check if file exists
+        if not os.path.exists(args.dependency_file):
+            print(f"Error: Dependency file '{args.dependency_file}' not found.")
+            return
+        
         # Load dependencies from the JSON file
         with open(args.dependency_file, 'r') as f:
             dependencies = json.load(f)
@@ -304,6 +315,7 @@ def main():
         
         # Process each dependency
         for dependency in dependencies:
+            print(f"Adding dependency: {dependency['name']}")
             # Update the project file
             project_content = add_to_project_file(project_content, dependency)
             

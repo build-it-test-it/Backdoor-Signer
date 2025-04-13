@@ -17,10 +17,12 @@ show_usage() {
   echo "  --branch BRANCH      The branch name for branch requirement"
   echo "  --revision REVISION  The commit hash for revision requirement"
   echo "  --products PRODUCTS  Comma-separated list of product names to include"
+  echo "  --update-file        Update dep-bdg.json with this dependency instead of using a temporary file"
   echo ""
   echo "Examples:"
   echo "  $0 --name SDWebImage --url https://github.com/SDWebImage/SDWebImage.git --kind upToNextMajorVersion --version 5.18.3 --products SDWebImage,SDWebImageMapKit"
   echo "  $0 --name SwiftUIX --url https://github.com/SwiftUIX/SwiftUIX.git --kind branch --branch main --products SwiftUIX"
+  echo "  $0 --name KeychainAccess --url https://github.com/kishikawakatsumi/KeychainAccess.git --kind exactVersion --version 4.2.2 --products KeychainAccess --update-file"
   exit 1
 }
 
@@ -32,6 +34,7 @@ VERSION=""
 BRANCH=""
 REVISION=""
 PRODUCTS=""
+UPDATE_FILE=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -63,6 +66,10 @@ while [[ $# -gt 0 ]]; do
     --products)
       PRODUCTS="$2"
       shift 2
+      ;;
+    --update-file)
+      UPDATE_FILE=true
+      shift
       ;;
     --help)
       show_usage
@@ -113,82 +120,118 @@ for product in "${PRODUCT_ARRAY[@]}"; do
 done
 PRODUCTS_JSON=$(echo "$PRODUCTS_JSON" | sed 's/\([^,]*\)/"\1"/g')
 
-# Create temporary JSON file
-TEMP_FILE=$(mktemp)
-trap "rm -f $TEMP_FILE" EXIT
-
-# Construct the JSON based on the requirement kind
-if [[ "$KIND" == "upToNextMajorVersion" ]]; then
-  cat > "$TEMP_FILE" << EOF
-[
-  {
-    "name": "$NAME",
-    "url": "$URL",
+# Create dependency JSON
+create_dependency_json() {
+  local json=""
+  
+  if [[ "$KIND" == "upToNextMajorVersion" ]]; then
+    json='{
+    "name": "'$NAME'",
+    "url": "'$URL'",
     "requirement": {
       "kind": "upToNextMajorVersion",
-      "minimumVersion": "$VERSION"
+      "minimumVersion": "'$VERSION'"
     },
-    "products": [$PRODUCTS_JSON]
-  }
-]
-EOF
-elif [[ "$KIND" == "exactVersion" ]]; then
-  cat > "$TEMP_FILE" << EOF
-[
-  {
-    "name": "$NAME",
-    "url": "$URL",
+    "products": ['$PRODUCTS_JSON']
+  }'
+  elif [[ "$KIND" == "exactVersion" ]]; then
+    json='{
+    "name": "'$NAME'",
+    "url": "'$URL'",
     "requirement": {
       "kind": "exactVersion",
-      "version": "$VERSION"
+      "version": "'$VERSION'"
     },
-    "products": [$PRODUCTS_JSON]
-  }
-]
-EOF
-elif [[ "$KIND" == "branch" ]]; then
-  cat > "$TEMP_FILE" << EOF
-[
-  {
-    "name": "$NAME",
-    "url": "$URL",
+    "products": ['$PRODUCTS_JSON']
+  }'
+  elif [[ "$KIND" == "branch" ]]; then
+    json='{
+    "name": "'$NAME'",
+    "url": "'$URL'",
     "requirement": {
       "kind": "branch",
-      "branch": "$BRANCH"
+      "branch": "'$BRANCH'"
     },
-    "products": [$PRODUCTS_JSON]
-  }
-]
-EOF
-elif [[ "$KIND" == "revision" ]]; then
-  cat > "$TEMP_FILE" << EOF
-[
-  {
-    "name": "$NAME",
-    "url": "$URL",
+    "products": ['$PRODUCTS_JSON']
+  }'
+  elif [[ "$KIND" == "revision" ]]; then
+    json='{
+    "name": "'$NAME'",
+    "url": "'$URL'",
     "requirement": {
       "kind": "revision",
-      "revision": "$REVISION"
+      "revision": "'$REVISION'"
     },
-    "products": [$PRODUCTS_JSON]
-  }
-]
-EOF
-fi
+    "products": ['$PRODUCTS_JSON']
+  }'
+  fi
+  
+  echo "$json"
+}
 
-# Print info
-echo "Adding dependency with the following details:"
-echo "  Name: $NAME"
-echo "  URL: $URL"
-echo "  Requirement: $KIND"
-if [[ "$KIND" == "upToNextMajorVersion" || "$KIND" == "exactVersion" ]]; then
-  echo "  Version: $VERSION"
-elif [[ "$KIND" == "branch" ]]; then
-  echo "  Branch: $BRANCH"
-elif [[ "$KIND" == "revision" ]]; then
-  echo "  Revision: $REVISION"
+# Handle updating dep-bdg.json
+if [ "$UPDATE_FILE" = true ]; then
+  DEPENDENCY_FILE="dep-bdg.json"
+  
+  # Create the file if it doesn't exist
+  if [ ! -f "$DEPENDENCY_FILE" ]; then
+    echo "Creating new $DEPENDENCY_FILE file"
+    echo "[]" > "$DEPENDENCY_FILE"
+  fi
+  
+  # Add dependency to the file
+  DEPENDENCY_JSON=$(create_dependency_json)
+  
+  # Use jq if available for pretty formatting, otherwise use a simple approach
+  if command -v jq &> /dev/null; then
+    # Check if the file is empty or contains only whitespace
+    if [ ! -s "$DEPENDENCY_FILE" ] || [ "$(cat "$DEPENDENCY_FILE" | tr -d '[:space:]')" = "" ]; then
+      echo "[$DEPENDENCY_JSON]" | jq '.' > "$DEPENDENCY_FILE"
+    else
+      # Use jq to add the dependency
+      TEMP_CONTENT=$(cat "$DEPENDENCY_FILE" | jq ". += [$DEPENDENCY_JSON]")
+      echo "$TEMP_CONTENT" > "$DEPENDENCY_FILE"
+    fi
+  else
+    # Simple approach without jq
+    if [ "$(cat "$DEPENDENCY_FILE" | tr -d '[:space:]')" = "[]" ]; then
+      # File is empty or just contains []
+      echo "[$DEPENDENCY_JSON]" > "$DEPENDENCY_FILE"
+    else
+      # Append to existing array
+      # Remove the closing bracket, add a comma and the new dependency, then close the array
+      sed -i.bak '$s/]$/,/' "$DEPENDENCY_FILE"
+      echo "$DEPENDENCY_JSON]" >> "$DEPENDENCY_FILE"
+      rm -f "${DEPENDENCY_FILE}.bak"
+    fi
+  fi
+  
+  echo "Updated $DEPENDENCY_FILE with dependency: $NAME"
+  
+  # Run the Python script with the updated file
+  python scripts/add_dependency.py "$DEPENDENCY_FILE"
+else
+  # Create temporary JSON file
+  TEMP_FILE=$(mktemp)
+  trap "rm -f $TEMP_FILE" EXIT
+  
+  # Create temp file with a single dependency
+  echo "[$(create_dependency_json)]" > "$TEMP_FILE"
+  
+  # Print info
+  echo "Adding dependency with the following details:"
+  echo "  Name: $NAME"
+  echo "  URL: $URL"
+  echo "  Requirement: $KIND"
+  if [[ "$KIND" == "upToNextMajorVersion" || "$KIND" == "exactVersion" ]]; then
+    echo "  Version: $VERSION"
+  elif [[ "$KIND" == "branch" ]]; then
+    echo "  Branch: $BRANCH"
+  elif [[ "$KIND" == "revision" ]]; then
+    echo "  Revision: $REVISION"
+  fi
+  echo "  Products: ${PRODUCTS_JSON//\"/}"
+  
+  # Run the Python script with the temporary file
+  python scripts/add_dependency.py "$TEMP_FILE"
 fi
-echo "  Products: ${PRODUCTS_JSON//\"/}"
-
-# Run the Python script with the temporary file
-python scripts/add_dependency.py "$TEMP_FILE"

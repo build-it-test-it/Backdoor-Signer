@@ -1,0 +1,55 @@
+name: Update Project Dependencies
+
+on:
+  # Run when the dep-bdg.json file is changed
+  push:
+    paths:
+      - 'dep-bdg.json'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update of dependencies regardless of changes'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  update-dependencies:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          pip install uuid
+
+      - name: Update dependencies
+        run: |
+          # Run the dependency script with the default dep-bdg.json file
+          python scripts/add_dependency.py
+      
+      - name: Commit changes if any
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Check if there are changes
+          if [[ $(git status --porcelain) ]]; then
+            git add backdoor.xcodeproj/project.pbxproj
+            git add backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+            git commit -m "Update Swift package dependencies from dep-bdg.json"
+            git push
+          else
+            echo "No changes to commit"
+          fi
