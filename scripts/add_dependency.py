@@ -25,6 +25,7 @@ import argparse
 import json
 import os
 import re
+import sys
 import uuid
 import subprocess
 from datetime import datetime
@@ -153,13 +154,42 @@ def add_to_project_file(project_content, dependency):
     insert_position = product_dependency_section_end.start()
     project_content = project_content[:insert_position] + product_dependencies + project_content[insert_position:]
     
-    # Find the PBXFrameworksBuildPhase section
-    frameworks_section = re.search(r'\/\* Frameworks \*\/,\s*\{\s*isa = PBXFrameworksBuildPhase;[^;]*files = \(\s*([^;]*)\s*\);', project_content)
-    if not frameworks_section:
-        raise Exception("Could not find PBXFrameworksBuildPhase section")
+    # Find the PBXFrameworksBuildPhase section using a more robust approach
+    # First, find the begin marker for the PBXFrameworksBuildPhase section
+    frameworks_begin = re.search(r'\/\* Begin PBXFrameworksBuildPhase section \*\/', project_content)
+    frameworks_end = re.search(r'\/\* End PBXFrameworksBuildPhase section \*\/', project_content)
+    
+    if not frameworks_begin or not frameworks_end:
+        print("Project structure diagnostic information:")
+        print(f"Found Begin PBXFrameworksBuildPhase: {frameworks_begin is not None}")
+        print(f"Found End PBXFrameworksBuildPhase: {frameworks_end is not None}")
+        # Look for similar sections to help with debugging
+        other_sections = re.findall(r'\/\* Begin ([A-Za-z]+) section \*\/', project_content)
+        print(f"Found these sections: {', '.join(other_sections)}")
+        raise Exception("Could not find PBXFrameworksBuildPhase section markers")
+    
+    # Extract the frameworks section content
+    frameworks_section_content = project_content[frameworks_begin.end():frameworks_end.start()]
+    
+    # Find the build phase for the main target
+    # This is more flexible than the previous approach
+    build_phase_match = re.search(r'([A-F0-9]+)\s+\/\*\s*Frameworks\s*\*\/\s+=\s+\{\s*isa\s+=\s+PBXFrameworksBuildPhase;[^{]*files\s+=\s+\(\s*(.*?)\s*\);', 
+                                 frameworks_section_content, re.DOTALL)
+    
+    if not build_phase_match:
+        # Alternative pattern, try a more general match
+        build_phase_match = re.search(r'([A-F0-9]+).*?isa\s+=\s+PBXFrameworksBuildPhase;.*?files\s+=\s+\(\s*(.*?)\s*\);', 
+                                     frameworks_section_content, re.DOTALL)
+    
+    if not build_phase_match:
+        print("Failed to find framework build phase. Section content:")
+        print(frameworks_section_content[:500] + "..." if len(frameworks_section_content) > 500 else frameworks_section_content)
+        raise Exception("Could not find PBXFrameworksBuildPhase files section")
+    
+    build_phase_id = build_phase_match.group(1)
+    frameworks_list = build_phase_match.group(2)
     
     # Add the products to the frameworks build phase
-    frameworks_list = frameworks_section.group(1)
     frameworks_entries = ""
     
     for product_id, product in product_ids:
@@ -173,11 +203,27 @@ def add_to_project_file(project_content, dependency):
         # If no frameworks yet, just add the new ones
         new_frameworks_list = frameworks_entries.lstrip()
     
-    project_content = re.sub(
-        r'(\/\* Frameworks \*\/,\s*\{\s*isa = PBXFrameworksBuildPhase;[^;]*files = \()\s*([^;]*)\s*(\);)',
-        lambda m: f"{m.group(1)}{new_frameworks_list}{m.group(3)}",
-        project_content
-    )
+    # Replace the old files list with the new one
+    # This is more robust as it matches the exact pattern we found
+    old_files_section = f"files = (\n\t\t\t\t{frameworks_list}\n\t\t\t);"
+    new_files_section = f"files = (\n\t\t\t\t{new_frameworks_list}\n\t\t\t);"
+    
+    project_content = project_content.replace(old_files_section, new_files_section)
+    
+    # If the exact replacement failed, try a more flexible approach
+    if old_files_section not in project_content:
+        # Create a more flexible pattern with a regex
+        pattern = re.compile(r'(files\s+=\s+\()(\s*.*?\s*)(\);)', re.DOTALL)
+        # Replace within the PBXFrameworksBuildPhase section
+        section_start = project_content.find("/* Begin PBXFrameworksBuildPhase section */")
+        section_end = project_content.find("/* End PBXFrameworksBuildPhase section */", section_start)
+        
+        if section_start != -1 and section_end != -1:
+            section = project_content[section_start:section_end]
+            updated_section = pattern.sub(lambda m: f"{m.group(1)}\n\t\t\t\t{new_frameworks_list}\n\t\t\t{m.group(3)}", section)
+            project_content = project_content[:section_start] + updated_section + project_content[section_end:]
+        else:
+            raise Exception("Could not find PBXFrameworksBuildPhase section boundaries for flexible replacement")
     
     # Add PBXBuildFile entries for the products
     build_file_section_end = re.search(r'\/\* End PBXBuildFile section \*\/', project_content)
@@ -291,6 +337,8 @@ def main():
     parser = argparse.ArgumentParser(description='Add Swift Package Manager dependencies to Xcode project')
     parser.add_argument('dependency_file', nargs='?', default=DEFAULT_DEPENDENCY_FILE,
                        help=f'JSON file containing dependencies to add (defaults to {DEFAULT_DEPENDENCY_FILE})')
+    parser.add_argument('--debug', action='store_true', 
+                       help='Enable debug mode with more detailed output')
     args = parser.parse_args()
     
     try:
@@ -317,16 +365,46 @@ def main():
         
         # Read the current project file and package resolved
         project_content = read_project_file()
+        
+        # Debug: Print project file structure if debug mode is enabled
+        if args.debug:
+            print("\n--- Project Structure Analysis ---")
+            sections = re.findall(r'\/\* Begin ([A-Za-z]+) section \*\/', project_content)
+            print(f"Detected sections: {', '.join(sections)}")
+            
+            # Look for PBXFrameworksBuildPhase specifically
+            framework_section = re.search(r'\/\* Begin PBXFrameworksBuildPhase section \*\/(.*?)\/\* End PBXFrameworksBuildPhase section \*\/', 
+                                          project_content, re.DOTALL)
+            if framework_section:
+                print("\nPBXFrameworksBuildPhase section found:")
+                print(framework_section.group(1)[:300] + "..." if len(framework_section.group(1)) > 300 else framework_section.group(1))
+            else:
+                print("\nPBXFrameworksBuildPhase section NOT found!")
+        
         package_data = read_package_resolved()
         
         # Process each dependency
         for dependency in dependencies:
             print(f"Adding dependency: {dependency['name']}")
             # Update the project file
-            project_content = add_to_project_file(project_content, dependency)
+            try:
+                project_content = add_to_project_file(project_content, dependency)
+            except Exception as e:
+                print(f"Error adding {dependency['name']} to project file: {str(e)}")
+                if args.debug:
+                    import traceback
+                    traceback.print_exc()
+                raise
             
             # Update the package resolved
-            package_data = add_to_package_resolved(package_data, dependency)
+            try:
+                package_data = add_to_package_resolved(package_data, dependency)
+            except Exception as e:
+                print(f"Error adding {dependency['name']} to Package.resolved: {str(e)}")
+                if args.debug:
+                    import traceback
+                    traceback.print_exc()
+                raise
         
         # Write the updated files
         write_project_file(project_content)
@@ -339,6 +417,17 @@ def main():
         print(f"Error adding dependencies: {e}")
         import traceback
         traceback.print_exc()
+        
+        # Print additional diagnostic info in case of error
+        print("\n--- Diagnostic Information ---")
+        print(f"Python version: {sys.version}")
+        print(f"Operating system: {os.name} - {sys.platform}")
+        print(f"Working directory: {os.getcwd()}")
+        print(f"File exists - project.pbxproj: {os.path.exists(PROJECT_FILE)}")
+        print(f"File exists - Package.resolved: {os.path.exists(PACKAGE_RESOLVED_FILE)}")
+        print(f"File exists - {args.dependency_file}: {os.path.exists(args.dependency_file)}")
+        
+        sys.exit(1)  # Exit with error code
 
 if __name__ == '__main__':
     main()
