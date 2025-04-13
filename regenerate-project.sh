@@ -31,6 +31,44 @@ if [ ! -d "backdoor.xcodeproj" ]; then
   exit 1
 fi
 
+# Function to parse Package.swift for dependencies
+parse_package_swift() {
+  echo -e "${BLUE}Reading dependencies from Package.swift...${NC}"
+  # Extract package URLs and versions (basic parsing for common formats)
+  grep -E '\.package\(.*\)' Package.swift | while read -r line; do
+    # Extract URL
+    url=$(echo "$line" | grep -o 'url: *"[a-zA-Z0-9:/.-]*"' | sed 's/url: *"\(.*\)"/\1/')
+    # Extract version or branch (from, exact, branch, etc.)
+    version=$(echo "$line" | grep -o '\(from: *"[0-9.]*"\|exact: *"[0-9.]*"\|branch: *"[a-zA-Z0-9-]*"\)' | sed 's/.*"\(.*\)"/\1/')
+    if [ -n "$url" ]; then
+      echo "✓ Dependency: $url (Version/Branch: ${version:-unspecified})"
+    fi
+  done
+}
+
+# Function to parse Package.resolved for resolved dependencies
+parse_package_resolved() {
+  if [ -f "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" ]; then
+    echo -e "${BLUE}Reading resolved dependencies from Package.resolved...${NC}"
+    # Extract package names and versions (assuming JSON format)
+    cat "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" | grep -E '"package":|"version":|"repositoryURL":' | while read -r line; do
+      if echo "$line" | grep -q '"package":'; then
+        package=$(echo "$line" | sed 's/.*"package": "\(.*\)",/\1/')
+      elif echo "$line" | grep -q '"version":'; then
+        version=$(echo "$line" | sed 's/.*"version": "\(.*\)",/\1/')
+      elif echo "$line" | grep -q '"repositoryURL":'; then
+        url=$(echo "$line" | sed 's/.*"repositoryURL": "\(.*\)",/\1/')
+        echo "✓ Resolved: $package ($version) from $url"
+      fi
+    done
+  else
+    echo -e "${RED}Package.resolved not found yet${NC}"
+  fi
+}
+
+# Display initial dependencies from Package.swift
+parse_package_swift
+
 # Create backup of current project files
 echo -e "${BLUE}Creating backup of project files...${NC}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -68,9 +106,27 @@ echo -e "${BLUE}Updating project.pbxproj to include new dependencies...${NC}"
 xcodebuild -project backdoor.xcodeproj -list > /dev/null
 xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release build > /dev/null 2>&1 || true
 
-echo -e "${GREEN}Project files updated and dependencies linked!${NC}"
+# Display updated dependencies from Package.resolved
+parse_package_resolved
+
+# Save updated files to artifacts directory for GitHub Actions
+echo -e "${BLUE}Saving updated files to artifacts directory...${NC}"
+ARTIFACTS_DIR="artifacts"
+mkdir -p "$ARTIFACTS_DIR"
+if [ -f "backdoor.xcodeproj/project.pbxproj" ]; then
+  cp backdoor.xcodeproj/project.pbxproj "$ARTIFACTS_DIR/"
+  echo "✓ Saved project.pbxproj to $ARTIFACTS_DIR"
+fi
+if [ -f "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" ]; then
+  cp backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved "$ARTIFACTS_DIR/"
+  echo "✓ Saved Package.resolved to $ARTIFACTS_DIR"
+fi
+
+echo -e "${GREEN}Project files updated, dependencies linked, and artifacts saved!${NC}"
 echo -e "Backup saved to: ${BACKUP_DIR}"
+echo -e "Artifacts saved to: ${ARTIFACTS_DIR}"
 echo -e "${BLUE}Next steps:${NC}"
 echo "1. Open backdoor.xcodeproj in Xcode"
 echo "2. Verify new dependencies in the project navigator"
 echo "3. Build the project with 'backdoor (Release)' scheme (Cmd+B)"
+echo "4. Check artifacts in $ARTIFACTS_DIR for CI/CD"
