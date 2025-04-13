@@ -346,6 +346,199 @@ extension CoreDataManager {
         try FileManager.default.removeItem(at: getCertifcatePath(source: app))
         try ctx.save()
     }
+    
+    /// Add to signed apps with proper error handling
+    /// - Parameters:
+    ///   - version: App version
+    ///   - name: App name
+    ///   - bundleidentifier: Bundle identifier
+    ///   - iconURL: URL to app icon
+    ///   - uuid: UUID string
+    ///   - appPath: Path to the app
+    ///   - timeToLive: Certificate expiration date
+    ///   - teamName: Certificate team name
+    ///   - originalSourceURL: Original source URL
+    ///   - completion: Completion handler with result
+    func addToSignedApps(
+        version: String,
+        name: String,
+        bundleidentifier: String,
+        iconURL: String,
+        uuid: String,
+        appPath: String,
+        timeToLive: Date,
+        teamName: String,
+        originalSourceURL: URL?,
+        completion: @escaping (Result<SignedApps, Error>) -> Void
+    ) {
+        do {
+            let ctx = try context
+            let signedApp = SignedApps(context: ctx)
+            signedApp.creationDate = Date()
+            signedApp.version = version
+            signedApp.name = name
+            signedApp.bundleidentifier = bundleidentifier
+            signedApp.iconURL = iconURL
+            signedApp.uuid = uuid
+            signedApp.appPath = appPath
+            signedApp.timeToLive = timeToLive
+            signedApp.teamName = teamName
+            signedApp.originalSourceURL = originalSourceURL
+            
+            try saveContext()
+            completion(.success(signedApp))
+        } catch {
+            Debug.shared.log(message: "addToSignedApps: \(error.localizedDescription)", type: .error)
+            completion(.failure(error))
+        }
+    }
+    
+    /// Add to downloaded apps with proper file management
+    /// - Parameters:
+    ///   - version: App version
+    ///   - name: App name
+    ///   - bundleidentifier: Bundle identifier
+    ///   - iconURL: URL to app icon
+    ///   - uuid: UUID string
+    ///   - appPath: Path to the app
+    ///   - sourceLocation: Source location
+    ///   - completion: Completion handler with result
+    func addToDownloadedApps(
+        version: String,
+        name: String,
+        bundleidentifier: String,
+        iconURL: String,
+        uuid: String,
+        appPath: String,
+        sourceLocation: String? = nil,
+        completion: @escaping (Result<DownloadedApps, Error>) -> Void
+    ) {
+        // Create a new downloaded app in the Core Data context
+        do {
+            let ctx = try context
+            let downloadedApp = DownloadedApps(context: ctx)
+            downloadedApp.creationDate = Date()
+            downloadedApp.version = version
+            downloadedApp.name = name
+            downloadedApp.bundleidentifier = bundleidentifier
+            downloadedApp.iconURL = iconURL
+            downloadedApp.uuid = uuid
+            downloadedApp.appPath = appPath
+            
+            // Store source location if provided
+            if let sourceLocation = sourceLocation {
+                downloadedApp.oSU = sourceLocation
+            }
+            
+            // Ensure the app directory structure is correct
+            try ensureAppDirectoryStructure(uuid: uuid, appPath: appPath)
+            
+            try saveContext()
+            completion(.success(downloadedApp))
+        } catch {
+            Debug.shared.log(message: "addToDownloadedApps: \(error.localizedDescription)", type: .error)
+            completion(.failure(error))
+        }
+    }
+    
+    /// Ensure app directory structure is correctly set up
+    /// - Parameters:
+    ///   - uuid: UUID string for the app
+    ///   - appPath: Path to the app bundle
+    private func ensureAppDirectoryStructure(uuid: String, appPath: String) throws {
+        let fileManager = FileManager.default
+        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        
+        // Create proper directory structure
+        let appDirectory = documentsDirectory.appendingPathComponent("files").appendingPathComponent(uuid)
+        
+        // Ensure app directory exists
+        if !fileManager.fileExists(atPath: appDirectory.path) {
+            try fileManager.createDirectory(at: appDirectory, withIntermediateDirectories: true, attributes: nil)
+        }
+        
+        // Check if the app is in the correct location or needs to be moved
+        let sourceAppURL = documentsDirectory.appendingPathComponent(appPath)
+        let targetAppURL = appDirectory.appendingPathComponent(appPath)
+        
+        if sourceAppURL.path != targetAppURL.path &&
+           fileManager.fileExists(atPath: sourceAppURL.path) &&
+           !fileManager.fileExists(atPath: targetAppURL.path) {
+            
+            // Move the app to the correct location
+            try fileManager.moveItem(at: sourceAppURL, to: targetAppURL)
+            Debug.shared.log(message: "Moved app to correct location: \(targetAppURL.path)", type: .info)
+        }
+    }
+    
+    /// Update a signed app with new data
+    /// - Parameters:
+    ///   - app: The app to update
+    ///   - newTimeToLive: New expiration date
+    ///   - newTeamName: New team name
+    ///   - completion: Completion handler
+    func updateSignedApp(
+        app: SignedApps,
+        newTimeToLive: Date,
+        newTeamName: String,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        do {
+            let ctx = try context
+            
+            // Make sure we have the app in the right context
+            let appInContext: SignedApps
+            if app.managedObjectContext != ctx {
+                guard let fetchedApp = try ctx.existingObject(with: app.objectID) as? SignedApps else {
+                    throw NSError(
+                        domain: "CoreDataManager",
+                        code: 1015,
+                        userInfo: [NSLocalizedDescriptionKey: "App not found in context"]
+                    )
+                }
+                appInContext = fetchedApp
+            } else {
+                appInContext = app
+            }
+            
+            // Update properties
+            appInContext.timeToLive = newTimeToLive
+            appInContext.teamName = newTeamName
+            
+            try saveContext()
+            completion(.success(()))
+        } catch {
+            Debug.shared.log(message: "updateSignedApp: \(error.localizedDescription)", type: .error)
+            completion(.failure(error))
+        }
+    }
+    
+    /// Clear the update state for a signed app
+    /// - Parameter signedApp: The app to update
+    func clearUpdateState(for signedApp: SignedApps) throws {
+        let ctx = try context
+        
+        // Make sure we have the app in the right context
+        let appInContext: SignedApps
+        if signedApp.managedObjectContext != ctx {
+            guard let fetchedApp = try ctx.existingObject(with: signedApp.objectID) as? SignedApps else {
+                throw NSError(
+                    domain: "CoreDataManager",
+                    code: 1016,
+                    userInfo: [NSLocalizedDescriptionKey: "App not found in context"]
+                )
+            }
+            appInContext = fetchedApp
+        } else {
+            appInContext = signedApp
+        }
+        
+        // Clear update state
+        appInContext.setValue(false, forKey: "hasUpdate")
+        appInContext.setValue(nil, forKey: "updateVersion")
+        
+        try saveContext()
+    }
 }
 
 // Extension to add backdoorPath property to Certificate
