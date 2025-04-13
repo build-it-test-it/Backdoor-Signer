@@ -7,7 +7,7 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}=== Project.pbxproj and Package.resolved Regeneration Script ===${NC}"
+echo -e "${BLUE}=== Project.pbxproj and Package.resolved Update Script ===${NC}"
 
 # Make sure we're in the root directory of the project
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -51,12 +51,18 @@ fi
 echo -e "${BLUE}Cleaning project...${NC}"
 xcodebuild clean -project backdoor.xcodeproj
 
-# Update Package.resolved by resolving dependencies
-echo -e "${BLUE}Updating Package.resolved and regenerating project files...${NC}"
+# Update Package.resolved and project structure
+echo -e "${BLUE}Updating Package.resolved and project.pbxproj...${NC}"
 xcodebuild -resolvePackageDependencies -project backdoor.xcodeproj
 
-echo -e "${GREEN}Project files regenerated and dependencies resolved!${NC}"
+# Force Xcode to update project.pbxproj by generating schemes and running a build
+echo -e "${BLUE}Ensuring project.pbxproj includes new dependencies...${NC}"
+xcodebuild -project backdoor.xcodeproj -list > /dev/null
+xcodebuild -project backdoor.xcodeproj -scheme backdoor -configuration Debug build > /dev/null
+
+echo -e "${GREEN}Project files updated and dependencies linked!${NC}"
 echo -e "Backup saved to: ${BACKUP_DIR}"
 echo -e "${BLUE}Next steps:${NC}"
 echo "1. Open backdoor.xcodeproj in Xcode"
-echo "2. Build the project (Cmd+B)"
+echo "2. Verify new dependencies in the project navigator"
+echo "3. Build the project (Cmd+B)"
