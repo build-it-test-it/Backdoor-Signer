@@ -23,9 +23,9 @@ jobs:
         with:
           xcode-version: latest-stable
       
-      - name: Install Tuist
+      - name: Install Tuist via Homebrew
         run: |
-          bash <(curl -Ls https://install.tuist.io)
+          brew install tuist
           
       - name: Generate project files
         run: |

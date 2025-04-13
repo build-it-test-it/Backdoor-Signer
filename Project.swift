@@ -4,11 +4,10 @@ let project = Project(
     name: "backdoor",
     organizationName: "backdoor",
     packages: [
-        .local(path: ".")  // Using your local Package.swift
+        .local(path: ".") // Using local Package.swift
     ],
     settings: .settings(
         base: [
-            "IPHONEOS_DEPLOYMENT_TARGET": "15.0",
             "MARKETING_VERSION": "1.4.1",
             "CURRENT_PROJECT_VERSION": "6",
             "INFOPLIST_KEY_CFBundleDisplayName": "backdoor",
@@ -31,10 +30,10 @@ let project = Project(
     targets: [
         .target(
             name: "backdoor",
-            platform: .iOS,
+            destinations: [.iPhone, .iPad], // Fix: Added required destinations
             product: .app,
             bundleId: "com.bdg.backdoor",
-            deploymentTarget: .iOS(targetVersion: "15.0", devices: [.iphone, .ipad]),
+            deploymentTargets: .iOS("15.0"), // Fix: Corrected from deploymentTarget
             infoPlist: .file(path: "iOS/Info.plist"),
             sources: ["iOS/**", "Shared/**"],
             resources: [
