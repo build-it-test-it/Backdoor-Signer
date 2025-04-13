@@ -625,12 +625,12 @@ extension LibraryViewController {
                         newTimeToLive: expirationDate,
                         newTeamName: teamName,
                         completion: { error in
-                        DispatchQueue.main.async {
-                            self.loaderAlert?.dismiss(animated: true)
-                            backdoor.Debug.shared.log(message: "Resign completed")
-                            self.tableView.reloadRows(at: [indexPath], with: .left)
+                            DispatchQueue.main.async {
+                                self.loaderAlert?.dismiss(animated: true)
+                                backdoor.Debug.shared.log(message: "Resign completed")
+                                self.tableView.reloadRows(at: [indexPath], with: .left)
+                            }
                         }
-                    }
                 }
             }
         } else {

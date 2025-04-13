@@ -446,7 +446,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     /// Generates a unique filename if the original already exists
     /// - Parameter filename: The original filename
     /// - Returns: A unique filename
-    // Changed to static method so it can be shared
+    // Static version of getUniqueFileName
     static func getUniqueFileNameShared(for filename: String) -> String {
         // Get documents directory since we're in a static context
         guard let documentsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("files") else {
@@ -1358,8 +1358,8 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
     // MARK: - UIDocumentPickerDelegate
 
-    // Use override to avoid redeclaration issues with FileUploadFix extension
-    override func documentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    // Implementation for UIDocumentPickerDelegate
+    func documentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         // Handle potentially multiple selected files
         guard !urls.isEmpty else {
             Debug.shared.log(message: "No files selected in document picker", type: .warning)

@@ -84,7 +84,7 @@ extension AppDelegate {
                 
                 // Update the offline signing manager
                 if !isConnected {
-                    offlineManager.validateLocalCertificates()
+                    offlineManager.validateCertificates()
                 }
                 
                 // Notify controllers about the network change
@@ -93,8 +93,8 @@ extension AppDelegate {
                     object: nil,
                     userInfo: [
                         "isConnected": isConnected,
-                        "connectionType": connectionType.rawValue,
-                        "isOfflineSigningAvailable": offlineManager.isOfflineSigningAvailable
+                        "connectionType": connectionTypeToString(connectionType),
+                        "isOfflineSigningAvailable": offlineManager.isOfflineSigningEnabled
                     ]
                 )
             }
@@ -109,6 +109,15 @@ extension AppDelegate {
     
     /// Show an alert for important connection status changes
     private func showNetworkStatusChangeAlert(isConnected: Bool, connectionType: ConnectionType) {
+        // Helper function to convert ConnectionType enum to string
+        func connectionTypeToString(_ type: ConnectionType) -> String {
+            switch type {
+            case .wifi: return "wifi"
+            case .cellular: return "cellular"
+            case .ethernet: return "ethernet"
+            case .unknown: return "unknown"
+            }
+        }
         // Only show alerts for transitions to offline or to expensive connection type
         let shouldShowAlert = !isConnected || connectionType == .cellular
         
@@ -130,7 +139,7 @@ extension AppDelegate {
         )
         
         // Add option to enable/disable offline mode if we're offline
-        if !isConnected && OfflineSigningManager.shared.isOfflineSigningAvailable {
+        if !isConnected && OfflineSigningManager.shared.isOfflineSigningEnabled {
             alert.addAction(UIAlertAction(title: "Enable Offline Mode", style: .default) { _ in
                 OfflineSigningManager.shared.toggleForceOfflineMode(true)
             })
