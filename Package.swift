@@ -71,9 +71,7 @@ let package = Package(
                 "Makefile",
                 "Clean",
                 "app-repo.json",
-                "fix_license_headers.sh",
-                "localization_changes.patch",
-
+                
                 // Mixed language source files - handled specially
                 "Shared/Magic/openssl_tools.mm",
                 "Shared/Magic/openssl_tools.hpp",
