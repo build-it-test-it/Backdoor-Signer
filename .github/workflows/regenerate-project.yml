@@ -23,12 +23,13 @@ jobs:
         with:
           xcode-version: latest-stable
       
-      - name: Install Tuist via Homebrew
+      - name: Install Tuist
         run: |
-          brew install tuist
+          bash <(curl -Ls https://install.tuist.io)
           
       - name: Generate project files
         run: |
+          tuist version
           tuist generate --no-open
           
       - name: Save regenerated files as artifacts
