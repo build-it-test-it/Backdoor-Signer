@@ -54,6 +54,11 @@ struct SigningOptions: Codable {
 
     var forceMinimumVersion: String = "Automatic"
     var forceLightDarkAppearence: String = "Automatic"
+    
+    // Added missing properties
+    var useOfflineCertificates: Bool = false
+    var customEntitlements: [String: Any]? = nil
+    var additionalData: [String: String]? = nil
 }
 
 extension UserDefaults {

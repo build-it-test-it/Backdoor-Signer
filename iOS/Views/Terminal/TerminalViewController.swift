@@ -12,7 +12,14 @@ struct WebDAVCredentials: Codable {
     let url: String
     let username: String
     let password: String
-    let protocol: String
+    let protocolType: String
+    
+    enum CodingKeys: String, CodingKey {
+        case url
+        case username
+        case password
+        case protocolType = "protocol"
+    }
 }
 
 struct WebDAVResponse: Codable {
@@ -397,7 +404,7 @@ class TerminalViewController: UIViewController {
             logger.log(message: "Executing command with WebSocket streaming: \(command)", type: .info)
             
             // Execute with streaming support
-            TerminalService.shared.executeCommand(command, streamHandler: streamHandler) { [weak self] result in
+            TerminalService.shared.executeCommand(command, outputHandler: streamHandler) { [weak self] result in
                 DispatchQueue.main.async {
                     guard let self = self else { return }
                     
