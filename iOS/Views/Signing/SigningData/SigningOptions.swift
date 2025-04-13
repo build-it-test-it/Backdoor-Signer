@@ -57,8 +57,22 @@ struct SigningOptions: Codable {
     
     // Added missing properties
     var useOfflineCertificates: Bool = false
-    var customEntitlements: [String: Any]? = nil
+    
+    // Note: These properties need special handling for Codable conformance
+    private var _customEntitlements: [String: String]? = nil
     var additionalData: [String: String]? = nil
+    
+    // Use computed property for type that doesn't conform to Codable
+    var customEntitlements: [String: Any]? {
+        get {
+            return _customEntitlements as [String: Any]?
+        }
+        set {
+            if let newValue = newValue as? [String: String] {
+                _customEntitlements = newValue
+            }
+        }
+    }
 }
 
 extension UserDefaults {

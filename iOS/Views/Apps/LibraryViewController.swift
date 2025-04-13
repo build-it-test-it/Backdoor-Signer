@@ -527,7 +527,7 @@ extension LibraryViewController {
             guard let self = self else { return }
             self.popupVC.dismiss(animated: true)
             do {
-                try CoreDataManager.shared.clearUpdateState(for: signedApp)
+                try CoreDataManager.shared.clearUpdateStateCompat(for: signedApp)
                 self.tableView.reloadRows(at: [indexPath], with: .none)
             } catch {
                 backdoor.Debug.shared.log(message: "Error clearing update state: \(error)", type: LogType.error)

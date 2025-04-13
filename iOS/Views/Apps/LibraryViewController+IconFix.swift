@@ -85,8 +85,8 @@ extension LibraryViewController {
            let image = UIImage(contentsOfFile: imagePath.path) {
             setImageWithLEDEffect(cell: cell, image: image)
             
-            // Save to CoreData cache for future use
-            CoreDataManager.shared.saveImage(image, at: imagePath)
+            // Save to image cache for future use
+            ImageCache.shared.saveImage(image, for: imagePath)
             return
         }
         

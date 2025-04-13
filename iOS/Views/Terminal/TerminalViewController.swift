@@ -863,11 +863,10 @@ extension TerminalService {
     /// Get the current session ID
     func getCurrentSessionId(completion: @escaping (String?) -> Void) {
         // Get current session ID from the service
-        // This is a placeholder method - implement according to your TerminalService
-        // It should return the active session ID or fetch it if needed
+        // Use the sessionId property directly
         
-        if let currentSessionId = self.currentSessionId {
-            completion(currentSessionId)
+        if let sessionId = self.sessionId {
+            completion(sessionId)
             return
         }
         

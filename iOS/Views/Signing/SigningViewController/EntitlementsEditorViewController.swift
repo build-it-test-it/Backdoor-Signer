@@ -468,17 +468,48 @@ extension Array {
 
 // MARK: - SigningDataWrapper Extension
 
-extension SigningDataWrapper.SigningOptions {
-    /// Custom entitlements dictionary
-    var customEntitlements: [String: Any]? {
-        get {
-            return additionalData["customEntitlements"] as? [String: Any]
+// Extension to provide customEntitlements access
+extension SigningDataWrapper {
+    // Add an accessor to get to the SigningOptions
+    var signingOptionsWithEntitlements: SigningOptions {
+        return signingOptions
+    }
+}
+
+// Helper extension to store entitlements
+extension SigningOptions {
+    /// Helper to access entitlements through additionalData
+    func getEntitlementsFromAdditionalData() -> [String: Any]? {
+        guard let entitlementsJson = additionalData?["customEntitlements"] else {
+            return customEntitlements
         }
-        set {
-            if additionalData == nil {
-                additionalData = [:]
+        
+        if let data = entitlementsJson.data(using: .utf8),
+           let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            return dict
+        }
+        
+        return customEntitlements
+    }
+    
+    /// Helper to store entitlements in additionalData
+    mutating func setEntitlementsToAdditionalData(_ entitlements: [String: Any]?) {
+        if additionalData == nil {
+            additionalData = [:]
+        }
+            // Convert to JSON string for storage
+            if let entitlements = entitlements {
+                do {
+                    let data = try JSONSerialization.data(withJSONObject: entitlements, options: [])
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        additionalData?["customEntitlements"] = jsonString
+                    }
+                } catch {
+                    Debug.shared.log(message: "Failed to serialize entitlements: \(error)", type: .error)
+                }
+            } else {
+                additionalData?["customEntitlements"] = nil
             }
-            additionalData?["customEntitlements"] = newValue
         }
     }
 }

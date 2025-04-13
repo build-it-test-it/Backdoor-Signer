@@ -48,7 +48,12 @@ extension DirectoryViewController {
         // Import file option
         let importAction = UIAlertAction(title: "Import File", style: .default) { [weak self] _ in
             guard let self = self else { return }
-            self.importFile()
+            if let homeVC = self as? HomeViewController {
+                homeVC.importFile()
+            } else {
+                // Handle the case where self is not a HomeViewController
+                Debug.shared.log(message: "importFile called on non-HomeViewController", type: .warning)
+            }
         }
         importAction.setValue(UIImage(systemName: "square.and.arrow.down"), forKey: "image")
 

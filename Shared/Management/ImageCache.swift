@@ -12,6 +12,21 @@ final class ImageCache {
 
     /// Shared instance of the image cache
     static let shared = ImageCache()
+    
+    /// Save an image to the cache for a specific URL
+    /// - Parameters:
+    ///   - image: The image to save
+    ///   - url: The URL associated with the image
+    func saveImage(_ image: UIImage, for url: URL) {
+        // Save to memory cache
+        let key = url.absoluteString as NSString
+        memoryCache.setObject(image, forKey: key)
+        
+        // Save to disk in the background
+        diskQueue.async { [weak self] in
+            self?.saveImageToDisk(image: image, url: url)
+        }
+    }
 
     // MARK: - Cache Storage
 

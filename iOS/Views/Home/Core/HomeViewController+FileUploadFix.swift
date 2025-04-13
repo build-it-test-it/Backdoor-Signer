@@ -153,7 +153,7 @@ extension HomeViewController {
     /// Process a single imported file
     private func processImportedFile(url: URL) throws {
         // Get a unique filename that won't conflict with existing files
-        let fileName = getUniqueFileName(for: url.lastPathComponent)
+        let fileName = HomeViewController.getUniqueFileNameShared(for: url.lastPathComponent)
         let destinationURL = documentsDirectory.appendingPathComponent(fileName)
         
         Debug.shared.log(message: "Processing import: \(url.path) to \(destinationURL.path)", type: .info)
@@ -274,21 +274,28 @@ extension HomeViewController {
     }
 }
 
-/// LED indicator types if not already defined
-fileprivate enum LEDIndicatorType {
-    case success
-    case error
-    case warning
-    case info
-    
-    var backgroundColor: UIColor {
-        switch self {
-        case .success: return UIColor.systemGreen.withAlphaComponent(0.8)
-        case .error: return UIColor.systemRed.withAlphaComponent(0.8)
-        case .warning: return UIColor.systemOrange.withAlphaComponent(0.8)
-        case .info: return UIColor.systemBlue.withAlphaComponent(0.8)
+// Using the LED effect from UIView+LED extension instead
+extension HomeViewController {
+    func showUploadStatusIndicator(type: UploadStatus) {
+        let color: UIColor
+        switch type {
+        case .success: color = UIColor.systemGreen
+        case .error: color = UIColor.systemRed
+        case .warning: color = UIColor.systemOrange
+        case .info: color = UIColor.systemBlue
         }
+        
+        // Apply LED effect using the existing extension
+        self.view.addLEDEffect(color: color, intensity: 0.8, spread: 5, animated: true)
     }
+    
+    enum UploadStatus {
+        case success
+        case error
+        case warning
+        case info
+    }
+}
     
     var glowColor: UIColor {
         switch self {
