@@ -29,6 +29,10 @@ if ! command -v xcodebuild &> /dev/null; then
   exit 1
 fi
 
+# Check Xcode version
+XCODE_VERSION=$(xcodebuild -version | grep Xcode | awk '{print $2}')
+echo -e "${BLUE}Using Xcode version: $XCODE_VERSION${NC}"
+
 # Function to parse Package.swift for dependencies
 parse_package_swift() {
   echo -e "${BLUE}Reading dependencies from Package.swift...${NC}"
@@ -50,6 +54,9 @@ parse_package_swift() {
 # Function to parse Package.resolved for resolved dependencies
 parse_package_resolved() {
   resolved_file="backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+  if [ ! -f "$resolved_file" ]; then
+    resolved_file="Package.resolved"
+  fi
   if [ -f "$resolved_file" ]; then
     echo -e "${BLUE}Reading resolved dependencies from Package.resolved...${NC}"
     cat "$resolved_file" | grep -E '"package":|"version":|"repositoryURL":' | while read -r line; do
@@ -63,7 +70,7 @@ parse_package_resolved() {
       fi
     done
   else
-    echo -e "${BLUE}Package.resolved not found yet${NC}"
+    echo -e "${BLUE}Package.resolved not found${NC}"
   fi
 }
 
@@ -106,41 +113,51 @@ fi
 echo -e "${BLUE}Removing existing backdoor.xcodeproj to regenerate...${NC}"
 rm -rf backdoor.xcodeproj || { echo -e "${RED}Error: Failed to remove backdoor.xcodeproj${NC}"; exit 1; }
 
-# Generate new project and resolve dependencies
-echo -e "${BLUE}Regenerating project.pbxproj and updating Package.resolved...${NC}"
-
 # Resolve dependencies to create Package.resolved
-xcodebuild -resolvePackageDependencies > xcodebuild_resolve.log 2>&1 || {
-  echo -e "${RED}Error: Failed to resolve dependencies${NC}"
-  cat xcodebuild_resolve.log
+echo -e "${BLUE}Resolving dependencies to generate Package.resolved...${NC}"
+swift package resolve > swift_resolve.log 2>&1 || {
+  echo -e "${RED}Error: Failed to resolve dependencies with swift package resolve${NC}"
+  cat swift_resolve.log
   exit 1
 }
 echo "✓ Resolved dependencies"
 
-# Create a minimal project structure
-mkdir -p backdoor.xcodeproj || { echo -e "${RED}Error: Failed to create backdoor.xcodeproj${NC}"; exit 1; }
-cat << EOF > backdoor.xcodeproj/project.pbxproj
-// !$*UTF8*$!
-{
-  archiveVersion = 1;
-  classes = {
-  };
-  objectVersion = 50;
-  objects = {};
-  rootObject = "";
-}
-EOF
-echo "✓ Created minimal project.pbxproj"
+# Check if Package.resolved was created
+if [ ! -f "Package.resolved" ]; then
+  echo -e "${RED}Error: Package.resolved not generated${NC}"
+  exit 1
+fi
+echo "✓ Package.resolved generated"
 
-# Force SPM to regenerate project structure
-xcodebuild -project backdoor.xcodeproj -configuration Release -resolvePackageDependencies > xcodebuild_project_resolve.log 2>&1 || {
-  echo -e "${RED}Error: Failed to resolve dependencies for project${NC}"
-  cat xcodebuild_project_resolve.log
+# Generate new project using SPM integration
+echo -e "${BLUE}Generating new backdoor.xcodeproj...${NC}"
+
+# Create a workspace to help SPM generate the project
+mkdir -p backdoor.xcodeproj
+mkdir -p backdoor.xcodeproj/project.xcworkspace
+cat << EOF > backdoor.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace version = "1.0">
+   <FileRef location = "self:">
+   </FileRef>
+</Workspace>
+EOF
+echo "✓ Created workspace structure"
+
+# Copy Package.resolved to the workspace
+mkdir -p backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+cp Package.resolved backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved || {
+  echo -e "${RED}Error: Failed to copy Package.resolved to workspace${NC}"
   exit 1
 }
-echo "✓ Initialized project dependencies"
 
-# Attempt to build to populate project.pbxproj
+# Let SPM generate the project by running xcodebuild
+xcodebuild -project backdoor.xcodeproj -configuration Release -resolvePackageDependencies > xcodebuild_resolve.log 2>&1 || {
+  echo -e "${BLUE}Initial resolve may fail due to missing project structure, attempting to generate...${NC}"
+  cat xcodebuild_resolve.log
+}
+
+# Attempt to build to force SPM to generate the project
 xcodebuild -project backdoor.xcodeproj -configuration Release build > xcodebuild_build.log 2>&1 || {
   echo -e "${BLUE}Build failed, but project.pbxproj may still be generated${NC}"
   cat xcodebuild_build.log
@@ -149,11 +166,12 @@ xcodebuild -project backdoor.xcodeproj -configuration Release build > xcodebuild
 # Check if project.pbxproj was generated
 if [ ! -f "backdoor.xcodeproj/project.pbxproj" ]; then
   echo -e "${RED}Error: project.pbxproj was not generated${NC}"
+  cat xcodebuild_build.log
   exit 1
 fi
 echo "✓ project.pbxproj generated"
 
-# Verify scheme (note: scheme may not exist yet, so we warn instead of fail)
+# Verify scheme
 echo -e "${BLUE}Checking for scheme 'backdoor (Release)'...${NC}"
 if xcodebuild -project backdoor.xcodeproj -list 2>/dev/null | grep -q "backdoor (Release)"; then
   echo "✓ Found scheme: backdoor (Release)"
@@ -179,7 +197,11 @@ if [ -f "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.res
   cp backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved "$ARTIFACTS_DIR/" || { echo -e "${RED}Error: Failed to save Package.resolved to $ARTIFACTS_DIR${NC}"; exit 1; }
   echo "✓ Saved Package.resolved to $ARTIFACTS_DIR"
 else
-  echo -e "${RED}Warning: Package.resolved not found, may not have been generated${NC}"
+  echo -e "${RED}Warning: Package.resolved not found in expected location, saving from root${NC}"
+  if [ -f "Package.resolved" ]; then
+    cp Package.resolved "$ARTIFACTS_DIR/" || { echo -e "${RED}Error: Failed to save Package.resolved to $ARTIFACTS_DIR${NC}"; exit 1; }
+    echo "✓ Saved Package.resolved to $ARTIFACTS_DIR"
+  fi
 fi
 
 echo -e "${GREEN}Project files regenerated, dependencies updated, and artifacts saved!${NC}"
@@ -190,4 +212,4 @@ echo "1. Open backdoor.xcodeproj in Xcode"
 echo "2. Verify new dependencies in the project navigator"
 echo "3. Build the project with 'backdoor (Release)' scheme (Cmd+B)"
 echo "4. Check artifacts in $ARTIFACTS_DIR for CI/CD"
-echo "5. Check xcodebuild_*.log files if issues persist"
+echo "5. Check swift_resolve.log and xcodebuild_*.log files if issues persist"
