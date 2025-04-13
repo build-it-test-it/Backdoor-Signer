@@ -1,0 +1,29 @@
+[
+  {
+    "name": "SDWebImage",
+    "url": "https://github.com/SDWebImage/SDWebImage.git",
+    "requirement": {
+      "kind": "upToNextMajorVersion",
+      "minimumVersion": "5.18.3"
+    },
+    "products": ["SDWebImage", "SDWebImageMapKit"]
+  },
+  {
+    "name": "KeychainAccess",
+    "url": "https://github.com/kishikawakatsumi/KeychainAccess.git",
+    "requirement": {
+      "kind": "exactVersion",
+      "version": "4.2.2"
+    },
+    "products": ["KeychainAccess"]
+  },
+  {
+    "name": "SwiftUIX",
+    "url": "https://github.com/SwiftUIX/SwiftUIX.git",
+    "requirement": {
+      "kind": "branch",
+      "branch": "main"
+    },
+    "products": ["SwiftUIX"]
+  }
+]
