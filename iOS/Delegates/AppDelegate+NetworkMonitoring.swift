@@ -107,17 +107,18 @@ extension AppDelegate {
         )
     }
     
+    /// Helper function to convert ConnectionType enum to string
+    private func connectionTypeToString(_ type: ConnectionType) -> String {
+        switch type {
+        case .wifi: return "wifi"
+        case .cellular: return "cellular"
+        case .ethernet: return "ethernet"
+        case .unknown: return "unknown"
+        }
+    }
+    
     /// Show an alert for important connection status changes
     private func showNetworkStatusChangeAlert(isConnected: Bool, connectionType: ConnectionType) {
-        // Helper function to convert ConnectionType enum to string
-        func connectionTypeToString(_ type: ConnectionType) -> String {
-            switch type {
-            case .wifi: return "wifi"
-            case .cellular: return "cellular"
-            case .ethernet: return "ethernet"
-            case .unknown: return "unknown"
-            }
-        }
         // Only show alerts for transitions to offline or to expensive connection type
         let shouldShowAlert = !isConnected || connectionType == .cellular
         
