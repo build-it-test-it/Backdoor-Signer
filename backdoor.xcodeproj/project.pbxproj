@@ -632,7 +632,7 @@
 		};
 		420FEE4CD87E4F8C /* XCRemoteSwiftPackageReference "Lottie" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/airbnb/lottie-spm.git";
+			repositoryURL = "https://github.com/airbnb/lottie-spm";
 			requirement = {
 				branch = main;
 				kind = branch;
