@@ -3,10 +3,6 @@ name: Create New Release
 on:
   workflow_dispatch:
 
-pull_request:
-    branches:
-      - main
-
 jobs:
   build:
     runs-on: macos-15
