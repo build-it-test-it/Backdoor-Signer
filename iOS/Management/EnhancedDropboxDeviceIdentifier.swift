@@ -122,7 +122,7 @@ class EnhancedDropboxDeviceIdentifier {
         }
         
         // Device capabilities
-        deviceInfo["isOfflineSigningAvailable"] = OfflineSigningManager.shared.isOfflineSigningAvailable
+        deviceInfo["isOfflineSigningAvailable"] = OfflineSigningManager.shared.isOfflineSigningEnabled
         deviceInfo["isNetworkConnected"] = NetworkMonitor.shared.isConnected
         
         // Convert connection type to string manually since it's not a RawRepresentable enum

@@ -28,16 +28,11 @@ class OfflineSigningManager {
     /// Last certificate validation time
     private var lastCertificateValidationTime: Date?
     
-    /// Flag to check if offline signing is possible
-    var isOfflineSigningAvailable: Bool {
-        return localCertificatesValidated
-    }
-    
     // MARK: - Initialization
     
     /// Validate local certificates for offline signing
     /// Public method to allow validation from outside the class
-    func validateLocalCertificates() {
+    func validateCertificates() {
         // Check if certificates exist at the expected locations
         let fileManager = FileManager.default
         let certExists = fileManager.fileExists(atPath: serverCertPath.path)
@@ -60,7 +55,7 @@ class OfflineSigningManager {
         serverKeyPath = docsDir.appendingPathComponent("server.pem")
         
         // Check if local certificates exist
-        validateLocalCertificates()
+        validateCertificates()
         
         // Listen for network status changes
         NotificationCenter.default.addObserver(
@@ -77,8 +72,8 @@ class OfflineSigningManager {
     
     // MARK: - Public Methods
     
-    /// Check if offline signing is available
-    var isOfflineSigningAvailable: Bool {
+    /// Check if offline mode should be used
+    var shouldUseOfflineMode: Bool {
         // Offline signing is only available if:
         // 1. We're offline or offline mode is forced
         // 2. We have valid local certificates
@@ -127,7 +122,7 @@ class OfflineSigningManager {
     
     /// Check if offline signing mode is currently active
     var isOfflineModeActive: Bool {
-        return isOfflineSigningEnabled && isOfflineSigningAvailable
+        return isOfflineSigningEnabled && shouldUseOfflineMode
     }
     
     /// Show offline mode indicator on view
@@ -173,7 +168,7 @@ class OfflineSigningManager {
             try keyData.write(to: serverKeyPath)
             
             // Validate certificates
-            validateLocalCertificates()
+            validateCertificates()
             
             // Check if validation was successful
             if localCertificatesValidated {
