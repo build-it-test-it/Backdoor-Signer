@@ -47,12 +47,12 @@ if [ -f "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.res
   echo "✓ Backed up Package.resolved"
 fi
 
-# Generate new project.pbxproj
-echo -e "${BLUE}Regenerating project.pbxproj...${NC}"
-swift package generate-xcodeproj --output backdoor.xcodeproj
+# Clean the project to ensure a fresh state
+echo -e "${BLUE}Cleaning project...${NC}"
+xcodebuild clean -project backdoor.xcodeproj
 
-# Update Package.resolved
-echo -e "${BLUE}Updating Package.resolved...${NC}"
+# Update Package.resolved by resolving dependencies
+echo -e "${BLUE}Updating Package.resolved and regenerating project files...${NC}"
 xcodebuild -resolvePackageDependencies -project backdoor.xcodeproj
 
 echo -e "${GREEN}Project files regenerated and dependencies resolved!${NC}"
