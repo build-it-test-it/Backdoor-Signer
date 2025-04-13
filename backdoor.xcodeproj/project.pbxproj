@@ -29,6 +29,7 @@
 		33E5A5A02CC85C1B00532930 /* Antoine.md in Resources */ = {isa = PBXBuildFile; fileRef = 33E5A59F2CC85C1B00532930 /* Antoine.md */; };
 		AA280D952C76AB7400CAC838 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA280D942C76AB7400CAC838 /* MobileCoreServices.framework */; };
 		D0AA9D542BFF02AF00A65D45 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = D0AA9D532BFF02AF00A65D45 /* OpenSSL */; };
+		C59B17FCF68E4A64 /* Lottie in Frameworks */ = {isa = PBXBuildFile; fileRef = EA09C61847864DDB /* Lottie */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -106,6 +107,7 @@
 				3322FF532BFEE5B9001768D8 /* NukeUI in Frameworks */,
 				33C0409E2C30DD3E00243D90 /* AlertKit in Frameworks */,
 				336EEE812C32367C0011188D /* ZIPFoundation in Frameworks */,
+				5C81CB76EAF942AF /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -628,6 +630,14 @@
 				kind = branch;
 			};
 		};
+		420FEE4CD87E4F8C /* XCRemoteSwiftPackageReference "Lottie" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-spm.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -680,6 +690,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D0AA9D522BFF02AF00A65D45 /* XCRemoteSwiftPackageReference "OpenSSL-Swift-Package" */;
 			productName = OpenSSL;
+		};
+		EA09C61847864DDB /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 420FEE4CD87E4F8C /* XCRemoteSwiftPackageReference "Lottie" */;
+			productName = Lottie;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
