@@ -13,7 +13,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       
@@ -32,14 +32,13 @@ jobs:
         with:
           name: regenerated-project-files
           path: |
-            backdoor.xcodeproj
-            backdoor.xcworkspace
-            Package.resolved
+            backdoor.xcodeproj/project.pbxproj
+            backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
             
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add backdoor.xcodeproj backdoor.xcworkspace Package.resolved
-          git diff --quiet && git diff --staged --quiet || git commit -m "Regenerate Xcode project files from Package.swift"
+          git add backdoor.xcodeproj/project.pbxproj backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          git diff --quiet && git diff --staged --quiet || git commit -m "Regenerate project.pbxproj and Package.resolved from Package.swift"
           git push
