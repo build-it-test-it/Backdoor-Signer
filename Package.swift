@@ -17,6 +17,7 @@ let package = Package(
         // UI and Image handling
         .package(url: "https://github.com/kean/Nuke.git", from: "12.7.0"),
         .package(url: "https://github.com/sparrowcode/AlertKit.git", from: "5.1.9"),
+        .package(url: "https://github.com/airbnb/lottie-spm.git", from: "4.5.1")
         
         // Onboarding
         .package(url: "https://github.com/khcrysalis/UIOnboarding-18.git", branch: "main"),
@@ -42,7 +43,7 @@ let package = Package(
                 .product(name: "NukeExtensions", package: "Nuke"),
                 .product(name: "NukeVideo", package: "Nuke"),
                 .product(name: "AlertKit", package: "AlertKit"),
-                
+                .product(name: "lottie-spm", package: "lottie-spm"),
                 // Onboarding
                 .product(name: "UIOnboarding", package: "UIOnboarding-18"),
                 
