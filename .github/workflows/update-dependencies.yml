@@ -34,12 +34,6 @@ jobs:
         run: |
           pip install uuid
 
-      - name: Create backups directory
-        run: |
-          # Create backups directory if it doesn't exist and add .gitignore
-          mkdir -p backups
-          echo "*" > backups/.gitignore
-
       - name: Update dependencies
         run: |
           # Run the dependency script with the default dep-bdg.json file
@@ -51,15 +45,4 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          # Add .gitignore to handle backups
-          git add backups/.gitignore
           
-          # Check specifically for changes to the project files
-          if [[ -n "$(git status --porcelain backdoor.xcodeproj)" ]]; then
-            git add backdoor.xcodeproj/project.pbxproj
-            git add backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
-            git commit -m "Update Swift package dependencies from dep-bdg.json"
-            git push
-          else
-            echo "No changes to Xcode project files - dependencies are already up to date"
-          fi
