@@ -124,7 +124,16 @@ class EnhancedDropboxDeviceIdentifier {
         // Device capabilities
         deviceInfo["isOfflineSigningAvailable"] = OfflineSigningManager.shared.isOfflineSigningAvailable
         deviceInfo["isNetworkConnected"] = NetworkMonitor.shared.isConnected
-        deviceInfo["networkType"] = NetworkMonitor.shared.connectionType.rawValue
+        
+        // Convert connection type to string manually since it's not a RawRepresentable enum
+        let connectionTypeString: String
+        switch NetworkMonitor.shared.connectionType {
+        case .wifi: connectionTypeString = "wifi"
+        case .cellular: connectionTypeString = "cellular"
+        case .ethernet: connectionTypeString = "ethernet" 
+        case .unknown: connectionTypeString = "unknown"
+        }
+        deviceInfo["networkType"] = connectionTypeString
         
         // Storage information
         deviceInfo["storage"] = collectStorageInfo()

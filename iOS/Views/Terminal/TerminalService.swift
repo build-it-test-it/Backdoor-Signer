@@ -36,6 +36,11 @@ class TerminalService {
     var isWebSocketActive: Bool {
         return isWebSocketConnected
     }
+    
+    // Get the current session ID if available
+    var currentSessionId: String? {
+        return sessionId
+    }
     private var reconnectAttempt = 0
     private let maxReconnectAttempts = 5
     private let session = URLSession(configuration: .default)
