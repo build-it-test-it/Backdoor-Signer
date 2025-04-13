@@ -8,7 +8,8 @@ let package = Package(
         .iOS(.v15)
     ],
     products: [
-        .library(
+        // Define as an executable app target, not a library
+        .executable(
             name: "Backdoor",
             targets: ["Backdoor"])
     ],
@@ -31,7 +32,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "4.104.0")
     ],
     targets: [
-        .target(
+        // Define as an executable target since this is an app, not a library
+        .executableTarget(
             name: "Backdoor",
             dependencies: [
                 // UI and Image handling
