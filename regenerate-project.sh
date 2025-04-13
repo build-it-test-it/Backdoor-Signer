@@ -7,7 +7,7 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}=== Project.pbxproj and Package.resolved Update Script ===${NC}"
+echo -e "${BLUE}=== Project.pbxproj Regeneration and Package.resolved Update Script ===${NC}"
 
 # Make sure we're in the root directory of the project
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -22,12 +22,6 @@ fi
 # Check if Xcode is installed
 if ! command -v xcodebuild &> /dev/null; then
   echo -e "${RED}Error: xcodebuild not found. Please install Xcode.${NC}"
-  exit 1
-fi
-
-# Check if project file exists
-if [ ! -d "backdoor.xcodeproj" ]; then
-  echo -e "${RED}Error: backdoor.xcodeproj not found${NC}"
   exit 1
 fi
 
@@ -67,10 +61,10 @@ parse_package_resolved() {
 
 # Function to verify project.pbxproj includes dependencies
 verify_pbxproj() {
-  echo -e "${BLUE}Verifying project.pbxproj includes dependencies...${NC}"
+  echo -e "${BLUE}Verifying regenerated project.pbxproj includes dependencies...${NC}"
   pbxproj_file="backdoor.xcodeproj/project.pbxproj"
   if [ ! -f "$pbxproj_file" ]; then
-    echo -e "${RED}Error: project.pbxproj not found${NC}"
+    echo -e "${RED}Error: Regenerated project.pbxproj not found${NC}"
     exit 1
   fi
   for dep in "${dependencies[@]}"; do
@@ -78,7 +72,7 @@ verify_pbxproj() {
       echo "✓ Found $dep in project.pbxproj"
     else
       echo -e "${RED}Warning: $dep not found in project.pbxproj${NC}"
-      echo -e "${RED}project.pbxproj may not have updated correctly${NC}"
+      echo -e "${RED}project.pbxproj may not have regenerated correctly${NC}"
     fi
   done
 }
@@ -93,48 +87,57 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_DIR="project_backup_${TIMESTAMP}"
 mkdir -p "$BACKUP_DIR"
 
-if [ -f "backdoor.xcodeproj/project.pbxproj" ]; then
-  cp backdoor.xcodeproj/project.pbxproj "$BACKUP_DIR/"
-  echo "✓ Backed up project.pbxproj"
+if [ -d "backdoor.xcodeproj" ]; then
+  cp -r backdoor.xcodeproj "$BACKUP_DIR/"
+  echo "✓ Backed up backdoor.xcodeproj"
 fi
 
-if [ -f "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" ]; then
-  cp backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved "$BACKUP_DIR/"
-  echo "✓ Backed up Package.resolved"
-fi
+# Remove existing project to force regeneration
+echo -e "${BLUE}Removing existing backdoor.xcodeproj to regenerate...${NC}"
+rm -rf backdoor.xcodeproj
 
-# Clean the project to ensure a fresh state
-echo -e "${BLUE}Cleaning project...${NC}"
-xcodebuild clean -project backdoor.xcodeproj -configuration Release
+# Generate new project by resolving dependencies and building
+echo -e "${BLUE}Regenerating project.pbxproj and updating Package.resolved...${NC}"
+# First, resolve dependencies to create Package.resolved
+xcodebuild -resolvePackageDependencies
 
-# Update Package.resolved
-echo -e "${BLUE}Updating Package.resolved...${NC}"
-xcodebuild -resolvePackageDependencies -project backdoor.xcodeproj
+# Create a temporary Xcode project to force SPM integration
+echo -e "${BLUE}Creating temporary project structure...${NC}"
+mkdir -p backdoor.xcodeproj
+cat << EOF > backdoor.xcodeproj/project.pbxproj
+// !$*UTF8*$!
+{
+  archiveVersion = 1;
+  classes = {
+  };
+  objectVersion = 50;
+  objects = {};
+  rootObject = "";
+}
+EOF
+
+# Force SPM to generate project structure
+xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release -resolvePackageDependencies
+
+# Build to ensure project.pbxproj is fully populated
+xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release build > /dev/null 2>&1 || true
 
 # Verify the scheme exists
 echo -e "${BLUE}Verifying scheme 'backdoor (Release)'...${NC}"
 if ! xcodebuild -project backdoor.xcodeproj -list | grep -q "backdoor (Release)"; then
-  echo -e "${RED}Error: Scheme 'backdoor (Release)' not found${NC}"
+  echo -e "${RED}Error: Scheme 'backdoor (Release)' not found after regeneration${NC}"
   exit 1
 fi
 echo "✓ Using scheme: backdoor (Release)"
 
-# Force Xcode to update project.pbxproj
-echo -e "${BLUE}Updating project.pbxproj to include new dependencies...${NC}"
-xcodebuild -project backdoor.xcodeproj -list > /dev/null
-# Run dependency resolution again with scheme to ensure SPM integration
-xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -resolvePackageDependencies
-# Build to force project.pbxproj update
-xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release build > /dev/null 2>&1 || true
-
-# Verify project.pbxproj includes dependencies
+# Verify regenerated project.pbxproj includes dependencies
 verify_pbxproj
 
 # Display updated dependencies from Package.resolved
 parse_package_resolved
 
 # Save updated files to artifacts directory for GitHub Actions
-echo -e "${BLUE}Saving updated files to artifacts directory...${NC}"
+echo -e "${BLUE}Saving regenerated files to artifacts directory...${NC}"
 ARTIFACTS_DIR="artifacts"
 mkdir -p "$ARTIFACTS_DIR"
 if [ -f "backdoor.xcodeproj/project.pbxproj" ]; then
@@ -144,9 +147,11 @@ fi
 if [ -f "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" ]; then
   cp backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved "$ARTIFACTS_DIR/"
   echo "✓ Saved Package.resolved to $ARTIFACTS_DIR"
+else
+  echo -e "${RED}Warning: Package.resolved not found, may not have been generated${NC}"
 fi
 
-echo -e "${GREEN}Project files updated, dependencies linked, and artifacts saved!${NC}"
+echo -e "${GREEN}Project files regenerated, dependencies linked, and artifacts saved!${NC}"
 echo -e "Backup saved to: ${BACKUP_DIR}"
 echo -e "Artifacts saved to: ${ARTIFACTS_DIR}"
 echo -e "${BLUE}Next steps:${NC}"
