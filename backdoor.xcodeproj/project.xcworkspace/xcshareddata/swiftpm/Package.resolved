@@ -259,7 +259,7 @@
       "location": "https://github.com/airbnb/lottie-spm.git",
       "state": {
         "branch": "main",
-        "revision": "placeholder-revision-hash"
+        "revision": "90fa25ba0feb39c22915d41b55226cc95955dfcc"
       }
     }
   ],
