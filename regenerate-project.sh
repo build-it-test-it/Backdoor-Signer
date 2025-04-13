@@ -34,14 +34,14 @@ fi
 # Function to parse Package.swift for dependencies
 parse_package_swift() {
   echo -e "${BLUE}Reading dependencies from Package.swift...${NC}"
-  # Extract package URLs and versions (basic parsing for common formats)
+  dependencies=()
   grep -E '\.package\(.*\)' Package.swift | while read -r line; do
-    # Extract URL
     url=$(echo "$line" | grep -o 'url: *"[a-zA-Z0-9:/.-]*"' | sed 's/url: *"\(.*\)"/\1/')
-    # Extract version or branch (from, exact, branch, etc.)
     version=$(echo "$line" | grep -o '\(from: *"[0-9.]*"\|exact: *"[0-9.]*"\|branch: *"[a-zA-Z0-9-]*"\)' | sed 's/.*"\(.*\)"/\1/')
     if [ -n "$url" ]; then
-      echo "✓ Dependency: $url (Version/Branch: ${version:-unspecified})"
+      package_name=$(basename "$url" .git)
+      echo "✓ Dependency: $package_name ($url, Version/Branch: ${version:-unspecified})"
+      dependencies+=("$package_name")
     fi
   done
 }
@@ -50,7 +50,6 @@ parse_package_swift() {
 parse_package_resolved() {
   if [ -f "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" ]; then
     echo -e "${BLUE}Reading resolved dependencies from Package.resolved...${NC}"
-    # Extract package names and versions (assuming JSON format)
     cat "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" | grep -E '"package":|"version":|"repositoryURL":' | while read -r line; do
       if echo "$line" | grep -q '"package":'; then
         package=$(echo "$line" | sed 's/.*"package": "\(.*\)",/\1/')
@@ -66,7 +65,26 @@ parse_package_resolved() {
   fi
 }
 
-# Display initial dependencies from Package.swift
+# Function to verify project.pbxproj includes dependencies
+verify_pbxproj() {
+  echo -e "${BLUE}Verifying project.pbxproj includes dependencies...${NC}"
+  pbxproj_file="backdoor.xcodeproj/project.pbxproj"
+  if [ ! -f "$pbxproj_file" ]; then
+    echo -e "${RED}Error: project.pbxproj not found${NC}"
+    exit 1
+  fi
+  for dep in "${dependencies[@]}"; do
+    if grep -qi "$dep" "$pbxproj_file"; then
+      echo "✓ Found $dep in project.pbxproj"
+    else
+      echo -e "${RED}Warning: $dep not found in project.pbxproj${NC}"
+      echo -e "${RED}project.pbxproj may not have updated correctly${NC}"
+    fi
+  done
+}
+
+# Display initial dependencies from Package.swift and store them
+declare -a dependencies
 parse_package_swift
 
 # Create backup of current project files
@@ -101,10 +119,16 @@ if ! xcodebuild -project backdoor.xcodeproj -list | grep -q "backdoor (Release)"
 fi
 echo "✓ Using scheme: backdoor (Release)"
 
-# Force Xcode to update project.pbxproj by generating schemes and running a build
+# Force Xcode to update project.pbxproj
 echo -e "${BLUE}Updating project.pbxproj to include new dependencies...${NC}"
 xcodebuild -project backdoor.xcodeproj -list > /dev/null
+# Run dependency resolution again with scheme to ensure SPM integration
+xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -resolvePackageDependencies
+# Build to force project.pbxproj update
 xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release build > /dev/null 2>&1 || true
+
+# Verify project.pbxproj includes dependencies
+verify_pbxproj
 
 # Display updated dependencies from Package.resolved
 parse_package_resolved
