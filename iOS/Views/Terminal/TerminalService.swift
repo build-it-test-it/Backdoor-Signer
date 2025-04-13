@@ -7,7 +7,7 @@
 
 import Foundation
 import UIKit
-import Lottie
+import lottie
 
 enum TerminalError: Error {
     case invalidURL
