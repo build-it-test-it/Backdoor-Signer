@@ -374,7 +374,7 @@ extension CoreDataManager {
         do {
             let ctx = try context
             let signedApp = SignedApps(context: ctx)
-            signedApp.creationDate = Date()
+            signedApp.dateAdded = Date()
             signedApp.version = version
             signedApp.name = name
             signedApp.bundleidentifier = bundleidentifier
@@ -417,7 +417,7 @@ extension CoreDataManager {
         do {
             let ctx = try context
             let downloadedApp = DownloadedApps(context: ctx)
-            downloadedApp.creationDate = Date()
+            downloadedApp.dateAdded = Date()
             downloadedApp.version = version
             downloadedApp.name = name
             downloadedApp.bundleidentifier = bundleidentifier

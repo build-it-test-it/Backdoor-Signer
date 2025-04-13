@@ -49,7 +49,7 @@ extension DirectoryViewController {
         let importAction = UIAlertAction(title: "Import File", style: .default) { [weak self] _ in
             guard let self = self else { return }
             if let homeVC = self as? HomeViewController {
-                homeVC.importFile()
+                homeVC.performFileImport()
             } else {
                 // Handle the case where self is not a HomeViewController
                 Debug.shared.log(message: "importFile called on non-HomeViewController", type: .warning)

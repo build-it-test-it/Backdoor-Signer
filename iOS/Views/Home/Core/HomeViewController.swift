@@ -320,7 +320,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     }
 
     /// Initiates the file import process
-    @objc func importFile() {
+    @objc func performFileImport() {
         fileHandlers.importFile(viewController: self)
     }
 
@@ -1358,7 +1358,8 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
     // MARK: - UIDocumentPickerDelegate
 
-    func documentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    // Use override to avoid redeclaration issues with FileUploadFix extension
+    override func documentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         // Handle potentially multiple selected files
         guard !urls.isEmpty else {
             Debug.shared.log(message: "No files selected in document picker", type: .warning)

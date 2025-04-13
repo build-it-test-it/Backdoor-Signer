@@ -619,11 +619,12 @@ extension LibraryViewController {
                 if let expirationDate = cert.certData?.expirationDate,
                    let teamName = cert.certData?.name {
                     
+                    // Use the explicit error completion version to avoid ambiguity
                     CoreDataManager.shared.updateSignedApp(
                         app: signedApp,
                         newTimeToLive: expirationDate,
-                        newTeamName: teamName
-                    ) { _ in
+                        newTeamName: teamName,
+                        completion: { error in
                         DispatchQueue.main.async {
                             self.loaderAlert?.dismiss(animated: true)
                             backdoor.Debug.shared.log(message: "Resign completed")

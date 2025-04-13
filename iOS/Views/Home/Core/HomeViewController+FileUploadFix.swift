@@ -200,7 +200,7 @@ extension HomeViewController {
                     preferredStyle: .alert
                 )
                 detailedAlert.addAction(UIAlertAction(title: "OK", style: .default))
-                self.present(detailedAlert, animated: true)
+                self.present(detailedAlert, animated: true, completion: nil)
             }
         }
     }
@@ -294,15 +294,14 @@ extension HomeViewController {
         case error
         case warning
         case info
-    }
-}
-    
-    var glowColor: UIColor {
-        switch self {
-        case .success: return .systemGreen
-        case .error: return .systemRed
-        case .warning: return .systemOrange
-        case .info: return .systemBlue
+        
+        var glowColor: UIColor {
+            switch self {
+            case .success: return .systemGreen
+            case .error: return .systemRed
+            case .warning: return .systemOrange
+            case .info: return .systemBlue
+            }
         }
     }
 }

@@ -28,7 +28,30 @@ class OfflineSigningManager {
     /// Last certificate validation time
     private var lastCertificateValidationTime: Date?
     
+    /// Flag to check if offline signing is possible
+    var isOfflineSigningAvailable: Bool {
+        return localCertificatesValidated
+    }
+    
     // MARK: - Initialization
+    
+    /// Validate local certificates for offline signing
+    /// Public method to allow validation from outside the class
+    func validateLocalCertificates() {
+        // Check if certificates exist at the expected locations
+        let fileManager = FileManager.default
+        let certExists = fileManager.fileExists(atPath: serverCertPath.path)
+        let keyExists = fileManager.fileExists(atPath: serverKeyPath.path)
+        
+        // Update validation state
+        localCertificatesValidated = certExists && keyExists
+        lastCertificateValidationTime = Date()
+        
+        Debug.shared.log(
+            message: "Offline certificates validated: \(localCertificatesValidated ? "Available" : "Not available")",
+            type: localCertificatesValidated ? .success : .warning
+        )
+    }
     
     private init() {
         // Setup local certificate paths
