@@ -1,0 +1,24 @@
+{
+  "name": "Backdoor Repository",
+  "identifier": "com.bdg.backdoor-repo",
+  "tintColor": "#007AFF",
+  "sourceURL": "https://raw.githubusercontent.com/BDGHubNoKey/Backdoor/refs/heads/main/App-repo.json",
+  "iconURL": "https://raw.githubusercontent.com/814bdg/App/refs/heads/main/Wing3x.png",
+  "website": "https://github.com/Crazy-tests-to-test/Code-test",
+  "news": [],
+  "apps": [
+    {
+      "name": "Sample App",
+      "developerName": "BDG",
+      "subtitle": "A sample application",
+      "bundleIdentifier": "com.bdg.sampleapp",
+      "iconURL": "https://raw.githubusercontent.com/814bdg/App/refs/heads/main/SampleAppIcon.png",
+      "downloadURL": "https://example.com/sampleapp.ipa",
+      "size": 10000000,
+      "version": "1.0.0",
+      "versionDate": "2025-04-13",
+      "versionDescription": "Initial release",
+      "localizedDescription": "This is a sample application for the Backdoor repository."
+    }
+  ]
+}
