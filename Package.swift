@@ -8,9 +8,11 @@ let package = Package(
         .iOS(.v15)
     ],
     products: [
+        // Define as a framework (static library) instead of a library with executable targets
         .library(
-            name: "Backdoor",
-            targets: ["Backdoor"])
+            name: "BackdoorKit",
+            type: .static,
+            targets: ["BackdoorKit"])
     ],
     dependencies: [
         // UI and Image handling
@@ -31,8 +33,9 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "4.104.0")
     ],
     targets: [
+        // Rename the target to match the product
         .target(
-            name: "Backdoor",
+            name: "BackdoorKit",
             dependencies: [
                 // UI and Image handling
                 .product(name: "Nuke", package: "Nuke"),
