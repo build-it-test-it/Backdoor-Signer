@@ -42,13 +42,13 @@ if [ -f "backdoor.xcodeproj/project.pbxproj" ]; then
   echo "✓ Backed up project.pbxproj"
 fi
 
-if [ -f "Package.resolved" ]; then
-  cp Package.resolved "$BACKUP_DIR/"
+if [ -f "backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" ]; then
+  cp backdoor.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved "$BACKUP_DIR/"
   echo "✓ Backed up Package.resolved"
 fi
 
-# Generate new project.pbxproj and resolve dependencies
-echo -e "${BLUE}Regenerating project.pbxproj and resolving dependencies...${NC}"
+# Generate new project.pbxproj
+echo -e "${BLUE}Regenerating project.pbxproj...${NC}"
 swift package generate-xcodeproj --output backdoor.xcodeproj
 
 # Update Package.resolved
