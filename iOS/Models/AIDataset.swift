@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 /// Model representing an AI dataset file
@@ -17,7 +11,16 @@ class AIDataset: Equatable {
     let recordCount: Int
     let url: URL
 
-    init(id: String, name: String, fileName: String, format: String, size: Int, dateAdded: Date, recordCount: Int, url: URL) {
+    init(
+        id: String,
+        name: String,
+        fileName: String,
+        format: String,
+        size: Int,
+        dateAdded: Date,
+        recordCount: Int,
+        url: URL
+    ) {
         self.id = id
         self.name = name
         self.fileName = fileName
@@ -75,13 +78,13 @@ enum AIDatasetError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidFormat(let message):
+        case let .invalidFormat(message):
             return "Invalid format: \(message)"
-        case .invalidData(let message):
+        case let .invalidData(message):
             return "Invalid data: \(message)"
-        case .downloadFailed(let message):
+        case let .downloadFailed(message):
             return "Download failed: \(message)"
-        case .trainingFailed(let message):
+        case let .trainingFailed(message):
             return "Training failed: \(message)"
         }
     }

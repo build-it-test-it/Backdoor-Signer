@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import UIKit
 
@@ -387,7 +381,10 @@ final class AppPerformanceOptimizer {
                 let suggestedBatchSize = max(20, visibleRows + 10)
 
                 // Log suggestion
-                Debug.shared.log(message: "Core Data batch size suggestion for \(type(of: viewController)): \(suggestedBatchSize)", type: .debug)
+                Debug.shared.log(
+                    message: "Core Data batch size suggestion for \(type(of: viewController)): \(suggestedBatchSize)",
+                    type: .debug
+                )
             }
         }
     }
@@ -472,7 +469,7 @@ extension UIView {
         guard !isHidden && alpha > 0 else { return false }
 
         // Check if view has a window (is in the view hierarchy)
-        guard let window = self.window else { return false }
+        guard let window = window else { return false }
 
         // Convert frame to window coordinates
         let frameInWindow = convert(bounds, to: window)

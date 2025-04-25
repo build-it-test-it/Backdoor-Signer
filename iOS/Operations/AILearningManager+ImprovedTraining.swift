@@ -1,17 +1,10 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import Foundation
 import CoreML
 import CreateML
+import Foundation
 import UIKit
 
 /// Extension to AILearningManager for improved training using all user interactions
 extension AILearningManager {
-
     /// Enhanced training method that uses ALL user interactions, not just rated ones
     func trainModelWithAllInteractions() -> (success: Bool, version: String, errorMessage: String?) {
         Debug.shared.log(message: "Starting comprehensive AI model training with ALL interactions", type: .info)
@@ -36,7 +29,7 @@ extension AILearningManager {
             let newVersion = "1.0.\(timestamp)"
 
             // Check if we have enough data overall
-            if allInteractions.isEmpty && allBehaviors.isEmpty && allPatterns.isEmpty {
+            if allInteractions.isEmpty, allBehaviors.isEmpty, allPatterns.isEmpty {
                 Debug.shared.log(message: "No training data available", type: .warning)
                 return (false, newVersion, "No training data available")
             }
@@ -63,7 +56,10 @@ extension AILearningManager {
 
             // Add ALL behavior data
             if !allBehaviors.isEmpty {
-                Debug.shared.log(message: "Including ALL \(allBehaviors.count) behavior records in training", type: .info)
+                Debug.shared.log(
+                    message: "Including ALL \(allBehaviors.count) behavior records in training",
+                    type: .info
+                )
 
                 for behavior in allBehaviors {
                     // Create a composite feature from the behavior
@@ -104,7 +100,7 @@ extension AILearningManager {
             let dataTable = try MLDataTable(
                 dictionary: [
                     "text": textInput,
-                    "label": intentOutput
+                    "label": intentOutput,
                 ]
             )
 
@@ -123,7 +119,10 @@ extension AILearningManager {
             userDefaults.set(newVersion, forKey: modelVersionKey)
             userDefaults.set(Date(), forKey: lastTrainingKey)
 
-            Debug.shared.log(message: "Successfully trained new model using ALL user interactions, version: \(newVersion)", type: .info)
+            Debug.shared.log(
+                message: "Successfully trained new model using ALL user interactions, version: \(newVersion)",
+                type: .info
+            )
 
             // Notify that a new model is available
             DispatchQueue.main.async {
@@ -176,7 +175,8 @@ extension AILearningManager {
 
         // Check when we last trained
         let lastTraining = UserDefaults.standard.object(forKey: lastTrainingKey) as? Date ?? Date.distantPast
-        let daysSinceLastTraining = Calendar.current.dateComponents([.day], from: lastTraining, to: Date()).day ?? Int.max
+        let daysSinceLastTraining = Calendar.current.dateComponents([.day], from: lastTraining, to: Date()).day ?? Int
+            .max
 
         // Train more often since we're using all data - now after just 8 hours (0.33 days)
         // Convert to the same type for comparison (compare hours instead of fractional days)

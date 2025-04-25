@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -15,10 +9,10 @@ enum DownloadState {
 
     var progress: CGFloat? {
         switch self {
-            case let .inProgress(progress):
-                return progress
-            default:
-                return nil
+        case let .inProgress(progress):
+            return progress
+        default:
+            return nil
         }
     }
 }
@@ -40,7 +34,11 @@ class DownloadTask {
     func updateProgress(to progress: CGFloat) {
         state = .inProgress(progress: progress)
         progressHandler?(progress)
-        NotificationCenter.default.post(name: .downloadProgressUpdated, object: self, userInfo: ["uuid": uuid, "progress": progress])
+        NotificationCenter.default.post(
+            name: .downloadProgressUpdated,
+            object: self,
+            userInfo: ["uuid": uuid, "progress": progress]
+        )
     }
 }
 
@@ -54,8 +52,18 @@ class DownloadTaskManager {
     private let taskQueue = DispatchQueue(label: "com.backdoor.DownloadTaskManager", attributes: .concurrent)
 
     private init() {
-        NotificationCenter.default.addObserver(self, selector: #selector(appWillTerminate), name: UIApplication.willTerminateNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleMemoryWarning), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillTerminate),
+            name: UIApplication.willTerminateNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleMemoryWarning),
+            name: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil
+        )
     }
 
     deinit {
@@ -78,14 +86,14 @@ class DownloadTaskManager {
 
             DispatchQueue.main.async {
                 switch state {
-                    case let .inProgress(progress):
-                        task.cell?.updateProgress(to: progress)
-                    case .completed, .failed:
-                        task.cell?.stopDownload()
-                        self.removeTask(uuid: uuid)
-                        self.removePersistedTaskState(for: uuid)
-                    default:
-                        break
+                case let .inProgress(progress):
+                    task.cell?.updateProgress(to: progress)
+                case .completed, .failed:
+                    task.cell?.stopDownload()
+                    self.removeTask(uuid: uuid)
+                    self.removePersistedTaskState(for: uuid)
+                default:
+                    break
                 }
             }
         }
@@ -143,7 +151,12 @@ class DownloadTaskManager {
 
             let defaults = UserDefaults.standard
             if let progress = defaults.value(forKey: "\(uuid)_progress") as? CGFloat {
-                let updatedTask = DownloadTask(uuid: uuid, cell: cell, state: .inProgress(progress: progress), dl: task.dl)
+                let updatedTask = DownloadTask(
+                    uuid: uuid,
+                    cell: cell,
+                    state: .inProgress(progress: progress),
+                    dl: task.dl
+                )
                 self.downloadTasks[uuid] = updatedTask
             }
         }

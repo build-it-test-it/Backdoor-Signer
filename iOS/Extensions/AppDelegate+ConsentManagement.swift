@@ -1,15 +1,9 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
 // MARK: - Consent Management Extension
-extension AppDelegate: ConsentViewControllerDelegate {
 
+extension AppDelegate: ConsentViewControllerDelegate {
     /// Check if user consent needs to be requested
     func shouldRequestUserConsent() -> Bool {
         // Check if we've already shown the consent screen

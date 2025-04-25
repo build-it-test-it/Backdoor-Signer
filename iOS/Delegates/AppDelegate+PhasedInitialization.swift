@@ -1,12 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 // MARK: - Phased Initialization Extension
+
 extension AppDelegate {
     /// Set up components in phases for improved stability
     func setupPhaseOne() {
@@ -38,7 +33,7 @@ extension AppDelegate {
         setupTerminal()
 
         // Only show floating buttons if not showing startup popup and not in safe mode
-        if !isShowingStartupPopup && !SafeModeLauncher.shared.inSafeMode {
+        if !isShowingStartupPopup, !SafeModeLauncher.shared.inSafeMode {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 FloatingButtonManager.shared.show()
 

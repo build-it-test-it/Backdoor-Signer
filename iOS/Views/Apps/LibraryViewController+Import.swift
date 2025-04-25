@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import Foundation
 import SwiftUI
@@ -14,14 +8,20 @@ extension LibraryViewController: UIDocumentPickerDelegate {
     func startImporting() {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
-        let documentPickerAction = UIAlertAction(title: String.localized("LIBRARY_VIEW_CONTROLLER_IMPORT_ACTION_SHEET_FILE"), style: .default) { [weak self] _ in
+        let documentPickerAction = UIAlertAction(
+            title: String.localized("LIBRARY_VIEW_CONTROLLER_IMPORT_ACTION_SHEET_FILE"),
+            style: .default
+        ) { [weak self] _ in
             self?.presentDocumentPicker(fileExtension: [
                 UTType(filenameExtension: "ipa")!,
-                UTType(filenameExtension: "tipa")!
+                UTType(filenameExtension: "tipa")!,
             ])
         }
 
-        let photoLibraryAction = UIAlertAction(title: String.localized("LIBRARY_VIEW_CONTROLLER_IMPORT_ACTION_SHEET_URL"), style: .default) { [weak self] _ in
+        let photoLibraryAction = UIAlertAction(
+            title: String.localized("LIBRARY_VIEW_CONTROLLER_IMPORT_ACTION_SHEET_URL"),
+            style: .default
+        ) { [weak self] _ in
             self?.downloadFileFromUrl()
         }
 
@@ -32,16 +32,20 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         actionSheet.addAction(cancelAction)
 
         if let popoverController = actionSheet.popoverPresentationController {
-            popoverController.sourceView = self.view
-            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popoverController.sourceView = view
+            popoverController.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
             popoverController.permittedArrowDirections = []
         }
 
-        self.present(actionSheet, animated: true, completion: nil)
+        present(actionSheet, animated: true, completion: nil)
     }
 
     func downloadFileFromUrl() {
-        let alert = UIAlertController(title: String.localized("LIBRARY_VIEW_CONTROLLER_IMPORT_ACTION_SHEET_URL"), message: nil, preferredStyle: .alert)
+        let alert = UIAlertController(
+            title: String.localized("LIBRARY_VIEW_CONTROLLER_IMPORT_ACTION_SHEET_URL"),
+            message: nil,
+            preferredStyle: .alert
+        )
 
         alert.addTextField { textField in
             textField.placeholder = "URL"
@@ -91,7 +95,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
     func documentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         guard let selectedFileURL = urls.first else { return }
 
-        guard let loaderAlert = self.loaderAlert else {
+        guard let loaderAlert = loaderAlert else {
             backdoor.Debug.shared.log(message: "Loader alert is not initialized.", type: LogType.error)
             return
         }
@@ -107,16 +111,26 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         var didStartAccess = false
         if selectedFileURL.startAccessingSecurityScopedResource() {
             didStartAccess = true
-            backdoor.Debug.shared.log(message: "Successfully started accessing security-scoped resource", type: LogType.info)
+            backdoor.Debug.shared.log(
+                message: "Successfully started accessing security-scoped resource",
+                type: LogType.info
+            )
         } else {
-            backdoor.Debug.shared.log(message: "Failed to start accessing security-scoped resource", type: LogType.warning)
+            backdoor.Debug.shared.log(
+                message: "Failed to start accessing security-scoped resource",
+                type: LogType.warning
+            )
         }
 
         DispatchQueue.global(qos: .background).async {
             do {
                 // Verify file exists and is valid
                 guard FileManager.default.fileExists(atPath: selectedFileURL.path) else {
-                    throw NSError(domain: "com.backdoor.import", code: 404, userInfo: [NSLocalizedDescriptionKey: "File does not exist at path"])
+                    throw NSError(
+                        domain: "com.backdoor.import",
+                        code: 404,
+                        userInfo: [NSLocalizedDescriptionKey: "File does not exist at path"]
+                    )
                 }
 
                 try self.handleIPAFile(destinationURL: selectedFileURL, uuid: uuid, dl: dl)
@@ -170,39 +184,54 @@ extension LibraryViewController {
             LibraryViewController.appDownload = AppDownload()
         }
         DispatchQueue(label: "DL").async {
-            LibraryViewController.appDownload?.downloadFile(url: downloadURL, appuuid: UUID().uuidString) { [weak self] uuid, filePath, error in
-                guard let self = self else { return }
-                if let error = error {
-                    DispatchQueue.main.async {
-                        self.loaderAlert?.dismiss(animated: true)
-                    }
-                    backdoor.Debug.shared.log(message: "Failed to Import: \(error)", type: LogType.error)
-                } else if let uuid = uuid, let filePath = filePath {
-                    LibraryViewController.appDownload?.extractCompressedBundle(packageURL: filePath) { targetBundle, error in
+            LibraryViewController.appDownload?
+                .downloadFile(url: downloadURL, appuuid: UUID().uuidString) { [weak self] uuid, filePath, error in
+                    guard let self = self else { return }
+                    if let error = error {
+                        DispatchQueue.main.async {
+                            self.loaderAlert?.dismiss(animated: true)
+                        }
+                        backdoor.Debug.shared.log(message: "Failed to Import: \(error)", type: LogType.error)
+                    } else if let uuid = uuid, let filePath = filePath {
+                        LibraryViewController.appDownload?
+                            .extractCompressedBundle(packageURL: filePath) { targetBundle, error in
 
-                        if let error = error {
-                            DispatchQueue.main.async {
-                                self.loaderAlert?.dismiss(animated: true)
-                            }
-                            backdoor.Debug.shared.log(message: "Failed to Import: \(error)", type: LogType.error)
-                        } else if let targetBundle = targetBundle {
-                            LibraryViewController.appDownload?.addToApps(bundlePath: targetBundle, uuid: uuid, sourceLocation: sourceLocation) { error in
                                 if let error = error {
                                     DispatchQueue.main.async {
                                         self.loaderAlert?.dismiss(animated: true)
                                     }
-                                    backdoor.Debug.shared.log(message: "Failed to Import: \(error)", type: LogType.error)
-                                } else {
-                                    DispatchQueue.main.async {
-                                        self.loaderAlert?.dismiss(animated: true)
+                                    backdoor.Debug.shared.log(
+                                        message: "Failed to Import: \(error)",
+                                        type: LogType.error
+                                    )
+                                } else if let targetBundle = targetBundle {
+                                    LibraryViewController.appDownload?.addToApps(
+                                        bundlePath: targetBundle,
+                                        uuid: uuid,
+                                        sourceLocation: sourceLocation
+                                    ) { error in
+                                        if let error = error {
+                                            DispatchQueue.main.async {
+                                                self.loaderAlert?.dismiss(animated: true)
+                                            }
+                                            backdoor.Debug.shared.log(
+                                                message: "Failed to Import: \(error)",
+                                                type: LogType.error
+                                            )
+                                        } else {
+                                            DispatchQueue.main.async {
+                                                self.loaderAlert?.dismiss(animated: true)
+                                            }
+                                            backdoor.Debug.shared.log(
+                                                message: String.localized("DONE"),
+                                                type: LogType.success
+                                            )
+                                        }
                                     }
-                                    backdoor.Debug.shared.log(message: String.localized("DONE"), type: LogType.success)
                                 }
                             }
-                        }
                     }
                 }
-            }
         }
     }
 }

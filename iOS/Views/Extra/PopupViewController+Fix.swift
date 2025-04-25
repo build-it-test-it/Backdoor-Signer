@@ -1,24 +1,17 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
 // Extension to fix popup presentation issues
 extension PopupViewController {
-
     /// Configures the sheet presentation controller to display the popup properly
     /// - Parameter hasUpdate: Whether the popup is displaying an update option
     func configureSheetPresentation(hasUpdate: Bool = false) {
-        if let sheet = self.sheetPresentationController {
+        if let sheet = sheetPresentationController {
             // Using detents with appropriate heights
             if #available(iOS 16.0, *) {
                 let smallDetent = UISheetPresentationController.Detent.custom { _ in
                     // Calculate based on number of buttons plus padding
-                    return hasUpdate ? 150.0 : self.calculateRequiredHeight()
+                    hasUpdate ? 150.0 : self.calculateRequiredHeight()
                 }
                 sheet.detents = [smallDetent]
             } else {
@@ -61,7 +54,7 @@ extension PopupViewController {
         // Add bottom constraint to ensure proper sizing of the popup
         if let lastButton = buttons.last, lastButton.superview != nil {
             NSLayoutConstraint.activate([
-                lastButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+                lastButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             ])
         }
     }

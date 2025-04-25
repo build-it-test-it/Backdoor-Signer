@@ -1,17 +1,10 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 // MARK: - Local Enhanced Learning Extension
 
 extension AILearningManager {
-
     /// Queue data for local processing - internal implementation
-    internal func internalQueueForLocalProcessing() {
+    func internalQueueForLocalProcessing() {
         // Don't queue if learning is disabled
         guard isLearningEnabled else {
             return
@@ -60,7 +53,7 @@ extension AILearningManager {
 
     /// Perform enhanced local training to improve personalization
     /// Internal implementation to avoid duplicate method declaration
-    internal func enhancedLocalTraining() {
+    func enhancedLocalTraining() {
         // Don't process if disabled
         guard isLearningEnabled else {
             Debug.shared.log(message: "Enhanced local training skipped - learning disabled", type: .info)
@@ -76,7 +69,7 @@ extension AILearningManager {
         let patternsToProcess = processData.patterns
 
         // Only process if we have data
-        if interactionsToProcess.isEmpty && behaviorsToProcess.isEmpty && patternsToProcess.isEmpty {
+        if interactionsToProcess.isEmpty, behaviorsToProcess.isEmpty, patternsToProcess.isEmpty {
             Debug.shared.log(message: "No data for enhanced local training", type: .info)
             return
         }
@@ -89,8 +82,10 @@ extension AILearningManager {
         }
     }
 
-    /// Helper to get local processing data 
-    private func getLocalProcessingData() -> (interactions: [AIInteraction], behaviors: [UserBehavior], patterns: [AppUsagePattern]) {
+    /// Helper to get local processing data
+    private func getLocalProcessingData()
+        -> (interactions: [AIInteraction], behaviors: [UserBehavior], patterns: [AppUsagePattern])
+    {
         // Use a dedicated dispatch queue to safely access the shared resources
         let processQueue = DispatchQueue(label: "com.backdoor.ai.localProcessingQueue")
 
@@ -122,7 +117,7 @@ extension AILearningManager {
 
     /// Initiates background data collection for AI improvement
     /// Internal implementation to avoid duplication in extensions
-    internal func internalCollectUserDataInBackground() {
+    func internalCollectUserDataInBackground() {
         // Only collect if learning is enabled
         guard isLearningEnabled else {
             return
@@ -136,7 +131,7 @@ extension AILearningManager {
             let contextData: [String: String] = [
                 "screen": currentContext.currentScreen,
                 "action": "view",
-                "timestamp": "\(Date().timeIntervalSince1970)"
+                "timestamp": "\(Date().timeIntervalSince1970)",
             ]
 
             // Add to behaviors dataset

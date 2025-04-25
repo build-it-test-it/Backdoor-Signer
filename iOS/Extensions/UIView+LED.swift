@@ -1,16 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
-import UIKit
 import ObjectiveC
+import UIKit
 
 /// Extension for adding LED lighting effects to UIView elements
 extension UIView {
-
     // MARK: - Properties
 
     /// The LED gradient layer - stored as associated object
@@ -19,7 +11,12 @@ extension UIView {
             return objc_getAssociatedObject(self, AssociatedKeys.ledGradientLayer) as? CAGradientLayer
         }
         set {
-            objc_setAssociatedObject(self, AssociatedKeys.ledGradientLayer, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(
+                self,
+                AssociatedKeys.ledGradientLayer,
+                newValue,
+                .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+            )
         }
     }
 
@@ -29,7 +26,12 @@ extension UIView {
             return objc_getAssociatedObject(self, AssociatedKeys.ledAnimationGroup) as? CAAnimationGroup
         }
         set {
-            objc_setAssociatedObject(self, AssociatedKeys.ledAnimationGroup, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(
+                self,
+                AssociatedKeys.ledAnimationGroup,
+                newValue,
+                .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+            )
         }
     }
 
@@ -115,7 +117,7 @@ extension UIView {
             color.withAlphaComponent(0).cgColor,
             color.withAlphaComponent(intensity).cgColor,
             color.withAlphaComponent(intensity).cgColor,
-            color.withAlphaComponent(0).cgColor
+            color.withAlphaComponent(0).cgColor,
         ]
 
         // Set initial position for animation
@@ -270,7 +272,7 @@ extension UIView {
             CGPoint(x: 1, y: 0),
             CGPoint(x: 1, y: 1),
             CGPoint(x: 0, y: 1),
-            CGPoint.zero
+            CGPoint.zero,
         ]
         startPointAnimation.keyTimes = [0, 0.25, 0.5, 0.75, 1.0]
         startPointAnimation.duration = speed
@@ -282,7 +284,7 @@ extension UIView {
             CGPoint(x: 1, y: 1),
             CGPoint(x: 0, y: 1),
             CGPoint.zero,
-            CGPoint(x: 1, y: 0)
+            CGPoint(x: 1, y: 0),
         ]
         endPointAnimation.keyTimes = [0, 0.25, 0.5, 0.75, 1.0]
         endPointAnimation.duration = speed
@@ -301,9 +303,9 @@ extension UIView {
 
     // MARK: - Associated Objects Keys
 
-    private struct AssociatedKeys {
-        static var ledGradientLayer: UnsafeRawPointer = UnsafeRawPointer(bitPattern: "ledGradientLayer".hashValue)!
-        static var ledAnimationGroup: UnsafeRawPointer = UnsafeRawPointer(bitPattern: "ledAnimationGroup".hashValue)!
+    private enum AssociatedKeys {
+        static var ledGradientLayer: UnsafeRawPointer = .init(bitPattern: "ledGradientLayer".hashValue)!
+        static var ledAnimationGroup: UnsafeRawPointer = .init(bitPattern: "ledAnimationGroup".hashValue)!
     }
 }
 

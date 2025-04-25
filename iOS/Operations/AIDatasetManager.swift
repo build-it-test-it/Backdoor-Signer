@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -51,7 +45,10 @@ class AIDatasetManager {
             do {
                 // Get list of dataset files in the directory
                 let fileManager = FileManager.default
-                let files = try fileManager.contentsOfDirectory(at: self.datasetsDirectory, includingPropertiesForKeys: nil)
+                let files = try fileManager.contentsOfDirectory(
+                    at: self.datasetsDirectory,
+                    includingPropertiesForKeys: nil
+                )
 
                 // Only include JSON and CSV files
                 let datasetFiles = files.filter { $0.pathExtension == "json" || $0.pathExtension == "csv" }
@@ -162,14 +159,14 @@ class AIDatasetManager {
                     let headers = rows[0].components(separatedBy: ",")
                     var records: [[String: String]] = []
 
-                    for i in 1..<rows.count {
+                    for i in 1 ..< rows.count {
                         let row = rows[i]
                         if row.isEmpty { continue }
 
                         let values = row.components(separatedBy: ",")
                         var record: [String: String] = [:]
 
-                        for j in 0..<min(headers.count, values.count) {
+                        for j in 0 ..< min(headers.count, values.count) {
                             record[headers[j]] = values[j]
                         }
 
@@ -197,7 +194,10 @@ class AIDatasetManager {
                     throw AIDatasetError.trainingFailed("Failed to incorporate dataset into AI model")
                 }
             } catch {
-                Debug.shared.log(message: "Error using dataset for training: \(error.localizedDescription)", type: .error)
+                Debug.shared.log(
+                    message: "Error using dataset for training: \(error.localizedDescription)",
+                    type: .error
+                )
                 DispatchQueue.main.async {
                     completion(.failure(error))
                 }
@@ -276,7 +276,7 @@ class AIDatasetManager {
                     url: URL(string: "https://example.com/datasets/feature_requests.json")!,
                     size: 1_700_000,
                     category: "User Research"
-                )
+                ),
             ]
 
             DispatchQueue.main.async {
@@ -324,7 +324,7 @@ class AIDatasetManager {
                 } else {
                     // Try to get from URL
                     fileExtension = url.pathExtension.lowercased()
-                    if fileExtension != "json" && fileExtension != "csv" {
+                    if fileExtension != "json", fileExtension != "csv" {
                         throw AIDatasetError.invalidFormat("Only JSON and CSV formats are supported")
                     }
                 }
@@ -353,7 +353,10 @@ class AIDatasetManager {
                     throw AIDatasetError.invalidData("Could not create dataset from the downloaded file")
                 }
             } catch {
-                Debug.shared.log(message: "Error saving downloaded dataset: \(error.localizedDescription)", type: .error)
+                Debug.shared.log(
+                    message: "Error saving downloaded dataset: \(error.localizedDescription)",
+                    type: .error
+                )
                 DispatchQueue.main.async {
                     completion(.failure(error))
                 }
@@ -405,7 +408,8 @@ class AIDatasetManager {
             if let jsonArray = try JSONSerialization.jsonObject(with: fileData) as? [[String: Any]] {
                 return jsonArray.count
             } else if let jsonDict = try JSONSerialization.jsonObject(with: fileData) as? [String: Any],
-                      let dataArray = jsonDict["data"] as? [[String: Any]] {
+                      let dataArray = jsonDict["data"] as? [[String: Any]]
+            {
                 return dataArray.count
             } else {
                 return 1 // Assume it's a single record if not an array
@@ -481,7 +485,13 @@ class AIDatasetManager {
     /// Set up automatic dataset checking
     private func setupAutomaticDatasetChecking() {
         // Check periodically for needed datasets
-        let timer = Timer.scheduledTimer(timeInterval: 24 * 60 * 60, target: self, selector: #selector(checkForNeededDatasets), userInfo: nil, repeats: true)
+        let timer = Timer.scheduledTimer(
+            timeInterval: 24 * 60 * 60,
+            target: self,
+            selector: #selector(checkForNeededDatasets),
+            userInfo: nil,
+            repeats: true
+        )
         RunLoop.main.add(timer, forMode: .common)
 
         // Also check when app becomes active

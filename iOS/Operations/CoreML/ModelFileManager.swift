@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -43,7 +37,10 @@ final class ModelFileManager {
 
             return modelsDir
         } catch {
-            Debug.shared.log(message: "Error getting/creating AI models directory: \(error.localizedDescription)", type: .error)
+            Debug.shared.log(
+                message: "Error getting/creating AI models directory: \(error.localizedDescription)",
+                type: .error
+            )
             return nil
         }
     }
@@ -64,10 +61,13 @@ final class ModelFileManager {
             // First look for mlmodel files
             let modelFiles = contents.filter {
                 $0.pathExtension == modelExtension
-            }.sorted { (url1, url2) -> Bool in
+            }.sorted { url1, url2 -> Bool in
                 // Sort by modification date (newest first)
-                guard let date1 = try? url1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate,
-                      let date2 = try? url2.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate else {
+                guard let date1 = try? url1.resourceValues(forKeys: [.contentModificationDateKey])
+                    .contentModificationDate,
+                    let date2 = try? url2.resourceValues(forKeys: [.contentModificationDateKey])
+                    .contentModificationDate
+                else {
                     return false
                 }
                 return date1 > date2
@@ -81,25 +81,37 @@ final class ModelFileManager {
             // If no .mlmodel files, check for compiled .mlmodelc directories as fallback
             let compiledModelDirs = contents.filter {
                 $0.pathExtension == "mlmodelc" && $0.hasDirectoryPath
-            }.sorted { (url1, url2) -> Bool in
+            }.sorted { url1, url2 -> Bool in
                 // Sort by modification date (newest first)
-                guard let date1 = try? url1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate,
-                      let date2 = try? url2.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate else {
+                guard let date1 = try? url1.resourceValues(forKeys: [.contentModificationDateKey])
+                    .contentModificationDate,
+                    let date2 = try? url2.resourceValues(forKeys: [.contentModificationDateKey])
+                    .contentModificationDate
+                else {
                     return false
                 }
                 return date1 > date2
             }
 
             if let latestCompiledModel = compiledModelDirs.first {
-                Debug.shared.log(message: "Found compiled user-generated model: \(latestCompiledModel.lastPathComponent)", type: .info)
+                Debug.shared.log(
+                    message: "Found compiled user-generated model: \(latestCompiledModel.lastPathComponent)",
+                    type: .info
+                )
                 return latestCompiledModel
             }
 
             // Check the legacy Models directory as fallback
-            let legacyModelsDir = modelsDir.deletingLastPathComponent().appendingPathComponent("Models", isDirectory: true)
+            let legacyModelsDir = modelsDir.deletingLastPathComponent().appendingPathComponent(
+                "Models",
+                isDirectory: true
+            )
 
             if fileManager.fileExists(atPath: legacyModelsDir.path) {
-                let legacyContents = try fileManager.contentsOfDirectory(at: legacyModelsDir, includingPropertiesForKeys: nil)
+                let legacyContents = try fileManager.contentsOfDirectory(
+                    at: legacyModelsDir,
+                    includingPropertiesForKeys: nil
+                )
                 let legacyModels = legacyContents.filter { $0.pathExtension == modelExtension }
 
                 if let legacyModel = legacyModels.first {
@@ -108,7 +120,10 @@ final class ModelFileManager {
                 }
             }
         } catch {
-            Debug.shared.log(message: "Error searching for user-generated models: \(error.localizedDescription)", type: .error)
+            Debug.shared.log(
+                message: "Error searching for user-generated models: \(error.localizedDescription)",
+                type: .error
+            )
         }
 
         Debug.shared.log(message: "No user-generated models found", type: .info)
@@ -153,7 +168,10 @@ final class ModelFileManager {
                 )
             }
         } catch {
-            Debug.shared.log(message: "Error creating legacy model directory: \(error.localizedDescription)", type: .error)
+            Debug.shared.log(
+                message: "Error creating legacy model directory: \(error.localizedDescription)",
+                type: .error
+            )
         }
     }
 
@@ -192,7 +210,10 @@ final class ModelFileManager {
             // No models found, but directories are ready - that's okay now
             // We'll build a model dynamically later when we have enough data
             DispatchQueue.main.async {
-                Debug.shared.log(message: "No models available yet. System prepared for dynamic model creation.", type: .info)
+                Debug.shared.log(
+                    message: "No models available yet. System prepared for dynamic model creation.",
+                    type: .info
+                )
                 completion(.success(nil))
             }
         }

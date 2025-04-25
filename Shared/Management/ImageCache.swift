@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// A comprehensive image caching system that handles both memory and disk caching
@@ -40,7 +34,11 @@ final class ImageCache {
     private let diskQueue = DispatchQueue(label: "com.backdoor.ImageCache.DiskQueue", qos: .utility)
 
     /// Queue for image processing operations
-    private let processingQueue = DispatchQueue(label: "com.backdoor.ImageCache.ProcessingQueue", qos: .userInitiated, attributes: .concurrent)
+    private let processingQueue = DispatchQueue(
+        label: "com.backdoor.ImageCache.ProcessingQueue",
+        qos: .userInitiated,
+        attributes: .concurrent
+    )
 
     /// Directory for disk cache
     private let cacheDirectory: URL
@@ -128,7 +126,8 @@ final class ImageCache {
                    placeholder: UIImage? = nil,
                    downsampling: Bool = true,
                    targetSize: CGSize = CGSize(width: 80, height: 80),
-                   completion: @escaping (UIImage?) -> Void) {
+                   completion: @escaping (UIImage?) -> Void)
+    {
         // Return placeholder immediately if URL is nil
         guard let url = url else {
             DispatchQueue.main.async {
@@ -273,7 +272,10 @@ final class ImageCache {
             guard let self = self else { return }
 
             do {
-                let contents = try self.fileManager.contentsOfDirectory(at: self.cacheDirectory, includingPropertiesForKeys: nil)
+                let contents = try self.fileManager.contentsOfDirectory(
+                    at: self.cacheDirectory,
+                    includingPropertiesForKeys: nil
+                )
                 for url in contents {
                     try self.fileManager.removeItem(at: url)
                 }
@@ -295,7 +297,8 @@ final class ImageCache {
     private func downloadImage(from url: URL,
                                downsampling: Bool,
                                targetSize: CGSize,
-                               completion: @escaping (UIImage?) -> Void) {
+                               completion: @escaping (UIImage?) -> Void)
+    {
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             guard let self = self,
                   let data = data,
@@ -303,7 +306,10 @@ final class ImageCache {
                   let response = response as? HTTPURLResponse,
                   response.statusCode == 200
             else {
-                Debug.shared.log(message: "Image download failed: \(url.lastPathComponent) - \(error?.localizedDescription ?? "Unknown error")", type: .error)
+                Debug.shared.log(
+                    message: "Image download failed: \(url.lastPathComponent) - \(error?.localizedDescription ?? "Unknown error")",
+                    type: .error
+                )
                 completion(nil)
                 return
             }
@@ -312,17 +318,26 @@ final class ImageCache {
                 if downsampling, let uiImage = UIImage(data: data) {
                     // Downsample the image to reduce memory usage
                     if let downsampledImage = self.downsample(image: uiImage, to: targetSize) {
-                        Debug.shared.log(message: "Image downloaded and downsampled: \(url.lastPathComponent)", type: .debug)
+                        Debug.shared.log(
+                            message: "Image downloaded and downsampled: \(url.lastPathComponent)",
+                            type: .debug
+                        )
                         completion(downsampledImage)
                     } else {
-                        Debug.shared.log(message: "Image downloaded but downsampling failed: \(url.lastPathComponent)", type: .warning)
+                        Debug.shared.log(
+                            message: "Image downloaded but downsampling failed: \(url.lastPathComponent)",
+                            type: .warning
+                        )
                         completion(uiImage)
                     }
                 } else if let uiImage = UIImage(data: data) {
                     Debug.shared.log(message: "Image downloaded: \(url.lastPathComponent)", type: .debug)
                     completion(uiImage)
                 } else {
-                    Debug.shared.log(message: "Downloaded data could not be converted to image: \(url.lastPathComponent)", type: .error)
+                    Debug.shared.log(
+                        message: "Downloaded data could not be converted to image: \(url.lastPathComponent)",
+                        type: .error
+                    )
                     completion(nil)
                 }
             }
@@ -397,7 +412,7 @@ final class ImageCache {
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceShouldCacheImmediately: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceThumbnailMaxPixelSize: max(targetSize.width, targetSize.height) * UIScreen.main.scale
+            kCGImageSourceThumbnailMaxPixelSize: max(targetSize.width, targetSize.height) * UIScreen.main.scale,
         ] as CFDictionary
 
         guard let downsampledImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, downsamplingOptions) else {
@@ -427,7 +442,10 @@ final class ImageCache {
 
             // Get all cached files
             do {
-                let contents = try self.fileManager.contentsOfDirectory(at: self.cacheDirectory, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey])
+                let contents = try self.fileManager.contentsOfDirectory(
+                    at: self.cacheDirectory,
+                    includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]
+                )
 
                 // Get total size and sort by date
                 var totalSize: UInt = 0
@@ -457,7 +475,10 @@ final class ImageCache {
 
                 // Remove oldest files if total size exceeds limit
                 if totalSize > self.maxDiskCacheSize {
-                    Debug.shared.log(message: "Image cache size (\(totalSize / 1024 / 1024) MB) exceeds limit (\(self.maxDiskCacheSize / 1024 / 1024) MB)", type: .info)
+                    Debug.shared.log(
+                        message: "Image cache size (\(totalSize / 1024 / 1024) MB) exceeds limit (\(self.maxDiskCacheSize / 1024 / 1024) MB)",
+                        type: .info
+                    )
 
                     var currentSize = totalSize
                     let targetSize = self.maxDiskCacheSize * 80 / 100 // Target 80% of max size
@@ -472,7 +493,10 @@ final class ImageCache {
                             if let size = values.fileSize {
                                 try self.fileManager.removeItem(at: url)
                                 currentSize -= UInt(size)
-                                Debug.shared.log(message: "Removed old cached image: \(url.lastPathComponent)", type: .debug)
+                                Debug.shared.log(
+                                    message: "Removed old cached image: \(url.lastPathComponent)",
+                                    type: .debug
+                                )
                             }
                         } catch {
                             Debug.shared.log(message: "Failed to remove cached file: \(error)", type: .error)
@@ -501,11 +525,11 @@ extension UIImageView {
 
         // Set placeholder immediately
         if let placeholder = placeholder {
-            self.image = placeholder
+            image = placeholder
         }
 
         // Load from cache or download
-        ImageCache.shared.loadImage(from: url, placeholder: placeholder, targetSize: self.bounds.size) { [weak self] image in
+        ImageCache.shared.loadImage(from: url, placeholder: placeholder, targetSize: bounds.size) { [weak self] image in
             guard let self = self else { return }
 
             // Only update if the image view is still in the view hierarchy

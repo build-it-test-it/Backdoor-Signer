@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except
-// as expressly permitted under the terms of the Proprietary Software License.
-
 import AlertKit
 import CoreData
 import Foundation
@@ -86,8 +79,8 @@ func signInitialApp(
             // Update app info and retrieve icon info
             let infoPlistURL = tmpDirApp.appendingPathComponent("Info.plist")
             if let infoPlistDict = NSDictionary(contentsOf: infoPlistURL),
-               let info = infoPlistDict.mutableCopy() as? NSMutableDictionary {
-
+               let info = infoPlistDict.mutableCopy() as? NSMutableDictionary
+            {
                 try updateInfoPlist(
                     infoDict: info,
                     main: mainOptions,
@@ -99,7 +92,8 @@ func signInitialApp(
                 if let iconsDict = info["CFBundleIcons"] as? [String: Any],
                    let primaryIconsDict = iconsDict["CFBundlePrimaryIcon"] as? [String: Any],
                    let iconFiles = primaryIconsDict["CFBundleIconFiles"] as? [String],
-                   let iconFileName = iconFiles.first {
+                   let iconFileName = iconFiles.first
+                {
                     iconURL = iconFileName
                 }
             }
@@ -358,7 +352,7 @@ func updateInfoPlist(
     if let iconURL = main.mainOptions.iconURL {
         let imageSizes = [
             (width: 120, height: 120, name: "FRIcon60x60@2x.png"),
-            (width: 152, height: 152, name: "FRIcon76x76@2x~ipad.png")
+            (width: 152, height: 152, name: "FRIcon76x76@2x~ipad.png"),
         ]
 
         for imageSize in imageSizes {
@@ -380,15 +374,15 @@ func updateInfoPlist(
         let cfBundleIcons: [String: Any] = [
             "CFBundlePrimaryIcon": [
                 "CFBundleIconFiles": ["FRIcon60x60"],
-                "CFBundleIconName": "FRIcon"
-            ]
+                "CFBundleIconName": "FRIcon",
+            ],
         ]
 
         let cfBundleIconsIpad: [String: Any] = [
             "CFBundlePrimaryIcon": [
                 "CFBundleIconFiles": ["FRIcon60x60", "FRIcon76x76"],
-                "CFBundleIconName": "FRIcon"
-            ]
+                "CFBundleIconName": "FRIcon",
+            ],
         ]
 
         infoDict["CFBundleIcons"] = cfBundleIcons
@@ -476,8 +470,8 @@ func updateLocalizedInfoPlist(in appDirectory: URL, newDisplayName: String) {
 
                 if let localizedDict = NSDictionary(contentsOf: infoPlistStringsURL) as? [String: String],
                    let currentDisplayName = localizedDict["CFBundleDisplayName"],
-                   currentDisplayName != newDisplayName {
-
+                   currentDisplayName != newDisplayName
+                {
                     localizedStrings = localizedStrings.replacingOccurrences(
                         of: currentDisplayName,
                         with: newDisplayName

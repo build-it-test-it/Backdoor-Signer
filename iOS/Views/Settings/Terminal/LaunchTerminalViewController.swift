@@ -1,16 +1,8 @@
-//
-//  LaunchTerminalViewController.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import UIKit
 
 /// LaunchTerminalViewController - Button to launch the terminal
 /// This view controller provides a simplified UI to launch the Terminal
 class LaunchTerminalViewController: UIViewController {
-
     private let containerView = UIView()
     private let launchButton = UIButton(type: .system)
     private let iconImageView = UIImageView()
@@ -43,7 +35,8 @@ class LaunchTerminalViewController: UIViewController {
         containerView.addSubview(iconImageView)
 
         // Description label
-        descriptionLabel.text = "The terminal provides command-line access to perform advanced operations with the backend server."
+        descriptionLabel
+            .text = "The terminal provides command-line access to perform advanced operations with the backend server."
         descriptionLabel.textAlignment = .center
         descriptionLabel.numberOfLines = 0
         descriptionLabel.font = UIFont.systemFont(ofSize: 16)
@@ -85,7 +78,7 @@ class LaunchTerminalViewController: UIViewController {
             launchButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
             launchButton.widthAnchor.constraint(equalTo: containerView.widthAnchor, multiplier: 0.7),
             launchButton.heightAnchor.constraint(equalToConstant: 50),
-            launchButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+            launchButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
         ])
     }
 

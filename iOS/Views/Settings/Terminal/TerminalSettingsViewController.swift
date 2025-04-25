@@ -1,14 +1,6 @@
-//
-//  TerminalSettingsViewController.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import UIKit
 
 class TerminalSettingsViewController: UITableViewController {
-
     private enum SettingSection: Int, CaseIterable {
         case terminalSettings
         case dangerZone
@@ -58,11 +50,11 @@ class TerminalSettingsViewController: UITableViewController {
 
     // MARK: - Table view data source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    override func numberOfSections(in _: UITableView) -> Int {
         return SettingSection.allCases.count
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let settingSection = SettingSection(rawValue: section) else { return 0 }
 
         switch settingSection {
@@ -73,7 +65,7 @@ class TerminalSettingsViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    override func tableView(_: UITableView, titleForHeaderInSection section: Int) -> String? {
         guard let settingSection = SettingSection(rawValue: section) else { return nil }
 
         switch settingSection {
@@ -170,6 +162,7 @@ class TerminalSettingsViewController: UITableViewController {
     }
 
     // MARK: - Settings Handlers
+
     // Server settings removed as requested
 
     private func showFontSizePicker() {
@@ -182,7 +175,7 @@ class TerminalSettingsViewController: UITableViewController {
                 self.tableView.reloadData()
                 self.logger.log(message: "Updated terminal font size to \(size)pt", type: .info)
             }
-            if size == self.fontSize {
+            if size == fontSize {
                 action.setValue(true, forKey: "checked")
             }
             alert.addAction(action)
@@ -193,7 +186,10 @@ class TerminalSettingsViewController: UITableViewController {
         // For iPad support
         if let popoverController = alert.popoverPresentationController {
             popoverController.sourceView = tableView
-            popoverController.sourceRect = tableView.rectForRow(at: IndexPath(row: TerminalSetting.fontSize.rawValue, section: SettingSection.terminalSettings.rawValue))
+            popoverController.sourceRect = tableView.rectForRow(at: IndexPath(
+                row: TerminalSetting.fontSize.rawValue,
+                section: SettingSection.terminalSettings.rawValue
+            ))
         }
 
         present(alert, animated: true)
@@ -209,7 +205,7 @@ class TerminalSettingsViewController: UITableViewController {
                 self.tableView.reloadData()
                 self.logger.log(message: "Updated terminal color theme to \(theme)", type: .info)
             }
-            if index == self.colorTheme {
+            if index == colorTheme {
                 action.setValue(true, forKey: "checked")
             }
             alert.addAction(action)
@@ -220,7 +216,10 @@ class TerminalSettingsViewController: UITableViewController {
         // For iPad support
         if let popoverController = alert.popoverPresentationController {
             popoverController.sourceView = tableView
-            popoverController.sourceRect = tableView.rectForRow(at: IndexPath(row: TerminalSetting.colorTheme.rawValue, section: SettingSection.terminalSettings.rawValue))
+            popoverController.sourceRect = tableView.rectForRow(at: IndexPath(
+                row: TerminalSetting.colorTheme.rawValue,
+                section: SettingSection.terminalSettings.rawValue
+            ))
         }
 
         present(alert, animated: true)
@@ -277,8 +276,11 @@ class TerminalSettingsViewController: UITableViewController {
                         successAlert.addAction(UIAlertAction(title: "OK", style: .default))
                         self.present(successAlert, animated: true)
 
-                    case .failure(let error):
-                        self.logger.log(message: "Failed to end terminal session: \(error.localizedDescription)", type: .error)
+                    case let .failure(error):
+                        self.logger.log(
+                            message: "Failed to end terminal session: \(error.localizedDescription)",
+                            type: .error
+                        )
                         let errorAlert = UIAlertController(
                             title: "Error",
                             message: "Failed to end session: \(error.localizedDescription)",

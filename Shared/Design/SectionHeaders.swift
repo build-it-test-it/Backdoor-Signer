@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// Constants used by section header components
@@ -18,6 +11,7 @@ private enum SectionHeaderConstants {
         /// Button font size
         static let buttonSize: CGFloat = 14
     }
+
     /// Spacing and margin constants
     enum Spacing {
         /// Default top margin
@@ -35,6 +29,7 @@ private enum SectionHeaderConstants {
         /// Large spacing
         static let largeSpacing: CGFloat = 8
     }
+
     /// View dimensions
     enum Dimensions {
         /// Button corner radius
@@ -44,6 +39,7 @@ private enum SectionHeaderConstants {
         /// Icon dimension
         static let iconSize: CGFloat = 24
     }
+
     /// Appearance settings
     enum Appearance {
         /// Border color for image views
@@ -82,7 +78,7 @@ class InsetGroupedSectionHeader: UIView {
     /// - Parameter coder: The NSCoder instance
     required init?(coder: NSCoder) {
         // Support storyboard initialization
-        self.topAnchorConstant = SectionHeaderConstants.Spacing.defaultTopMargin
+        topAnchorConstant = SectionHeaderConstants.Spacing.defaultTopMargin
         super.init(coder: coder)
         setupUI()
     }
@@ -114,7 +110,7 @@ class InsetGroupedSectionHeader: UIView {
             titleLabel.bottomAnchor.constraint(
                 equalTo: bottomAnchor,
                 constant: -SectionHeaderConstants.Spacing.smallSpacing
-            )
+            ),
         ])
     }
 
@@ -163,13 +159,13 @@ class SearchAppSectionHeader: UIView {
         super.init(frame: .zero)
         setupUI()
         self.title = title
-        self.iconImageView.image = icon
+        iconImageView.image = icon
     }
 
     /// Required initializer for interface builder/storyboard support
     /// - Parameter coder: The NSCoder instance
     required init?(coder: NSCoder) {
-        self.topAnchorConstant = SectionHeaderConstants.Spacing.defaultTopMargin
+        topAnchorConstant = SectionHeaderConstants.Spacing.defaultTopMargin
         super.init(coder: coder)
         setupUI()
     }
@@ -223,7 +219,7 @@ class SearchAppSectionHeader: UIView {
             titleLabel.bottomAnchor.constraint(
                 equalTo: bottomAnchor,
                 constant: -topAnchorConstant
-            )
+            ),
         ])
     }
 
@@ -328,9 +324,9 @@ class GroupedSectionHeader: UIView {
     /// Required initializer for interface builder/storyboard support
     /// - Parameter coder: The NSCoder instance
     required init?(coder: NSCoder) {
-        self.topAnchorConstant = SectionHeaderConstants.Spacing.contentInset
-        self.buttonTitle = nil
-        self.buttonAction = nil
+        topAnchorConstant = SectionHeaderConstants.Spacing.contentInset
+        buttonTitle = nil
+        buttonAction = nil
         super.init(coder: coder)
         setupUI()
     }
@@ -366,7 +362,7 @@ class GroupedSectionHeader: UIView {
             titleLabel.trailingAnchor.constraint(
                 equalTo: trailingAnchor,
                 constant: -SectionHeaderConstants.Spacing.trailingPadding
-            )
+            ),
         ])
 
         if subtitleLabel.text != "" {
@@ -386,14 +382,14 @@ class GroupedSectionHeader: UIView {
                 subtitleLabel.bottomAnchor.constraint(
                     equalTo: bottomAnchor,
                     constant: -topAnchorConstant
-                )
+                ),
             ])
         } else {
             NSLayoutConstraint.activate([
                 titleLabel.bottomAnchor.constraint(
                     equalTo: bottomAnchor,
                     constant: -topAnchorConstant
-                )
+                ),
             ])
         }
 
@@ -405,7 +401,7 @@ class GroupedSectionHeader: UIView {
                 ),
                 actionButton.centerYAnchor.constraint(
                     equalTo: titleLabel.centerYAnchor
-                )
+                ),
             ])
         }
     }
@@ -427,9 +423,9 @@ class GroupedSectionHeader: UIView {
         let height: CGFloat
         if subtitleLabel.text != "" {
             height = titleLabel.intrinsicContentSize.height
-                    + subtitleLabel.intrinsicContentSize.height
-                    + topAnchorConstant * 2
-                    + SectionHeaderConstants.Spacing.smallSpacing
+                + subtitleLabel.intrinsicContentSize.height
+                + topAnchorConstant * 2
+                + SectionHeaderConstants.Spacing.smallSpacing
         } else {
             height = titleLabel.intrinsicContentSize.height + topAnchorConstant * 2
         }

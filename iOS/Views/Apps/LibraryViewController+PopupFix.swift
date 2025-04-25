@@ -1,15 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import UIKit
 import CoreData
+import UIKit
 
 // Extension to fix popup presentation in LibraryViewController
 extension LibraryViewController {
-
     /// Configures popup detents for proper height based on content - implementation moved to main class
 
     /// Fixed method to handle signing a downloaded app - ensures sign popup works correctly

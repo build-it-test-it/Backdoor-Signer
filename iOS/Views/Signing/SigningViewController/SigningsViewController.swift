@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import CoreData
 import UIKit
 
@@ -41,23 +34,23 @@ class SigningsViewController: UIViewController {
             "AppIcon",
             String.localized("APPS_INFORMATION_TITLE_NAME"),
             String.localized("APPS_INFORMATION_TITLE_IDENTIFIER"),
-            String.localized("APPS_INFORMATION_TITLE_VERSION")
+            String.localized("APPS_INFORMATION_TITLE_VERSION"),
         ],
         [
-            "Signing"
+            "Signing",
         ],
         [
             String.localized("APP_SIGNING_VIEW_CONTROLLER_CELL_ADD_TWEAKS"),
-            String.localized("APP_SIGNING_VIEW_CONTROLLER_CELL_MODIFY_DYLIBS")
+            String.localized("APP_SIGNING_VIEW_CONTROLLER_CELL_MODIFY_DYLIBS"),
         ],
-        [String.localized("APP_SIGNING_VIEW_CONTROLLER_CELL_PROPERTIES")]
+        [String.localized("APP_SIGNING_VIEW_CONTROLLER_CELL_PROPERTIES")],
     ]
 
     var sectionTitles = [
         String.localized("APP_SIGNING_VIEW_CONTROLLER_CELL_TITLE_CUSTOMIZATION"),
         String.localized("APP_SIGNING_VIEW_CONTROLLER_CELL_TITLE_SIGNING"),
         String.localized("APP_SIGNING_VIEW_CONTROLLER_CELL_TITLE_ADVANCED"),
-        ""
+        "",
     ]
 
     // MARK: - Properties
@@ -103,7 +96,8 @@ class SigningsViewController: UIViewController {
     private func setupBundleOptions(from application: NSManagedObject) {
         guard let name = application.value(forKey: "name") as? String,
               let bundleId = application.value(forKey: "bundleidentifier") as? String,
-              let version = application.value(forKey: "version") as? String else {
+              let version = application.value(forKey: "version") as? String
+        else {
             return
         }
 
@@ -131,7 +125,8 @@ class SigningsViewController: UIViewController {
     private func handleProtectionSettings() {
         guard signingDataWrapper.signingOptions.ppqCheckProtection,
               mainOptions.mainOptions.certificate?.certData?.pPQCheck == true,
-              let bundleId = bundle?.bundleId else {
+              let bundleId = bundle?.bundleId
+        else {
             return
         }
 
@@ -143,13 +138,15 @@ class SigningsViewController: UIViewController {
     private func applyCustomConfigurations() {
         // Apply custom bundle ID if configured
         if let currentBundleId = bundle?.bundleId,
-           let newBundleId = signingDataWrapper.signingOptions.bundleIdConfig[currentBundleId] {
+           let newBundleId = signingDataWrapper.signingOptions.bundleIdConfig[currentBundleId]
+        {
             mainOptions.mainOptions.bundleId = newBundleId
         }
 
         // Apply custom display name if configured
         if let currentName = bundle?.name,
-           let newName = signingDataWrapper.signingOptions.displayNameConfig[currentName] {
+           let newName = signingDataWrapper.signingOptions.displayNameConfig[currentName]
+        {
             mainOptions.mainOptions.name = newName
         }
     }
@@ -157,7 +154,8 @@ class SigningsViewController: UIViewController {
     private func checkDynamicProtection() async {
         guard signingDataWrapper.signingOptions.ppqCheckProtection,
               mainOptions.mainOptions.certificate?.certData?.pPQCheck == true,
-              let bundleId = bundle?.bundleId else {
+              let bundleId = bundle?.bundleId
+        else {
             return
         }
 
@@ -267,8 +265,8 @@ class SigningsViewController: UIViewController {
 
         // Calculate height based on device type
         let height = UIDevice.current.userInterfaceIdiom == .pad ?
-                     Constants.ipadBlurHeight :
-                     Constants.iphoneBlurHeight
+            Constants.ipadBlurHeight :
+            Constants.iphoneBlurHeight
 
         // Set constraints
         NSLayoutConstraint.activate([
@@ -289,7 +287,7 @@ class SigningsViewController: UIViewController {
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor,
                 constant: -Constants.buttonBottomMargin
             ),
-            largeButton.heightAnchor.constraint(equalToConstant: Constants.buttonHeight)
+            largeButton.heightAnchor.constraint(equalToConstant: Constants.buttonHeight),
         ])
 
         // Set z-position for proper layering
@@ -334,7 +332,8 @@ class SigningsViewController: UIViewController {
 
         // Check if swipe occurred on certificate cell
         guard let indexPath = tableView.indexPathForRow(at: location),
-              indexPath.section == 1 && indexPath.row == 0 else {
+              indexPath.section == 1 && indexPath.row == 0
+        else {
             return
         }
 
@@ -411,7 +410,7 @@ class SigningsViewController: UIViewController {
             case .success(let (signedPath, signedApp)):
                 self.handleSuccessfulSigning(signedPath: signedPath, signedApp: signedApp)
 
-            case .failure(let error):
+            case let .failure(error):
                 backdoor.Debug.shared.log(
                     message: "Signing failed: \(error.localizedDescription)",
                     type: .error
@@ -447,7 +446,7 @@ class SigningsViewController: UIViewController {
             offlineIndicator.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             offlineIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             offlineIndicator.heightAnchor.constraint(equalToConstant: 20),
-            offlineIndicator.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+            offlineIndicator.widthAnchor.constraint(greaterThanOrEqualToConstant: 120),
         ])
 
         // Add LED glow effect to make it noticeable
@@ -568,7 +567,7 @@ extension SigningsViewController: UITableViewDataSource, UITableViewDelegate {
         return configureCellForType(cellText, at: indexPath)
     }
 
-    private func configureCellForType(_ cellText: String, at indexPath: IndexPath) -> UITableViewCell {
+    private func configureCellForType(_ cellText: String, at _: IndexPath) -> UITableViewCell {
         let reuseIdentifier = "Cell"
         let cell = UITableViewCell(style: .value1, reuseIdentifier: reuseIdentifier)
         cell.accessoryType = .none
@@ -611,7 +610,8 @@ extension SigningsViewController: UITableViewDataSource, UITableViewDelegate {
         if mainOptions.mainOptions.iconURL != nil {
             iconCell.configure(with: mainOptions.mainOptions.iconURL)
         } else if let app = application as? DownloadedApps,
-                  let iconURL = getIconURL(for: app) {
+                  let iconURL = getIconURL(for: app)
+        {
             iconCell.configure(with: CoreDataManager.shared.loadImage(from: iconURL))
         }
 
@@ -740,7 +740,8 @@ extension SigningsViewController {
 
     private func getIconURL(for app: DownloadedApps) -> URL? {
         guard let iconURLString = app.value(forKey: "iconURL") as? String,
-              let iconURL = URL(string: iconURLString) else {
+              let iconURL = URL(string: iconURLString)
+        else {
             return nil
         }
 

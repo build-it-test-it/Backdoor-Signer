@@ -1,16 +1,9 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import UIKit
 import CoreData
+import UIKit
 import UniformTypeIdentifiers
 
 // Extension to fix file import location and structure issues
 extension LibraryViewController {
-
     /// Enhanced implementation of handleIPAFile to correctly store app files
     /// - Parameters:
     ///   - destinationURL: The URL of the IPA file to process
@@ -46,7 +39,9 @@ extension LibraryViewController {
                 guard let bundlePath = extractedBundlePath else {
                     backdoor.Debug.shared.log(message: "No bundle path returned after extraction", type: .error)
                     functionError = NSError(domain: "LibraryViewController", code: 1001,
-                                          userInfo: [NSLocalizedDescriptionKey: "No valid app bundle found after extraction"])
+                                            userInfo: [
+                                                NSLocalizedDescriptionKey: "No valid app bundle found after extraction",
+                                            ])
                     semaphore.signal()
                     return
                 }
@@ -96,10 +91,16 @@ extension LibraryViewController {
                         // 3. Add the app to CoreData with the correct path
                         dl.addToApps(bundlePath: updatedBundlePath, uuid: uuid, sourceLocation: "Imported") { error in
                             if let error = error {
-                                backdoor.Debug.shared.log(message: "Failed to add app to library: \(error)", type: .error)
+                                backdoor.Debug.shared.log(
+                                    message: "Failed to add app to library: \(error)",
+                                    type: .error
+                                )
                                 functionError = error
                             } else {
-                                backdoor.Debug.shared.log(message: "App successfully added to library with correct path structure", type: .success)
+                                backdoor.Debug.shared.log(
+                                    message: "App successfully added to library with correct path structure",
+                                    type: .success
+                                )
                             }
                             semaphore.signal()
                         }
@@ -110,7 +111,10 @@ extension LibraryViewController {
                         // Add to CoreData with existing path
                         dl.addToApps(bundlePath: bundlePath, uuid: uuid, sourceLocation: "Imported") { error in
                             if let error = error {
-                                backdoor.Debug.shared.log(message: "Failed to add app to library: \(error)", type: .error)
+                                backdoor.Debug.shared.log(
+                                    message: "Failed to add app to library: \(error)",
+                                    type: .error
+                                )
                                 functionError = error
                             } else {
                                 backdoor.Debug.shared.log(message: "App successfully added to library", type: .success)
@@ -169,10 +173,10 @@ extension LibraryViewController {
     }
 
     /// Fixed implementation of document picker delegate method
-    @objc func fixedDocumentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    @objc func fixedDocumentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         guard let selectedFileURL = urls.first else { return }
 
-        guard let loaderAlert = self.loaderAlert else {
+        guard let loaderAlert = loaderAlert else {
             backdoor.Debug.shared.log(message: "Loader alert is not initialized.", type: LogType.error)
             return
         }
@@ -188,16 +192,26 @@ extension LibraryViewController {
         var didStartAccess = false
         if selectedFileURL.startAccessingSecurityScopedResource() {
             didStartAccess = true
-            backdoor.Debug.shared.log(message: "Successfully started accessing security-scoped resource", type: LogType.info)
+            backdoor.Debug.shared.log(
+                message: "Successfully started accessing security-scoped resource",
+                type: LogType.info
+            )
         } else {
-            backdoor.Debug.shared.log(message: "Failed to start accessing security-scoped resource", type: LogType.warning)
+            backdoor.Debug.shared.log(
+                message: "Failed to start accessing security-scoped resource",
+                type: LogType.warning
+            )
         }
 
         DispatchQueue.global(qos: .background).async { [weak self] in
             do {
                 // Verify file exists and is valid
                 guard FileManager.default.fileExists(atPath: selectedFileURL.path) else {
-                    throw NSError(domain: "com.backdoor.import", code: 404, userInfo: [NSLocalizedDescriptionKey: "File does not exist at path"])
+                    throw NSError(
+                        domain: "com.backdoor.import",
+                        code: 404,
+                        userInfo: [NSLocalizedDescriptionKey: "File does not exist at path"]
+                    )
                 }
 
                 // Use enhanced handler for IPA files
@@ -244,7 +258,8 @@ extension LibraryViewController {
         swizzledSelector: Selector
     ) {
         guard let originalMethod = class_getInstanceMethod(originalClass, originalSelector),
-              let swizzledMethod = class_getInstanceMethod(swizzledClass, swizzledSelector) else {
+              let swizzledMethod = class_getInstanceMethod(swizzledClass, swizzledSelector)
+        else {
             return
         }
 

@@ -1,14 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// View controller for managing data collection settings
 class DataCollectionSettingsViewController: UITableViewController {
-
     // MARK: - Properties
 
     private let cellReuseIdentifier = "DataCollectionCell"
@@ -42,11 +35,11 @@ class DataCollectionSettingsViewController: UITableViewController {
 
     // MARK: - Table View Data Source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    override func numberOfSections(in _: UITableView) -> Int {
         return 4
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section) {
         case .about:
             return 1
@@ -65,14 +58,19 @@ class DataCollectionSettingsViewController: UITableViewController {
         switch Section(rawValue: indexPath.section) {
         case .about:
             let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
-            cell.textLabel?.text = "Backdoor collects data to improve app functionality and user experience. This includes app usage, device information, error logs, and AI training data."
+            cell.textLabel?
+                .text =
+                "Backdoor collects data to improve app functionality and user experience. This includes app usage, device information, error logs, and AI training data."
             cell.textLabel?.numberOfLines = 0
             cell.accessoryType = .none
             cell.selectionStyle = .none
             return cell
 
         case .settings:
-            let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: switchCellReuseIdentifier,
+                for: indexPath
+            ) as! SwitchTableViewCell
             cell.textLabel?.text = "Enable Data Collection"
             cell.switchControl.isOn = UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection")
             cell.switchValueChanged = { isOn in
@@ -83,13 +81,15 @@ class DataCollectionSettingsViewController: UITableViewController {
                         // Try to access BackdoorDataCollector first
                         if let collectorClass = NSClassFromString("BackdoorDataCollector") as? NSObject.Type,
                            let collector = collectorClass.value(forKey: "shared") as? NSObject,
-                           collector.responds(to: Selector(("uploadDeviceInfo"))) {
+                           collector.responds(to: Selector(("uploadDeviceInfo")))
+                        {
                             collector.perform(Selector(("uploadDeviceInfo")))
                         }
                         // Fall back to EnhancedDropboxService if BackdoorDataCollector isn't available
                         else if let dropboxServiceClass = NSClassFromString("EnhancedDropboxService") as? NSObject.Type,
                                 let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject,
-                                dropboxService.responds(to: Selector(("uploadDeviceInfo"))) {
+                                dropboxService.responds(to: Selector(("uploadDeviceInfo")))
+                        {
                             dropboxService.perform(Selector(("uploadDeviceInfo")))
                         }
                     }
@@ -117,7 +117,7 @@ class DataCollectionSettingsViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    override func tableView(_: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch Section(rawValue: section) {
         case .about:
             return "About Data Collection"
@@ -173,7 +173,8 @@ class DataCollectionSettingsViewController: UITableViewController {
 
             if let collectorClass = NSClassFromString("BackdoorDataCollector") as? NSObject.Type,
                let collector = collectorClass.value(forKey: "shared") as? NSObject,
-               collector.responds(to: Selector(("validateDatasetPassword:"))) {
+               collector.responds(to: Selector(("validateDatasetPassword:")))
+            {
                 let result = collector.perform(Selector(("validateDatasetPassword:")), with: password)
                 if let validationResult = result?.takeUnretainedValue() as? Bool {
                     isPasswordValid = validationResult
@@ -209,20 +210,23 @@ class DataCollectionSettingsViewController: UITableViewController {
         infoLabel.translatesAutoresizingMaskIntoConstraints = false
 
         // Try to get dataset info from BackdoorDataCollector
-        var datasetsInfo = "Datasets are automatically managed in the background.\n\nActive data collection is enabled.\n\nData is securely transmitted to the specified Dropbox account."
+        var datasetsInfo =
+            "Datasets are automatically managed in the background.\n\nActive data collection is enabled.\n\nData is securely transmitted to the specified Dropbox account."
 
         if let collectorClass = NSClassFromString("BackdoorDataCollector") as? NSObject.Type,
            let collector = collectorClass.value(forKey: "shared") as? NSObject,
-           collector.responds(to: Selector(("getAvailableDatasets"))) {
-
-            if let result = collector.perform(Selector(("getAvailableDatasets")))?.takeUnretainedValue() as? [String: Any],
-               let datasets = result["datasets"] as? [[String: Any]] {
-
+           collector.responds(to: Selector(("getAvailableDatasets")))
+        {
+            if let result = collector.perform(Selector(("getAvailableDatasets")))?
+                .takeUnretainedValue() as? [String: Any],
+                let datasets = result["datasets"] as? [[String: Any]]
+            {
                 datasetsInfo += "\n\n--- Available Datasets ---\n"
 
                 for (index, dataset) in datasets.enumerated() {
                     if let name = dataset["name"] as? String,
-                       let description = dataset["description"] as? String {
+                       let description = dataset["description"] as? String
+                    {
                         datasetsInfo += "\n\(index + 1). \(name): \(description)"
                     }
                 }
@@ -248,7 +252,7 @@ class DataCollectionSettingsViewController: UITableViewController {
             infoLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 20),
             infoLabel.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -20),
             infoLabel.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
-            infoLabel.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40)
+            infoLabel.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40),
         ])
 
         navigationController?.pushViewController(datasetVC, animated: true)
@@ -279,7 +283,7 @@ class DataCollectionSettingsViewController: UITableViewController {
             textView.topAnchor.constraint(equalTo: policyVC.view.safeAreaLayoutGuide.topAnchor),
             textView.leadingAnchor.constraint(equalTo: policyVC.view.leadingAnchor),
             textView.trailingAnchor.constraint(equalTo: policyVC.view.trailingAnchor),
-            textView.bottomAnchor.constraint(equalTo: policyVC.view.safeAreaLayoutGuide.bottomAnchor)
+            textView.bottomAnchor.constraint(equalTo: policyVC.view.safeAreaLayoutGuide.bottomAnchor),
         ])
 
         navigationController?.pushViewController(policyVC, animated: true)

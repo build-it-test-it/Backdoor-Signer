@@ -1,16 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
-import UIKit
 import CoreData
+import UIKit
 
 /// Extension to fix icon display issues in LibraryViewController
 extension LibraryViewController {
-
     // MARK: - Icon Loading with LED Effects
 
     /// Enhanced icon loading for app cells with LED effects
@@ -40,14 +32,15 @@ extension LibraryViewController {
 
             // Try loading from CoreData cache with fallback
             tryLoadingIconWithFallbacks(cell: cell,
-                                      imagePath: imagePath,
-                                      app: app,
-                                      filePath: filePath)
+                                        imagePath: imagePath,
+                                        app: app,
+                                        filePath: filePath)
         } else {
             // Look for icon.png in the app bundle as fallback
             let alternativeIconPath = filePath.appendingPathComponent("icon.png")
             if FileManager.default.fileExists(atPath: alternativeIconPath.path),
-               let image = UIImage(contentsOfFile: alternativeIconPath.path) {
+               let image = UIImage(contentsOfFile: alternativeIconPath.path)
+            {
                 setImageWithLEDEffect(cell: cell, image: image)
 
                 // Save this path for future use
@@ -71,9 +64,10 @@ extension LibraryViewController {
     ///   - app: The app object
     ///   - filePath: Path to the app's files
     private func tryLoadingIconWithFallbacks(cell: AppsTableViewCell,
-                                           imagePath: URL,
-                                           app: NSManagedObject,
-                                           filePath: URL) {
+                                             imagePath: URL,
+                                             app: NSManagedObject,
+                                             filePath: URL)
+    {
         // Try loading from CoreData's image cache
         if let image = CoreDataManager.shared.loadImage(from: imagePath) {
             setImageWithLEDEffect(cell: cell, image: image)
@@ -82,7 +76,8 @@ extension LibraryViewController {
 
         // Try loading directly from file path
         if FileManager.default.fileExists(atPath: imagePath.path),
-           let image = UIImage(contentsOfFile: imagePath.path) {
+           let image = UIImage(contentsOfFile: imagePath.path)
+        {
             setImageWithLEDEffect(cell: cell, image: image)
 
             // Save to image cache for future use
@@ -96,13 +91,14 @@ extension LibraryViewController {
             "AppIcon60x60@3x.png",
             "AppIcon.png",
             "Icon.png",
-            "icon.png"
+            "icon.png",
         ]
 
         for iconName in possibleIconPaths {
             let potentialPath = filePath.appendingPathComponent(iconName)
             if FileManager.default.fileExists(atPath: potentialPath.path),
-               let image = UIImage(contentsOfFile: potentialPath.path) {
+               let image = UIImage(contentsOfFile: potentialPath.path)
+            {
                 setImageWithLEDEffect(cell: cell, image: image)
 
                 // Update the iconURL in CoreData
@@ -128,7 +124,8 @@ extension LibraryViewController {
         let infoPlistPath = appPath.appendingPathComponent("Info.plist")
 
         guard FileManager.default.fileExists(atPath: infoPlistPath.path),
-              let infoPlist = NSDictionary(contentsOf: infoPlistPath) else {
+              let infoPlist = NSDictionary(contentsOf: infoPlistPath)
+        else {
             // Use default image if Info.plist can't be found/read
             if let defaultImage = UIImage(named: "unknown") {
                 setImageWithLEDEffect(cell: cell, image: defaultImage, defaultEffect: true)
@@ -143,12 +140,14 @@ extension LibraryViewController {
         if let icons = infoPlist["CFBundleIcons"] as? [String: Any],
            let primaryIcon = icons["CFBundlePrimaryIcon"] as? [String: Any],
            let iconFiles = primaryIcon["CFBundleIconFiles"] as? [String],
-           let filename = iconFiles.last {
+           let filename = iconFiles.last
+        {
             iconFilename = filename
         }
         // Then try CFBundleIconFiles directly
         else if let iconFiles = infoPlist["CFBundleIconFiles"] as? [String],
-                let filename = iconFiles.last {
+                let filename = iconFiles.last
+        {
             iconFilename = filename
         }
         // Finally try CFBundleIconFile
@@ -164,7 +163,8 @@ extension LibraryViewController {
             for ext in possibleExtensions {
                 let fullPath = appPath.appendingPathComponent(filename + ext)
                 if FileManager.default.fileExists(atPath: fullPath.path),
-                   let image = UIImage(contentsOfFile: fullPath.path) {
+                   let image = UIImage(contentsOfFile: fullPath.path)
+                {
                     setImageWithLEDEffect(cell: cell, image: image)
 
                     // Update the iconURL in CoreData
@@ -241,7 +241,8 @@ extension LibraryViewController {
 
         // Check if we have source information
         guard let sourceLocation = sourceLocation,
-              !sourceLocation.isEmpty else {
+              !sourceLocation.isEmpty
+        else {
             return
         }
 
@@ -262,8 +263,8 @@ extension LibraryViewController {
         // Create label for source
         let sourceLabel = UILabel()
         sourceLabel.text = sourceLocation.contains("http") ? "Web Import" :
-                         sourceLocation.contains("Imported") ? "Local Import" :
-                         "Source: \(sourceLocation)"
+            sourceLocation.contains("Imported") ? "Local Import" :
+            "Source: \(sourceLocation)"
         sourceLabel.font = UIFont.systemFont(ofSize: 10, weight: .medium)
         sourceLabel.textColor = .systemBlue
         sourceLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -288,7 +289,7 @@ extension LibraryViewController {
 
             sourceLabel.leadingAnchor.constraint(equalTo: iconImage.trailingAnchor, constant: 3),
             sourceLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -5),
-            sourceLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
+            sourceLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
         ])
 
         // Add subtle LED glow effect

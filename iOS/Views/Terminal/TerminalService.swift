@@ -1,10 +1,3 @@
-//
-//  TerminalService.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import Foundation
 import UIKit
 
@@ -41,6 +34,7 @@ class TerminalService {
     var currentSessionId: String? {
         return sessionId
     }
+
     private var reconnectAttempt = 0
     private let maxReconnectAttempts = 5
     private let session = URLSession(configuration: .default)
@@ -86,12 +80,12 @@ class TerminalService {
             guard let self = self else { return }
 
             switch result {
-            case .success(let message):
+            case let .success(message):
                 switch message {
-                case .string(let text):
+                case let .string(text):
                     self.logger.log(message: "WebSocket message received", type: .debug)
                     self.handleWebSocketMessage(text)
-                case .data(let data):
+                case let .data(data):
                     if let text = String(data: data, encoding: .utf8) {
                         self.logger.log(message: "WebSocket binary message received", type: .debug)
                         self.handleWebSocketMessage(text)
@@ -103,7 +97,7 @@ class TerminalService {
                 // Continue receiving messages
                 self.receiveMessage()
 
-            case .failure(let error):
+            case let .failure(error):
                 self.logger.log(message: "WebSocket receive error: \(error.localizedDescription)", type: .error)
                 self.isWebSocketConnected = false
 
@@ -140,7 +134,8 @@ class TerminalService {
 
                 case "joined":
                     if let sessionData = json["session"] as? [String: Any],
-                       let joinedSessionId = json["session_id"] as? String {
+                       let joinedSessionId = json["session_id"] as? String
+                    {
                         logger.log(message: "Joined session: \(joinedSessionId)", type: .info)
 
                         // Call any pending session callbacks
@@ -152,8 +147,8 @@ class TerminalService {
 
                 case "output":
                     if let sessionId = json["session_id"] as? String,
-                       let output = json["data"] as? String {
-
+                       let output = json["data"] as? String
+                    {
                         // If we have a handler for this session, call it
                         if let handler = outputHandlers[sessionId] {
                             handler(output)
@@ -181,7 +176,8 @@ class TerminalService {
 
                         // If an error occurs for a specific session, notify the callback
                         if let sessionId = json["session_id"] as? String,
-                           let callback = sessionCallbacks[sessionId] {
+                           let callback = sessionCallbacks[sessionId]
+                        {
                             callback(.failure(TerminalError.webSocketError(errorMessage)))
                             sessionCallbacks.removeValue(forKey: sessionId)
                         }
@@ -232,11 +228,17 @@ class TerminalService {
         reconnectAttempt += 1
         let delay = pow(2.0, Double(reconnectAttempt - 1))
 
-        logger.log(message: "Will attempt to reconnect WebSocket in \(delay) seconds (attempt \(reconnectAttempt))", type: .info)
+        logger.log(
+            message: "Will attempt to reconnect WebSocket in \(delay) seconds (attempt \(reconnectAttempt))",
+            type: .info
+        )
 
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self = self, !self.isWebSocketConnected else { return }
-            self.logger.log(message: "Attempting to reconnect WebSocket (attempt \(self.reconnectAttempt))", type: .info)
+            self.logger.log(
+                message: "Attempting to reconnect WebSocket (attempt \(self.reconnectAttempt))",
+                type: .info
+            )
 
             // Close existing connection
             self.webSocketTask?.cancel(with: .goingAway, reason: nil)
@@ -265,7 +267,7 @@ class TerminalService {
             "shell": "/bin/bash",
             "cols": 80,
             "rows": 24,
-            "env": ["TERM": "xterm-256color"]
+            "env": ["TERM": "xterm-256color"],
         ]
 
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
@@ -276,7 +278,10 @@ class TerminalService {
             guard let self = self else { return }
 
             if let error = error {
-                self.logger.log(message: "Network error creating terminal session: \(error.localizedDescription)", type: .error)
+                self.logger.log(
+                    message: "Network error creating terminal session: \(error.localizedDescription)",
+                    type: .error
+                )
                 completion(.failure(TerminalError.networkError(error.localizedDescription)))
                 return
             }
@@ -314,7 +319,10 @@ class TerminalService {
                     completion(.failure(TerminalError.responseError("Could not parse response")))
                 }
             } catch {
-                self.logger.log(message: "JSON parsing error in terminal session response: \(error.localizedDescription)", type: .error)
+                self.logger.log(
+                    message: "JSON parsing error in terminal session response: \(error.localizedDescription)",
+                    type: .error
+                )
                 completion(.failure(TerminalError.parseError("JSON parsing error: \(error.localizedDescription)")))
             }
         }.resume()
@@ -325,7 +333,7 @@ class TerminalService {
         // Join via WebSocket
         sendWebSocketMessage([
             "event": "join",
-            "session_id": sessionId
+            "session_id": sessionId,
         ])
 
         // Store this as our current session
@@ -344,10 +352,10 @@ class TerminalService {
                 guard let self = self else { return }
 
                 switch result {
-                case .success(let newSessionId):
+                case let .success(newSessionId):
                     self.sessionId = newSessionId
                     self.executeCommandInSession(command, outputHandler: outputHandler, completion: completion)
-                case .failure(let error):
+                case let .failure(error):
                     completion(.failure(error))
                 }
             }
@@ -375,7 +383,7 @@ class TerminalService {
             sendWebSocketMessage([
                 "event": "input",
                 "session_id": sessionId,
-                "data": command + "\n"
+                "data": command + "\n",
             ])
 
             // Command is sent - consider it successful immediately
@@ -404,7 +412,7 @@ class TerminalService {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let body: [String: Any] = [
-            "command": command + "\n"
+            "command": command + "\n",
         ]
 
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
@@ -456,7 +464,7 @@ class TerminalService {
                 "event": "resize",
                 "session_id": sessionId,
                 "cols": cols,
-                "rows": rows
+                "rows": rows,
             ])
 
             completion(.success(()))
@@ -473,7 +481,7 @@ class TerminalService {
 
             let body: [String: Any] = [
                 "cols": cols,
-                "rows": rows
+                "rows": rows,
             ]
 
             request.httpBody = try? JSONSerialization.data(withJSONObject: body)
@@ -485,7 +493,7 @@ class TerminalService {
                 }
 
                 if let httpResponse = response as? HTTPURLResponse {
-                    if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
+                    if httpResponse.statusCode >= 200, httpResponse.statusCode < 300 {
                         completion(.success(()))
                     } else {
                         completion(.failure(TerminalError.responseError("HTTP error: \(httpResponse.statusCode)")))
@@ -509,7 +517,7 @@ class TerminalService {
             // Terminate via WebSocket
             sendWebSocketMessage([
                 "event": "terminate",
-                "session_id": sessionId
+                "session_id": sessionId,
             ])
 
             // Clear session
@@ -572,7 +580,7 @@ class ProcessUtility {
             switch result {
             case .success:
                 completion(output)
-            case .failure(let error):
+            case let .failure(error):
                 completion("Error: \(error.localizedDescription)")
             }
         }
@@ -583,7 +591,11 @@ class ProcessUtility {
     ///   - command: The shell command to be executed.
     ///   - outputHandler: Real-time handler for command output chunks.
     ///   - completion: A closure to be called when the command completes.
-    func executeShellCommandWithStreaming(_ command: String, outputHandler: @escaping (String) -> Void, completion: @escaping (String?) -> Void) {
+    func executeShellCommandWithStreaming(
+        _ command: String,
+        outputHandler: @escaping (String) -> Void,
+        completion: @escaping (String?) -> Void
+    ) {
         var fullOutput = ""
 
         logger.log(message: "ProcessUtility executing streaming command: \(command)", type: .info)
@@ -598,7 +610,7 @@ class ProcessUtility {
             switch result {
             case .success:
                 completion(fullOutput)
-            case .failure(let error):
+            case let .failure(error):
                 completion("Error: \(error.localizedDescription)")
             }
         }

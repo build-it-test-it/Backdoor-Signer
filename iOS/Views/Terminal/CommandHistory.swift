@@ -1,10 +1,3 @@
-//
-//  CommandHistory.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import Foundation
 
 class CommandHistory {

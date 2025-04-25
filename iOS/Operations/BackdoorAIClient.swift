@@ -1,11 +1,5 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import Foundation
 import CoreML
+import Foundation
 
 /// Client for interacting with the Backdoor AI learning server
 class BackdoorAIClient {
@@ -33,7 +27,7 @@ class BackdoorAIClient {
     private init() {
         // Always use the fixed endpoint to ensure reliability
         let serverURL = "https://backdoor-ai-b3k3.onrender.com"
-        self.baseURL = URL(string: serverURL)!
+        baseURL = URL(string: serverURL)!
 
         Debug.shared.log(message: "BackdoorAIClient initialized", type: .info)
     }
@@ -46,14 +40,18 @@ class BackdoorAIClient {
         return [
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "Backdoor-App/\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")"
+            "User-Agent": "Backdoor-App/\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")",
         ]
     }
 
     // MARK: - Data Upload
 
     /// Upload interaction data to the server
-    func uploadInteractions(interactions: [AIInteraction], behaviors: [UserBehavior] = [], patterns: [AppUsagePattern] = []) async throws -> ModelInfo {
+    func uploadInteractions(
+        interactions: [AIInteraction],
+        behaviors: [UserBehavior] = [],
+        patterns: [AppUsagePattern] = []
+    ) async throws -> ModelInfo {
         // Use the fixed learn endpoint URL provided by the server admin
         let url = fixedLearnEndpointURL
         var request = URLRequest(url: url)
@@ -143,15 +141,22 @@ class BackdoorAIClient {
 
             // Check response status
             guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else {
-                Debug.shared.log(message: "Server returned error status: \((response as? HTTPURLResponse)?.statusCode ?? 0)", type: .error)
+                  (200 ... 299).contains(httpResponse.statusCode)
+            else {
+                Debug.shared.log(
+                    message: "Server returned error status: \((response as? HTTPURLResponse)?.statusCode ?? 0)",
+                    type: .error
+                )
                 throw APIError.invalidResponse
             }
 
             // Decode response
             do {
                 let modelInfo = try JSONDecoder().decode(ModelInfo.self, from: data)
-                Debug.shared.log(message: "Successfully uploaded \(interactions.count) interactions, \(behaviors.count) behaviors, and \(patterns.count) patterns", type: .info)
+                Debug.shared.log(
+                    message: "Successfully uploaded \(interactions.count) interactions, \(behaviors.count) behaviors, and \(patterns.count) patterns",
+                    type: .info
+                )
                 return modelInfo
             } catch {
                 Debug.shared.log(message: "Failed to decode model info: \(error)", type: .error)
@@ -190,7 +195,7 @@ class BackdoorAIClient {
             }
 
             // Check status code
-            guard (200...299).contains(httpResponse.statusCode) else {
+            guard (200 ... 299).contains(httpResponse.statusCode) else {
                 Debug.shared.log(message: "Server returned error status: \(httpResponse.statusCode)", type: .error)
 
                 if httpResponse.statusCode == 404 {
@@ -242,7 +247,11 @@ class BackdoorAIClient {
         do {
             // Show download progress with UI notification
             let notificationName = Notification.Name("ModelDownloadProgress")
-            NotificationCenter.default.post(name: notificationName, object: nil, userInfo: ["status": "started", "version": version])
+            NotificationCenter.default.post(
+                name: notificationName,
+                object: nil,
+                userInfo: ["status": "started", "version": version]
+            )
 
             // Download file with URLSession
             let (tempFileURL, response) = try await URLSession.shared.download(for: request)
@@ -254,8 +263,11 @@ class BackdoorAIClient {
             }
 
             // Check status code
-            guard (200...299).contains(httpResponse.statusCode) else {
-                Debug.shared.log(message: "Server returned error status during download: \(httpResponse.statusCode)", type: .error)
+            guard (200 ... 299).contains(httpResponse.statusCode) else {
+                Debug.shared.log(
+                    message: "Server returned error status during download: \(httpResponse.statusCode)",
+                    type: .error
+                )
 
                 if httpResponse.statusCode == 404 {
                     throw APIError.modelNotFound
@@ -274,7 +286,11 @@ class BackdoorAIClient {
             let checksum = CryptoHelper.shared.crc32(of: fileData)
 
             Debug.shared.log(message: "Model downloaded successfully with checksum: \(checksum)", type: .info)
-            NotificationCenter.default.post(name: notificationName, object: nil, userInfo: ["status": "completed", "version": version])
+            NotificationCenter.default.post(
+                name: notificationName,
+                object: nil,
+                userInfo: ["status": "completed", "version": version]
+            )
 
             return modelURL
         } catch {
@@ -336,7 +352,10 @@ class BackdoorAIClient {
                     }
                     try FileManager.default.copyItem(at: compiledURL, to: destinationURL)
 
-                    Debug.shared.log(message: "Model successfully compiled and saved to \(destinationURL.path)", type: .info)
+                    Debug.shared.log(
+                        message: "Model successfully compiled and saved to \(destinationURL.path)",
+                        type: .info
+                    )
                     continuation.resume(returning: destinationURL)
                 } catch {
                     Debug.shared.log(message: "Failed to compile model: \(error)", type: .error)
@@ -354,7 +373,10 @@ class BackdoorAIClient {
 
             // If we have a newer version available
             if modelInfo.latestModelVersion != currentVersion {
-                Debug.shared.log(message: "New model version available: \(modelInfo.latestModelVersion) (current: \(currentVersion))", type: .info)
+                Debug.shared.log(
+                    message: "New model version available: \(modelInfo.latestModelVersion) (current: \(currentVersion))",
+                    type: .info
+                )
 
                 // Download and update
                 let tempModelURL = try await downloadModel(version: modelInfo.latestModelVersion)
@@ -421,7 +443,10 @@ class BackdoorAIClient {
 
             // Check if server has a newer version
             if modelInfo.latestModelVersion != currentVersion {
-                Debug.shared.log(message: "Downloading newer model version \(modelInfo.latestModelVersion)", type: .info)
+                Debug.shared.log(
+                    message: "Downloading newer model version \(modelInfo.latestModelVersion)",
+                    type: .info
+                )
 
                 // Use an elegant UI loader animation to show progress
                 DispatchQueue.main.async {
@@ -508,7 +533,8 @@ extension BackdoorAIClient {
         let patterns: [UsagePattern]?
 
         init(deviceId: String, appVersion: String, modelVersion: String, osVersion: String,
-             interactions: [Interaction], behaviors: [AppBehavior], patterns: [UsagePattern]) {
+             interactions: [Interaction], behaviors: [AppBehavior], patterns: [UsagePattern])
+        {
             self.deviceId = deviceId
             self.appVersion = appVersion
             self.modelVersion = modelVersion
@@ -557,7 +583,7 @@ extension BackdoorAIClient {
                 return "Failed to decode server response"
             case .downloadFailed:
                 return "Failed to download model"
-            case .networkError(let error):
+            case let .networkError(error):
                 return "Network error: \(error.localizedDescription)"
             }
         }

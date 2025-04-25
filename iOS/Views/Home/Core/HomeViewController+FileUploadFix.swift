@@ -1,16 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import UIKit
 import UniformTypeIdentifiers
 
 /// Extension to fix file upload functionality in Home tab
 extension HomeViewController {
-
     /// Enhanced file import function with improved security-scoped resource handling
     @objc func enhancedImportFile() {
         // Improved security-scoped resource access with proper feedback
@@ -20,7 +12,7 @@ extension HomeViewController {
             UTType.compositeContent,
             UTType.archive,
             UTType.zip,
-            UTType.data
+            UTType.data,
         ]
 
         // Create document picker with proper configuration
@@ -58,7 +50,7 @@ extension HomeViewController {
 
     /// Fixed implementation for document picker delegate method
     // Renamed to avoid conflict with base implementation
-    func documentPickerExtension(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    func documentPickerExtension(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         // Enable activity indicator to show loading state
         activityIndicator.startAnimating()
 
@@ -80,9 +72,15 @@ extension HomeViewController {
                 let canAccess = url.startAccessingSecurityScopedResource()
 
                 if canAccess {
-                    Debug.shared.log(message: "Started accessing security-scoped resource for \(url.lastPathComponent)", type: .info)
+                    Debug.shared.log(
+                        message: "Started accessing security-scoped resource for \(url.lastPathComponent)",
+                        type: .info
+                    )
                 } else {
-                    Debug.shared.log(message: "Failed to get security-scoped resource access for \(url.lastPathComponent)", type: .warning)
+                    Debug.shared.log(
+                        message: "Failed to get security-scoped resource access for \(url.lastPathComponent)",
+                        type: .warning
+                    )
                 }
 
                 // Use defer to ensure we stop accessing the resource even if an error occurs
@@ -108,7 +106,10 @@ extension HomeViewController {
                     }
                 } catch {
                     // Log error
-                    Debug.shared.log(message: "Error importing file \(url.lastPathComponent): \(error.localizedDescription)", type: .error)
+                    Debug.shared.log(
+                        message: "Error importing file \(url.lastPathComponent): \(error.localizedDescription)",
+                        type: .error
+                    )
 
                     // Update failure counter
                     DispatchQueue.main.async {
@@ -189,7 +190,8 @@ extension HomeViewController {
 
     /// Show an error message with LED effect
     private func showLEDErrorMessage(failures: [String]) {
-        let message = failures.count == 1 ? "Failed to import file: \(failures.first ?? "")" : "Failed to import \(failures.count) files"
+        let message = failures
+            .count == 1 ? "Failed to import file: \(failures.first ?? "")" : "Failed to import \(failures.count) files"
         showLEDIndicator(type: .error, message: message)
 
         // For multiple failures, also show a detailed report
@@ -242,7 +244,7 @@ extension HomeViewController {
             label.topAnchor.constraint(equalTo: container.topAnchor, constant: 15),
             label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 15),
             label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -15),
-            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -15)
+            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -15),
         ])
 
         // Add LED glow effect
@@ -287,7 +289,7 @@ extension HomeViewController {
         }
 
         // Apply LED effect using the existing extension
-        self.view.addLEDEffect(color: color, intensity: 0.8, spread: 5, animated: true)
+        view.addLEDEffect(color: color, intensity: 0.8, spread: 5, animated: true)
     }
 
     enum UploadStatus {

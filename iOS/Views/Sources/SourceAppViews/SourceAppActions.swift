@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import AlertKit
 import Foundation
 import Nuke
@@ -62,7 +55,7 @@ extension SourceAppViewController {
                 break
             }
         } else {
-            let sourceLocation = self.name ?? String.localized("UNKNOWN")
+            let sourceLocation = name ?? String.localized("UNKNOWN")
             startDownloadIfNeeded(
                 for: indexPath,
                 in: tableView,
@@ -105,7 +98,7 @@ extension SourceAppViewController {
         for version in sortedVersions {
             let versionString = version.version
             let downloadURL = version.downloadURL
-            let sourceLocation = self.name ?? String.localized("UNKNOWN")
+            let sourceLocation = name ?? String.localized("UNKNOWN")
 
             let action = UIAlertAction(title: versionString, style: .default) { [weak self] _ in
                 guard let self = self else { return }

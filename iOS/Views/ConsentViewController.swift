@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 protocol ConsentViewControllerDelegate: AnyObject {
@@ -12,7 +6,6 @@ protocol ConsentViewControllerDelegate: AnyObject {
 }
 
 class ConsentViewController: UIViewController {
-
     // MARK: - Properties
 
     weak var delegate: ConsentViewControllerDelegate?
@@ -68,7 +61,7 @@ class ConsentViewController: UIViewController {
         consentTextView.layer.borderColor = UIColor.systemGray4.cgColor
         consentTextView.layer.cornerRadius = 8
         consentTextView.textContainerInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
-        consentTextView.text = self.getConsentText()
+        consentTextView.text = getConsentText()
         containerView.addSubview(consentTextView)
 
         // Configure privacy checkbox
@@ -136,7 +129,7 @@ class ConsentViewController: UIViewController {
 
             declineButton.topAnchor.constraint(equalTo: acceptButton.bottomAnchor, constant: 16),
             declineButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-            declineButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -30)
+            declineButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -30),
         ])
     }
 

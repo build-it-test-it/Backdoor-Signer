@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Nuke
 import SwiftUI
 import UIKit
@@ -12,44 +6,44 @@ class SettingsViewController: FRSTableViewController {
     let aboutSection = [
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ABOUT", arguments: "Backdoor"),
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SUBMIT_FEEDBACK"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_GITHUB")
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_GITHUB"),
     ]
 
     let displaySection = [
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_DISPLAY"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON")
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON"),
     ]
 
     let certificateSection = [
         "Current Certificate",
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ADD_CERTIFICATES"),
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SIGN_OPTIONS"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS")
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS"),
     ]
 
     let aiSection = [
         "AI Learning Settings",
-        "AI Search Settings"
+        "AI Search Settings",
     ]
 
     let terminalSection = [
         "Terminal",
         "Terminal Settings",
-        "Terminal Button"
+        "Terminal Button",
     ]
 
     let logsSection = [
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS")
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS"),
     ]
 
     let foldersSection = [
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APPS_FOLDER"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CERTS_FOLDER")
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CERTS_FOLDER"),
     ]
 
     let resetSection = [
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET_ALL")
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET_ALL"),
     ]
 
     // Flag to prevent double initialization
@@ -60,7 +54,10 @@ class SettingsViewController: FRSTableViewController {
 
         // Defensive programming - ensure we're on the main thread for UI setup
         if !Thread.isMainThread {
-            backdoor.Debug.shared.log(message: "SettingsViewController.viewDidLoad called off main thread, dispatching to main", type: .error)
+            backdoor.Debug.shared.log(
+                message: "SettingsViewController.viewDidLoad called off main thread, dispatching to main",
+                type: .error
+            )
             DispatchQueue.main.async { [weak self] in
                 self?.viewDidLoad()
             }
@@ -68,7 +65,7 @@ class SettingsViewController: FRSTableViewController {
         }
 
         // Set the title immediately for better user experience
-        self.title = String.localized("TAB_SETTINGS")
+        title = String.localized("TAB_SETTINGS")
 
         do {
             // Set up UI with proper error handling
@@ -178,7 +175,7 @@ class SettingsViewController: FRSTableViewController {
         addLEDEffectsToImportantCells()
     }
 
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    override func tableView(_: UITableView, willDisplay cell: UITableViewCell, forRowAt _: IndexPath) {
         // Apply LED effects to newly visible cells
         if let text = cell.textLabel?.text {
             switch text {
@@ -234,7 +231,7 @@ class SettingsViewController: FRSTableViewController {
             terminalSection,
             logsSection,
             foldersSection,
-            resetSection
+            resetSection,
         ]
 
         sectionTitles = ["", "", "", "", "", "", "", ""]
@@ -246,7 +243,7 @@ class SettingsViewController: FRSTableViewController {
 
         // Only reload if already initialized to prevent crashes
         if isInitialized {
-            self.tableView.reloadData()
+            tableView.reloadData()
         } else {
             // If not initialized yet, trigger viewDidLoad again
             viewDidLoad()
@@ -254,7 +251,7 @@ class SettingsViewController: FRSTableViewController {
     }
 
     fileprivate func setupNavigation() {
-        self.title = String.localized("TAB_SETTINGS")
+        title = String.localized("TAB_SETTINGS")
 
         // Ensure the navigation bar is properly configured
         if let navController = navigationController {
@@ -302,12 +299,12 @@ extension SettingsViewController {
         }
 
         switch section {
-            case sectionTitles.count - 1:
-                let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-                let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
-                return "Backdoor \(appVersion) (\(buildNumber)) • iOS \(UIDevice.current.systemVersion)"
-            default:
-                return nil
+        case sectionTitles.count - 1:
+            let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+            let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+            return "Backdoor \(appVersion) (\(buildNumber)) • iOS \(UIDevice.current.systemVersion)"
+        default:
+            return nil
         }
     }
 
@@ -321,82 +318,83 @@ extension SettingsViewController {
         cell.textLabel?.text = cellText
 
         switch cellText {
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ABOUT", arguments: "Backdoor"):
-                cell.setAccessoryIcon(with: "info.circle")
-                cell.selectionStyle = .default
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ABOUT", arguments: "Backdoor"):
+            cell.setAccessoryIcon(with: "info.circle")
+            cell.selectionStyle = .default
 
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SUBMIT_FEEDBACK"), String.localized("SETTINGS_VIEW_CONTROLLER_CELL_GITHUB"):
-                cell.textLabel?.textColor = .tintColor
-                cell.setAccessoryIcon(with: "safari")
-                cell.selectionStyle = .default
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SUBMIT_FEEDBACK"),
+             String.localized("SETTINGS_VIEW_CONTROLLER_CELL_GITHUB"):
+            cell.textLabel?.textColor = .tintColor
+            cell.setAccessoryIcon(with: "safari")
+            cell.selectionStyle = .default
 
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_DISPLAY"):
-                cell.setAccessoryIcon(with: "paintbrush")
-                cell.selectionStyle = .default
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_DISPLAY"):
+            cell.setAccessoryIcon(with: "paintbrush")
+            cell.selectionStyle = .default
 
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON"):
-                cell.setAccessoryIcon(with: "app.dashed")
-                cell.selectionStyle = .default
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON"):
+            cell.setAccessoryIcon(with: "app.dashed")
+            cell.selectionStyle = .default
 
-            case "Current Certificate":
-                if let hasGotCert = CoreDataManager.shared.getCurrentCertificate() {
-                    let cell = CertificateViewTableViewCell()
-                    cell.configure(with: hasGotCert, isSelected: false)
-                    cell.selectionStyle = .none
-                    return cell
-                } else {
-                    cell.textLabel?.text = String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CURRENT_CERTIFICATE_NOSELECTED")
-                    cell.textLabel?.textColor = .secondaryLabel
-                    cell.selectionStyle = .none
-                }
-
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ADD_CERTIFICATES"):
-                cell.setAccessoryIcon(with: "plus")
-                cell.selectionStyle = .default
-
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SIGN_OPTIONS"):
-                cell.setAccessoryIcon(with: "signature")
-                cell.selectionStyle = .default
-
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS"):
-                cell.setAccessoryIcon(with: "server.rack")
-                cell.selectionStyle = .default
-
-            case "Terminal":
-                cell.setAccessoryIcon(with: "terminal")
-                cell.selectionStyle = .default
-
-            case "Terminal Settings":
-                cell.setAccessoryIcon(with: "gear")
-                cell.selectionStyle = .default
-
-            case "Terminal Button":
-                let isEnabled = UserDefaults.standard.bool(forKey: "show_terminal_button")
-                let toggleSwitch = UISwitch()
-                toggleSwitch.isOn = isEnabled
-                toggleSwitch.onTintColor = .tintColor
-                toggleSwitch.addTarget(self, action: #selector(terminalButtonToggled(_:)), for: .valueChanged)
-                cell.accessoryView = toggleSwitch
+        case "Current Certificate":
+            if let hasGotCert = CoreDataManager.shared.getCurrentCertificate() {
+                let cell = CertificateViewTableViewCell()
+                cell.configure(with: hasGotCert, isSelected: false)
                 cell.selectionStyle = .none
+                return cell
+            } else {
+                cell.textLabel?.text = String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CURRENT_CERTIFICATE_NOSELECTED")
+                cell.textLabel?.textColor = .secondaryLabel
+                cell.selectionStyle = .none
+            }
 
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS"):
-                cell.setAccessoryIcon(with: "newspaper")
-                cell.selectionStyle = .default
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ADD_CERTIFICATES"):
+            cell.setAccessoryIcon(with: "plus")
+            cell.selectionStyle = .default
 
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APPS_FOLDER"),
-                 String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CERTS_FOLDER"):
-                cell.accessoryType = .disclosureIndicator
-                cell.textLabel?.textColor = .tintColor
-                cell.selectionStyle = .default
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SIGN_OPTIONS"):
+            cell.setAccessoryIcon(with: "signature")
+            cell.selectionStyle = .default
 
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET"),
-                 String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET_ALL"):
-                cell.textLabel?.textColor = .tintColor
-                cell.accessoryType = .disclosureIndicator
-                cell.selectionStyle = .default
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS"):
+            cell.setAccessoryIcon(with: "server.rack")
+            cell.selectionStyle = .default
 
-            default:
-                break
+        case "Terminal":
+            cell.setAccessoryIcon(with: "terminal")
+            cell.selectionStyle = .default
+
+        case "Terminal Settings":
+            cell.setAccessoryIcon(with: "gear")
+            cell.selectionStyle = .default
+
+        case "Terminal Button":
+            let isEnabled = UserDefaults.standard.bool(forKey: "show_terminal_button")
+            let toggleSwitch = UISwitch()
+            toggleSwitch.isOn = isEnabled
+            toggleSwitch.onTintColor = .tintColor
+            toggleSwitch.addTarget(self, action: #selector(terminalButtonToggled(_:)), for: .valueChanged)
+            cell.accessoryView = toggleSwitch
+            cell.selectionStyle = .none
+
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS"):
+            cell.setAccessoryIcon(with: "newspaper")
+            cell.selectionStyle = .default
+
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APPS_FOLDER"),
+             String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CERTS_FOLDER"):
+            cell.accessoryType = .disclosureIndicator
+            cell.textLabel?.textColor = .tintColor
+            cell.selectionStyle = .default
+
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET"),
+             String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET_ALL"):
+            cell.textLabel?.textColor = .tintColor
+            cell.accessoryType = .disclosureIndicator
+            cell.selectionStyle = .default
+
+        default:
+            break
         }
 
         return cell
@@ -405,63 +403,63 @@ extension SettingsViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let itemTapped = tableData[indexPath.section][indexPath.row]
         switch itemTapped {
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ABOUT", arguments: "Backdoor"):
-                let l = AboutViewController()
-                navigationController?.pushViewController(l, animated: true)
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_GITHUB"):
-                guard let url = URL(string: "https://github.com/khcrysalis/Backdoor") else {
-                    backdoor.Debug.shared.log(message: "Invalid URL")
-                    return
-                }
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SUBMIT_FEEDBACK"):
-                guard let url = URL(string: "https://github.com/khcrysalis/Backdoor/issues") else {
-                    backdoor.Debug.shared.log(message: "Invalid URL")
-                    return
-                }
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_DISPLAY"):
-                let l = DisplayViewController()
-                navigationController?.pushViewController(l, animated: true)
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON"):
-                let l = IconsListViewController()
-                navigationController?.pushViewController(l, animated: true)
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ADD_CERTIFICATES"):
-                let l = CertificatesViewController()
-                navigationController?.pushViewController(l, animated: true)
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SIGN_OPTIONS"):
-                let signingDataWrapper = SigningDataWrapper(signingOptions: UserDefaults.standard.signingOptions)
-                let l = SigningsOptionViewController(signingDataWrapper: signingDataWrapper)
-                navigationController?.pushViewController(l, animated: true)
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS"):
-                let l = ServerOptionsViewController()
-                navigationController?.pushViewController(l, animated: true)
-            case "AI Learning Settings":
-                let l = AILearningSettingsViewController(style: .grouped)
-                navigationController?.pushViewController(l, animated: true)
-            case "AI Search Settings":
-                let l = SearchSettingsViewController(style: .grouped)
-                navigationController?.pushViewController(l, animated: true)
-            case "Terminal":
-                let l = TerminalViewController()
-                let nav = UINavigationController(rootViewController: l)
-                present(nav, animated: true)
-            case "Terminal Settings":
-                let l = TerminalSettingsViewController(style: .grouped)
-                navigationController?.pushViewController(l, animated: true)
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS"):
-                let l = LogsViewController()
-                navigationController?.pushViewController(l, animated: true)
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APPS_FOLDER"):
-                openDirectory(named: "Apps")
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CERTS_FOLDER"):
-                openDirectory(named: "Certificates")
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET"):
-                self.resetOptionsAction()
-            case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET_ALL"):
-                self.resetAllAction()
-            default:
-                break
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ABOUT", arguments: "Backdoor"):
+            let l = AboutViewController()
+            navigationController?.pushViewController(l, animated: true)
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_GITHUB"):
+            guard let url = URL(string: "https://github.com/khcrysalis/Backdoor") else {
+                backdoor.Debug.shared.log(message: "Invalid URL")
+                return
+            }
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SUBMIT_FEEDBACK"):
+            guard let url = URL(string: "https://github.com/khcrysalis/Backdoor/issues") else {
+                backdoor.Debug.shared.log(message: "Invalid URL")
+                return
+            }
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_DISPLAY"):
+            let l = DisplayViewController()
+            navigationController?.pushViewController(l, animated: true)
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON"):
+            let l = IconsListViewController()
+            navigationController?.pushViewController(l, animated: true)
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ADD_CERTIFICATES"):
+            let l = CertificatesViewController()
+            navigationController?.pushViewController(l, animated: true)
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SIGN_OPTIONS"):
+            let signingDataWrapper = SigningDataWrapper(signingOptions: UserDefaults.standard.signingOptions)
+            let l = SigningsOptionViewController(signingDataWrapper: signingDataWrapper)
+            navigationController?.pushViewController(l, animated: true)
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS"):
+            let l = ServerOptionsViewController()
+            navigationController?.pushViewController(l, animated: true)
+        case "AI Learning Settings":
+            let l = AILearningSettingsViewController(style: .grouped)
+            navigationController?.pushViewController(l, animated: true)
+        case "AI Search Settings":
+            let l = SearchSettingsViewController(style: .grouped)
+            navigationController?.pushViewController(l, animated: true)
+        case "Terminal":
+            let l = TerminalViewController()
+            let nav = UINavigationController(rootViewController: l)
+            present(nav, animated: true)
+        case "Terminal Settings":
+            let l = TerminalSettingsViewController(style: .grouped)
+            navigationController?.pushViewController(l, animated: true)
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS"):
+            let l = LogsViewController()
+            navigationController?.pushViewController(l, animated: true)
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APPS_FOLDER"):
+            openDirectory(named: "Apps")
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CERTS_FOLDER"):
+            openDirectory(named: "Certificates")
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET"):
+            resetOptionsAction()
+        case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET_ALL"):
+            resetAllAction()
+        default:
+            break
         }
 
         tableView.deselectRow(at: indexPath, animated: true)
@@ -469,12 +467,16 @@ extension SettingsViewController {
 }
 
 extension UITableViewCell {
-    func setAccessoryIcon(with symbolName: String, tintColor: UIColor = .tertiaryLabel, renderingMode: UIImage.RenderingMode = .alwaysOriginal) {
+    func setAccessoryIcon(
+        with symbolName: String,
+        tintColor: UIColor = .tertiaryLabel,
+        renderingMode: UIImage.RenderingMode = .alwaysOriginal
+    ) {
         if let image = UIImage(systemName: symbolName)?.withTintColor(tintColor, renderingMode: renderingMode) {
             let imageView = UIImageView(image: image)
-            self.accessoryView = imageView
+            accessoryView = imageView
         } else {
-            self.accessoryView = nil
+            accessoryView = nil
         }
     }
 }

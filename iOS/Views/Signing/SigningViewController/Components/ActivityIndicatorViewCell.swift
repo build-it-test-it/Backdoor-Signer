@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -29,7 +23,7 @@ class ActivityIndicatorViewCell: UITableViewCell {
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             activityIndicator.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            activityIndicator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15)
+            activityIndicator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
         ])
     }
 }
@@ -128,7 +122,11 @@ class ActivityIndicatorButton: UIButton {
     func setupPressAnimation() {
         // Add touch animations for better feedback
         addTarget(self, action: #selector(handleButtonTouchDown), for: [.touchDown, .touchDragEnter])
-        addTarget(self, action: #selector(handleButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit])
+        addTarget(
+            self,
+            action: #selector(handleButtonTouchUp),
+            for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit]
+        )
     }
 
     // MARK: - Action Methods
@@ -157,7 +155,7 @@ class ActivityIndicatorButton: UIButton {
         addSubview(activityIndicator)
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: centerYAnchor)
+            activityIndicator.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
 
         // Provide feedback before disabling
@@ -213,16 +211,16 @@ class ActivityIndicatorButton: UIButton {
 // Helper extension for color adjustments
 extension UIColor {
     func lighter(by percentage: CGFloat) -> UIColor {
-        return self.adjust(by: abs(percentage))
+        return adjust(by: abs(percentage))
     }
 
     func darker(by percentage: CGFloat) -> UIColor {
-        return self.adjust(by: -abs(percentage))
+        return adjust(by: -abs(percentage))
     }
 
     private func adjust(by percentage: CGFloat) -> UIColor {
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-        self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 
         let adjustAmount = percentage / 100
 

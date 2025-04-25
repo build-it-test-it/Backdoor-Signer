@@ -1,14 +1,9 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import UIKit
-import SystemConfiguration
 import Network
+import SystemConfiguration
+import UIKit
 
 // MARK: - Network Monitoring Extension
+
 extension AppDelegate {
     /// Set up network monitoring to track connectivity changes
     func setupNetworkMonitoring() {
@@ -94,7 +89,7 @@ extension AppDelegate {
                     userInfo: [
                         "isConnected": isConnected,
                         "connectionType": connectionTypeToString(connectionType),
-                        "isOfflineSigningAvailable": offlineManager.isOfflineSigningEnabled
+                        "isOfflineSigningAvailable": offlineManager.isOfflineSigningEnabled,
                     ]
                 )
             }
@@ -134,13 +129,13 @@ extension AppDelegate {
         let alert = UIAlertController(
             title: isConnected ? "Network Connected" : "Network Disconnected",
             message: isConnected ?
-                     "Your device is now connected via \(connectionType)." :
-                     "Your device is now offline. Offline signing mode is available.",
+                "Your device is now connected via \(connectionType)." :
+                "Your device is now offline. Offline signing mode is available.",
             preferredStyle: .alert
         )
 
         // Add option to enable/disable offline mode if we're offline
-        if !isConnected && OfflineSigningManager.shared.isOfflineSigningEnabled {
+        if !isConnected, OfflineSigningManager.shared.isOfflineSigningEnabled {
             alert.addAction(UIAlertAction(title: "Enable Offline Mode", style: .default) { _ in
                 OfflineSigningManager.shared.toggleForceOfflineMode(true)
             })
@@ -160,6 +155,7 @@ extension AppDelegate {
 }
 
 // MARK: - Preferences Extension
+
 extension Preferences {
     /// Whether to show network status change alerts
     static var showNetworkAlerts: Bool {

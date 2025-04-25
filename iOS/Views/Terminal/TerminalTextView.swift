@@ -1,10 +1,3 @@
-//
-//  TerminalTextView.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import UIKit
 
 class TerminalTextView: UITextView {
@@ -92,7 +85,7 @@ class TerminalTextView: UITextView {
         let menuController = UIMenuController.shared
         menuController.menuItems = [
             UIMenuItem(title: "Copy", action: #selector(copy(_:))),
-            UIMenuItem(title: "Select All", action: #selector(selectAll(_:)))
+            UIMenuItem(title: "Select All", action: #selector(selectAll(_:))),
         ]
     }
 
@@ -106,7 +99,7 @@ class TerminalTextView: UITextView {
     }
 
     // Custom handling for text selection
-    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+    override func canPerformAction(_ action: Selector, withSender _: Any?) -> Bool {
         if action == #selector(copy(_:)) || action == #selector(selectAll(_:)) {
             return true
         }

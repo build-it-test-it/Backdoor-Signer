@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import Foundation
 import Nuke
 import UIKit
@@ -108,7 +101,7 @@ class AppTableViewCell: UITableViewCell {
             screenshotsStackView.topAnchor.constraint(equalTo: screenshotsScrollView.topAnchor),
             screenshotsStackView.bottomAnchor.constraint(equalTo: screenshotsScrollView.bottomAnchor),
             screenshotsStackView.trailingAnchor.constraint(equalTo: screenshotsScrollView.trailingAnchor),
-            screenshotsStackView.heightAnchor.constraint(equalTo: screenshotsScrollView.heightAnchor)
+            screenshotsStackView.heightAnchor.constraint(equalTo: screenshotsScrollView.heightAnchor),
         ])
     }
 
@@ -247,8 +240,8 @@ class AppTableViewCell: UITableViewCell {
             let appSubtitle = app.subtitle ?? String.localized("SOURCES_CELLS_DEFAULT_SUBTITLE")
             resultDisplay += " • " + appSubtitle
             descText = app.localizedDescription ??
-                      (app.versions?[0].localizedDescription ??
-                       String.localized("SOURCES_CELLS_DEFAULT_DESCRIPTION"))
+                (app.versions?[0].localizedDescription ??
+                    String.localized("SOURCES_CELLS_DEFAULT_DESCRIPTION"))
 
         default:
             break
@@ -272,7 +265,8 @@ class AppTableViewCell: UITableViewCell {
     private func setupAppContentLayout(_ app: StoreAppsData) {
         if let screenshotUrls = app.screenshotURLs,
            !screenshotUrls.isEmpty,
-           Preferences.appDescriptionAppearence != 2 {
+           Preferences.appDescriptionAppearence != 2
+        {
             setupScreenshots(for: screenshotUrls)
         } else if Preferences.appDescriptionAppearence == 2 {
             setupDescription()
@@ -325,7 +319,8 @@ class AppTableViewCell: UITableViewCell {
 
     @objc private func handleScreenshotTap(_ sender: UITapGestureRecognizer) {
         guard let tappedImageView = sender.view as? UIImageView,
-              let tappedImage = tappedImageView.image else {
+              let tappedImage = tappedImageView.image
+        else {
             return
         }
 
@@ -335,7 +330,7 @@ class AppTableViewCell: UITableViewCell {
         let navigationController = UINavigationController(rootViewController: fullscreenImageVC)
         navigationController.modalPresentationStyle = .fullScreen
 
-        if let viewController = self.parentViewController {
+        if let viewController = parentViewController {
             viewController.present(navigationController, animated: true)
         }
     }
@@ -352,7 +347,8 @@ class AppTableViewCell: UITableViewCell {
 
                 guard let self = self,
                       let image = image,
-                      index < imageViews.count else {
+                      index < imageViews.count
+                else {
                     return
                 }
 
@@ -397,7 +393,8 @@ class AppTableViewCell: UITableViewCell {
         DownloadTaskManager.shared.restoreTaskState(for: appUUID, cell: self)
 
         if let task = DownloadTaskManager.shared.task(for: appUUID),
-           case .inProgress = task.state {
+           case .inProgress = task.state
+        {
             DispatchQueue.main.async {
                 self.startDownload()
             }
@@ -557,7 +554,10 @@ class SourceAppScreenshotViewController: UIViewController {
             imageView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
             imageView.widthAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.widthAnchor, multiplier: 0.9),
-            imageView.heightAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.9)
+            imageView.heightAnchor.constraint(
+                lessThanOrEqualTo: view.safeAreaLayoutGuide.heightAnchor,
+                multiplier: 0.9
+            ),
         ])
     }
 

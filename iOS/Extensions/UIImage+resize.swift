@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import AVFoundation
 import Foundation
 
@@ -17,9 +11,9 @@ extension UIImage {
                           height: size)
 
         // Create a new graphics context with the square size
-        UIGraphicsBeginImageContextWithOptions(CGSize(width: size, height: size), false, self.scale)
+        UIGraphicsBeginImageContextWithOptions(CGSize(width: size, height: size), false, scale)
         // Draw the image in the square context
-        self.draw(at: CGPoint(x: -rect.origin.x, y: -rect.origin.y))
+        draw(at: CGPoint(x: -rect.origin.x, y: -rect.origin.y))
         // Get the new square image from the context
         let squareImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
@@ -39,7 +33,7 @@ public extension UIImage {
         let maxSize = CGSize(width: width, height: height)
 
         let availableRect = AVFoundation.AVMakeRect(
-            aspectRatio: self.size,
+            aspectRatio: size,
             insideRect: .init(origin: .zero, size: maxSize)
         )
         let targetSize = availableRect.size

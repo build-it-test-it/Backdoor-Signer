@@ -1,15 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// Extension to add LED-style effects to entitlements editor UI components
 extension UIView {
-
     /// Applies an LED effect to text fields in the entitlements editor
     func applyEntitlementFieldStyle() {
         // Apply corner radius
@@ -75,7 +67,7 @@ extension UIView {
         gradientLayer.frame = bounds
         gradientLayer.colors = [
             UIColor.systemBlue.withAlphaComponent(0.1).cgColor,
-            UIColor.systemBlue.withAlphaComponent(0.2).cgColor
+            UIColor.systemBlue.withAlphaComponent(0.2).cgColor,
         ]
         gradientLayer.startPoint = CGPoint.zero
         gradientLayer.endPoint = CGPoint(x: 1, y: 1)

@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import AlertKit
 import Foundation
 import OSLog
@@ -52,41 +46,47 @@ final class Debug {
         }
     }
 
-    func log(message: String, type: LogType? = nil, function: String = #function, file: String = #file, line _: Int = #line) {
+    func log(
+        message: String,
+        type: LogType? = nil,
+        function: String = #function,
+        file: String = #file,
+        line _: Int = #line
+    ) {
         lazy var logger = Logger(subsystem: subsystem, category: file + "->" + function)
 
         // Prepare the emoji based on the log type
         var emoji: String
         switch type {
-            case .success:
-                emoji = "✅"
-                logger.info("\(message)")
-                showSuccessAlert(with: String.localized("ALERT_SUCCESS"), subtitle: message)
-            case .info:
-                emoji = "ℹ️"
-                logger.info("\(message)")
-            case .debug:
-                emoji = "🐛"
-                logger.debug("\(message)")
-            case .trace:
-                emoji = "🔍"
-                logger.trace("\(message)")
-                showErrorUIAlert(with: String.localized("ALERT_TRACE"), subtitle: message)
-            case .warning:
-                emoji = "⚠️"
-                logger.warning("\(message)")
-                showErrorAlert(with: String.localized("ALERT_ERROR"), subtitle: message)
-            case .error:
-                emoji = "❌"
-                logger.error("\(message)")
-                showErrorAlert(with: String.localized("ALERT_ERROR"), subtitle: message)
-            case .critical:
-                emoji = "🔥"
-                logger.critical("\(message)")
-                showErrorUIAlert(with: String.localized("ALERT_CRITICAL"), subtitle: message)
-            default:
-                emoji = "📝"
-                logger.log("\(message)")
+        case .success:
+            emoji = "✅"
+            logger.info("\(message)")
+            showSuccessAlert(with: String.localized("ALERT_SUCCESS"), subtitle: message)
+        case .info:
+            emoji = "ℹ️"
+            logger.info("\(message)")
+        case .debug:
+            emoji = "🐛"
+            logger.debug("\(message)")
+        case .trace:
+            emoji = "🔍"
+            logger.trace("\(message)")
+            showErrorUIAlert(with: String.localized("ALERT_TRACE"), subtitle: message)
+        case .warning:
+            emoji = "⚠️"
+            logger.warning("\(message)")
+            showErrorAlert(with: String.localized("ALERT_ERROR"), subtitle: message)
+        case .error:
+            emoji = "❌"
+            logger.error("\(message)")
+            showErrorAlert(with: String.localized("ALERT_ERROR"), subtitle: message)
+        case .critical:
+            emoji = "🔥"
+            logger.critical("\(message)")
+            showErrorUIAlert(with: String.localized("ALERT_CRITICAL"), subtitle: message)
+        default:
+            emoji = "📝"
+            logger.log("\(message)")
         }
 
         let dateFormatter = DateFormatter()

@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import SwiftUI
 import UIKit
@@ -215,7 +209,9 @@ extension AppContextManager {
             completion("I couldn't find any apps matching '\(query)'. Would you like to search in sources instead?")
         } else {
             let appNames = matchingApps.compactMap { $0.name }.joined(separator: ", ")
-            completion("I found the following apps matching '\(query)': \(appNames). Would you like to sign or install any of these?")
+            completion(
+                "I found the following apps matching '\(query)': \(appNames). Would you like to sign or install any of these?"
+            )
         }
     }
 
@@ -263,7 +259,9 @@ extension AppContextManager {
             Once added, you can browse and download apps from that source.
             """)
         } else {
-            completion("I don't have specific information about '\(topic)'. Would you like to know about app signing, certificates, or sources?")
+            completion(
+                "I don't have specific information about '\(topic)'. Would you like to know about app signing, certificates, or sources?"
+            )
         }
     }
 }

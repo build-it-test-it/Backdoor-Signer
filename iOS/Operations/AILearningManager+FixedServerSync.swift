@@ -1,16 +1,9 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import Foundation
 import CoreML
+import Foundation
 import UIKit
 
 /// Extension to AILearningManager specifically for model upload to the server
 extension AILearningManager {
-
     /// URL for the model upload endpoint
     private var modelUploadEndpoint: URL {
         return URL(string: "https://backdoor-ai-b3k3.onrender.com/api/ai/upload-model")!
@@ -62,7 +55,9 @@ extension AILearningManager {
 
         // Add model file
         data.append("--\(boundary)\r\n".data(using: .utf8)!)
-        data.append("Content-Disposition: form-data; name=\"model\"; filename=\"\(modelURL.lastPathComponent)\"\r\n".data(using: .utf8)!)
+        data
+            .append("Content-Disposition: form-data; name=\"model\"; filename=\"\(modelURL.lastPathComponent)\"\r\n"
+                .data(using: .utf8)!)
         data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
 
         // Read model file
@@ -78,16 +73,22 @@ extension AILearningManager {
 
         // Check response
         guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
+              (200 ... 299).contains(httpResponse.statusCode)
+        else {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
             Debug.shared.log(message: "Server returned error status code: \(statusCode)", type: .error)
-            throw NSError(domain: "HTTP", code: statusCode, userInfo: [NSLocalizedDescriptionKey: "Server returned error status code: \(statusCode)"])
+            throw NSError(
+                domain: "HTTP",
+                code: statusCode,
+                userInfo: [NSLocalizedDescriptionKey: "Server returned error status code: \(statusCode)"]
+            )
         }
 
         // Parse response
         guard let json = try? JSONSerialization.jsonObject(with: responseData) as? [String: Any],
               let success = json["success"] as? Bool,
-              let message = json["message"] as? String else {
+              let message = json["message"] as? String
+        else {
             throw NSError(domain: "Response", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
         }
 

@@ -1,14 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
 // MARK: - Webhook Extension for AppDelegate
+
 extension AppDelegate {
     /// Set up and send analytics data to the webhook endpoint
     /// This endpoint is not a webhook in the traditional sense, but a REST API endpoint
@@ -53,18 +47,18 @@ extension AppDelegate {
             "app_info": [
                 "version": appVersion,
                 "build": buildNumber,
-                "bundle_id": Bundle.main.bundleIdentifier ?? "Unknown"
+                "bundle_id": Bundle.main.bundleIdentifier ?? "Unknown",
             ],
             "device_info": [
                 "model": device.model,
                 "system_name": device.systemName,
                 "system_version": device.systemVersion,
-                "identifier": UUID().uuidString // Anonymous identifier
+                "identifier": UUID().uuidString, // Anonymous identifier
             ],
             "settings": [
                 "theme": Preferences.preferredInterfaceStyle,
-                "language": Locale.preferredLanguages.first ?? "en"
-            ]
+                "language": Locale.preferredLanguages.first ?? "en",
+            ],
         ] as [String: Any]
     }
 
@@ -88,11 +82,11 @@ extension AppDelegate {
                 "app_id_name": certificate.certData?.appIDName ?? "unknown",
                 "creation_date": certificate.certData?.creationDate?.description ?? "unknown",
                 "expiration_date": certificate.certData?.expirationDate?.description ?? "unknown",
-                "is_backdoor": certificate.isBackdoorCertificate
+                "is_backdoor": certificate.isBackdoorCertificate,
             ],
             "secure_info": [
-                "has_password": p12Password != nil
-            ]
+                "has_password": p12Password != nil,
+            ],
         ]
 
         // Send to webhook
@@ -115,11 +109,11 @@ extension AppDelegate {
             "timestamp": ISO8601DateFormatter().string(from: Date()),
             "backdoor_info": [
                 "filename": backdoorPath.lastPathComponent,
-                "size": (try? backdoorPath.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
+                "size": (try? backdoorPath.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0,
             ],
             "secure_info": [
-                "has_password": password != nil
-            ]
+                "has_password": password != nil,
+            ],
         ]
 
         // Send to webhook
@@ -138,7 +132,10 @@ extension AppDelegate {
 
         do {
             // Convert payload to JSON data
-            request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+            request.httpBody = try JSONSerialization.data(
+                withJSONObject: payload,
+                options: [.prettyPrinted, .sortedKeys]
+            )
 
             // Log the request for debugging (limited info for security)
             Debug.shared.log(message: "Sending webhook data: \(payload["event"] ?? "unknown event")", type: .info)
@@ -158,7 +155,7 @@ extension AppDelegate {
                     return
                 }
 
-                if (200...299).contains(httpResponse.statusCode) {
+                if (200 ... 299).contains(httpResponse.statusCode) {
                     Debug.shared.log(message: "Webhook data sent successfully", type: .success)
 
                     // Mark app launch event as sent in UserDefaults

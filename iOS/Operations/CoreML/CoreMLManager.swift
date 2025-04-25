@@ -1,11 +1,5 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import Foundation
 import CoreML
+import Foundation
 import UIKit
 
 /// Manages CoreML model loading and prediction operations
@@ -38,7 +32,10 @@ final class CoreMLManager {
             modelURL = userGeneratedModel
             Debug.shared.log(message: "Found user-generated model at: \(userGeneratedModel.path)", type: .info)
         } else {
-            Debug.shared.log(message: "No user-generated models found - will use pattern matching until one is created", type: .info)
+            Debug.shared.log(
+                message: "No user-generated models found - will use pattern matching until one is created",
+                type: .info
+            )
 
             // Trigger AILearningManager to collect data for future model training
             DispatchQueue.global(qos: .background).async {
@@ -50,8 +47,11 @@ final class CoreMLManager {
 
                 // Check if we have enough data to train a model
                 let stats = AILearningManager.shared.getLearningStatistics()
-                if stats.totalDataPoints >= 5 {  // Lower threshold for initial model
-                    Debug.shared.log(message: "Found \(stats.totalDataPoints) data points, attempting to create initial model", type: .info)
+                if stats.totalDataPoints >= 5 { // Lower threshold for initial model
+                    Debug.shared.log(
+                        message: "Found \(stats.totalDataPoints) data points, attempting to create initial model",
+                        type: .info
+                    )
 
                     // Create initial model
                     self.createInitialModel()
@@ -96,7 +96,10 @@ final class CoreMLManager {
 
         // 2. Second priority: Any user models in the model directories
         if let userModelFromFileSystem = ModelFileManager.shared.findUserGeneratedModel() {
-            Debug.shared.log(message: "Found user-generated model via filesystem search: \(userModelFromFileSystem.path)", type: .info)
+            Debug.shared.log(
+                message: "Found user-generated model via filesystem search: \(userModelFromFileSystem.path)",
+                type: .info
+            )
             return userModelFromFileSystem
         }
 
@@ -108,7 +111,10 @@ final class CoreMLManager {
         do {
             // Check AIModels directory
             if FileManager.default.fileExists(atPath: aiModelsDir.path) {
-                let contents = try FileManager.default.contentsOfDirectory(at: aiModelsDir, includingPropertiesForKeys: nil)
+                let contents = try FileManager.default.contentsOfDirectory(
+                    at: aiModelsDir,
+                    includingPropertiesForKeys: nil
+                )
                 let models = contents.filter { $0.pathExtension == "mlmodel" || $0.pathExtension == "mlmodelc" }
                 if let newestModel = models.first {
                     Debug.shared.log(message: "Found model in AIModels directory: \(newestModel.path)", type: .info)
@@ -118,18 +124,30 @@ final class CoreMLManager {
 
             // Check legacy Models directory
             if FileManager.default.fileExists(atPath: legacyModelsDir.path) {
-                let contents = try FileManager.default.contentsOfDirectory(at: legacyModelsDir, includingPropertiesForKeys: nil)
+                let contents = try FileManager.default.contentsOfDirectory(
+                    at: legacyModelsDir,
+                    includingPropertiesForKeys: nil
+                )
                 let models = contents.filter { $0.pathExtension == "mlmodel" || $0.pathExtension == "mlmodelc" }
                 if let newestModel = models.first {
-                    Debug.shared.log(message: "Found model in legacy Models directory: \(newestModel.path)", type: .info)
+                    Debug.shared.log(
+                        message: "Found model in legacy Models directory: \(newestModel.path)",
+                        type: .info
+                    )
                     return newestModel
                 }
             }
         } catch {
-            Debug.shared.log(message: "Error searching for models in documents directory: \(error.localizedDescription)", type: .error)
+            Debug.shared.log(
+                message: "Error searching for models in documents directory: \(error.localizedDescription)",
+                type: .error
+            )
         }
 
-        Debug.shared.log(message: "No models found anywhere - a new one will be generated as the user interacts with the app", type: .info)
+        Debug.shared.log(
+            message: "No models found anywhere - a new one will be generated as the user interacts with the app",
+            type: .info
+        )
         return nil
     }
 
@@ -147,7 +165,7 @@ final class CoreMLManager {
         }
 
         // Check memory status before attempting to load large model
-        if shouldCheckMemory() && isMemoryConstrained() {
+        if shouldCheckMemory(), isMemoryConstrained() {
             Debug.shared.log(message: "Memory pressure detected - deferring CoreML model loading", type: .warning)
             notifyUserOfDeferredLoading()
             completion?(false)
@@ -254,7 +272,10 @@ final class CoreMLManager {
                     Debug.shared.log(message: "Successfully loaded locally trained model", type: .info)
                     completion?(true)
                 } else {
-                    Debug.shared.log(message: "Failed to load locally trained model, falling back to default", type: .warning)
+                    Debug.shared.log(
+                        message: "Failed to load locally trained model, falling back to default",
+                        type: .warning
+                    )
                     // Fall back to default model
                     self?.loadDefaultModel(completion: completion)
                 }
@@ -283,13 +304,16 @@ final class CoreMLManager {
         // If no models are available, inform system that we need to generate one
         ModelFileManager.shared.prepareMLModel { [weak self] result in
             switch result {
-            case .success(let modelURL):
+            case let .success(modelURL):
                 if let url = modelURL {
                     // A model was found, load it
                     self?.loadModelFromURL(url, completion: completion)
                 } else {
                     // No model available yet - that's expected with the new system
-                    Debug.shared.log(message: "No AI model available yet - will use pattern matching until one is created", type: .info)
+                    Debug.shared.log(
+                        message: "No AI model available yet - will use pattern matching until one is created",
+                        type: .info
+                    )
                     DispatchQueue.main.async {
                         // Schedule creation of an initial model if we have enough data
                         DispatchQueue.global(qos: .background).async {
@@ -299,7 +323,7 @@ final class CoreMLManager {
                     }
                 }
 
-            case .failure(let error):
+            case let .failure(error):
                 Debug.shared.log(message: "Failed to prepare model system: \(error.localizedDescription)", type: .error)
                 DispatchQueue.main.async {
                     completion?(false)
@@ -315,7 +339,10 @@ final class CoreMLManager {
 
         // If we have enough data to attempt model creation
         if stats.totalDataPoints >= 5 {
-            Debug.shared.log(message: "Found \(stats.totalDataPoints) data points - attempting to create initial AI model", type: .info)
+            Debug.shared.log(
+                message: "Found \(stats.totalDataPoints) data points - attempting to create initial AI model",
+                type: .info
+            )
 
             // Train with reduced requirements
             AILearningManager.shared.trainModelNow { success, message in
@@ -331,7 +358,10 @@ final class CoreMLManager {
                 }
             }
         } else {
-            Debug.shared.log(message: "Not enough data to create initial model (\(stats.totalDataPoints) points). Need more user interactions.", type: .info)
+            Debug.shared.log(
+                message: "Not enough data to create initial model (\(stats.totalDataPoints) points). Need more user interactions.",
+                type: .info
+            )
         }
     }
 
@@ -373,7 +403,7 @@ final class CoreMLManager {
                     indicator.centerXAnchor.constraint(equalTo: loadingAlert!.view.centerXAnchor),
                     indicator.topAnchor.constraint(equalTo: loadingAlert!.view.topAnchor, constant: 80),
                     indicator.widthAnchor.constraint(equalToConstant: 40),
-                    indicator.heightAnchor.constraint(equalToConstant: 40)
+                    indicator.heightAnchor.constraint(equalToConstant: 40),
                 ])
 
                 // Add cancel button
@@ -396,24 +426,25 @@ final class CoreMLManager {
         memoryObserverLocal = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
-            queue: .main) { [weak self, weak loadingAlert] _ in
-                Debug.shared.log(message: "Memory warning during model loading, canceling", type: .warning)
+            queue: .main
+        ) { [weak self, weak loadingAlert] _ in
+            Debug.shared.log(message: "Memory warning during model loading, canceling", type: .warning)
 
-                // Clean up - ensure UI operations happen on main thread
-                if loadingAlertPresented {
-                    DispatchQueue.main.async {
-                        loadingAlert?.dismiss(animated: true)
-                    }
+            // Clean up - ensure UI operations happen on main thread
+            if loadingAlertPresented {
+                DispatchQueue.main.async {
+                    loadingAlert?.dismiss(animated: true)
                 }
-
-                // Remove the observer itself
-                if let observer = memoryObserverLocal {
-                    NotificationCenter.default.removeObserver(observer)
-                }
-
-                self?.isModelLoading = false
-                completion?(false)
             }
+
+            // Remove the observer itself
+            if let observer = memoryObserverLocal {
+                NotificationCenter.default.removeObserver(observer)
+            }
+
+            self?.isModelLoading = false
+            completion?(false)
+        }
 
         let memoryObserver = memoryObserverLocal!
 
@@ -425,11 +456,17 @@ final class CoreMLManager {
                     let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
                     if let fileSize = attributes[.size] as? NSNumber {
                         let fileSizeMB = Double(truncating: fileSize) / 1024.0 / 1024.0
-                        Debug.shared.log(message: "Model file size: \(String(format: "%.1f", fileSizeMB)) MB", type: .info)
+                        Debug.shared.log(
+                            message: "Model file size: \(String(format: "%.1f", fileSizeMB)) MB",
+                            type: .info
+                        )
 
                         // Extra warning for very large models
                         if fileSizeMB > 300 {
-                            Debug.shared.log(message: "Warning: Very large model file, performance may be affected", type: .warning)
+                            Debug.shared.log(
+                                message: "Warning: Very large model file, performance may be affected",
+                                type: .warning
+                            )
                         }
                     }
                 } catch {
@@ -512,7 +549,7 @@ final class CoreMLManager {
                     // This allows the app to keep functioning while we collect data
                     let result = SentimentResult(
                         sentiment: .neutral,
-                        score: 0.5,  // Changed from confidence to score to match struct parameter name
+                        score: 0.5, // Changed from confidence to score to match struct parameter name
                         text: text
                     )
 
@@ -527,28 +564,60 @@ final class CoreMLManager {
     /// Performs sentiment analysis with the model
     /// This method is deprecated - use analyzeSentiment(from:completion:) instead
     @available(*, deprecated, message: "Use analyzeSentiment(from:completion:) instead")
-    func performSentimentAnalysis(text: String, completion: @escaping (Result<SentimentResult, PredictionError>) -> Void) {
+    func performSentimentAnalysis(
+        text: String,
+        completion: @escaping (Result<SentimentResult, PredictionError>) -> Void
+    ) {
         // Forward to the current implementation
         analyzeSentiment(from: text, completion: completion)
     }
 
     /// Non-overloaded version for internal use
-    private func internalAnalyzeSentiment(text: String, completion: @escaping (Result<SentimentResult, PredictionError>) -> Void) {
+    private func internalAnalyzeSentiment(
+        text: String,
+        completion: @escaping (Result<SentimentResult, PredictionError>) -> Void
+    ) {
         analyzeSentiment(from: text, completion: completion)
     }
 
     /// Performs sentiment analysis with pattern matching fallback
-    private func performSentimentAnalysisInternal(text: String, completion: @escaping (Result<SentimentResult, PredictionError>) -> Void) {
+    private func performSentimentAnalysisInternal(
+        text: String,
+        completion: @escaping (Result<SentimentResult, PredictionError>) -> Void
+    ) {
         // If model isn't loaded, provide a reasonable default based on text analysis
         guard modelLoaded, let model = mlModel else {
             // Simple pattern matching for sentiment
             var sentiment: SentimentType = .neutral
-            var confidence: Double = 0.5
+            var confidence = 0.5
 
             // Count positive and negative terms
             let lowercasedText = text.lowercased()
-            let positiveTerms = ["good", "great", "excellent", "amazing", "love", "thanks", "thank", "awesome", "perfect", "happy"]
-            let negativeTerms = ["bad", "terrible", "horrible", "awful", "hate", "slow", "problem", "issue", "error", "wrong", "not working"]
+            let positiveTerms = [
+                "good",
+                "great",
+                "excellent",
+                "amazing",
+                "love",
+                "thanks",
+                "thank",
+                "awesome",
+                "perfect",
+                "happy",
+            ]
+            let negativeTerms = [
+                "bad",
+                "terrible",
+                "horrible",
+                "awful",
+                "hate",
+                "slow",
+                "problem",
+                "issue",
+                "error",
+                "wrong",
+                "not working",
+            ]
 
             var positiveCount = 0
             var negativeCount = 0
@@ -612,7 +681,7 @@ final class CoreMLManager {
 
                 // Process output to determine sentiment
                 var sentiment: SentimentType = .neutral
-                var confidence: Double = 0.5
+                var confidence = 0.5
 
                 // Try to extract sentiment from output
                 if let sentimentOutput = prediction.featureValue(for: "sentiment")?.stringValue {
@@ -632,8 +701,31 @@ final class CoreMLManager {
                 } else {
                     // Use pattern matching as fallback
                     let lowercasedText = text.lowercased()
-                    let positiveTerms = ["good", "great", "excellent", "amazing", "love", "thanks", "thank", "awesome", "perfect", "happy"]
-                    let negativeTerms = ["bad", "terrible", "horrible", "awful", "hate", "slow", "problem", "issue", "error", "wrong", "not working"]
+                    let positiveTerms = [
+                        "good",
+                        "great",
+                        "excellent",
+                        "amazing",
+                        "love",
+                        "thanks",
+                        "thank",
+                        "awesome",
+                        "perfect",
+                        "happy",
+                    ]
+                    let negativeTerms = [
+                        "bad",
+                        "terrible",
+                        "horrible",
+                        "awful",
+                        "hate",
+                        "slow",
+                        "problem",
+                        "issue",
+                        "error",
+                        "wrong",
+                        "not working",
+                    ]
 
                     var positiveCount = 0
                     var negativeCount = 0
@@ -678,8 +770,31 @@ final class CoreMLManager {
     /// Fallback sentiment analysis for when ML model is unavailable
     private func fallbackSentimentAnalysis(text: String) -> SentimentResult {
         let lowercasedText = text.lowercased()
-        let positiveTerms = ["good", "great", "excellent", "amazing", "love", "thanks", "thank", "awesome", "perfect", "happy"]
-        let negativeTerms = ["bad", "terrible", "horrible", "awful", "hate", "slow", "problem", "issue", "error", "wrong", "not working"]
+        let positiveTerms = [
+            "good",
+            "great",
+            "excellent",
+            "amazing",
+            "love",
+            "thanks",
+            "thank",
+            "awesome",
+            "perfect",
+            "happy",
+        ]
+        let negativeTerms = [
+            "bad",
+            "terrible",
+            "horrible",
+            "awful",
+            "hate",
+            "slow",
+            "problem",
+            "issue",
+            "error",
+            "wrong",
+            "not working",
+        ]
 
         var positiveCount = 0
         var negativeCount = 0
@@ -697,7 +812,7 @@ final class CoreMLManager {
         }
 
         var sentiment: SentimentType = .neutral
-        var confidence: Double = 0.5
+        var confidence = 0.5
 
         if positiveCount > negativeCount {
             sentiment = .positive
@@ -713,7 +828,10 @@ final class CoreMLManager {
     // MARK: - Private Methods
 
     /// Execute prediction on loaded model with pattern matching fallback
-    private func performPrediction(text: String, completion: @escaping (Result<PredictionResult, PredictionError>) -> Void) {
+    private func performPrediction(
+        text: String,
+        completion: @escaping (Result<PredictionResult, PredictionError>) -> Void
+    ) {
         predictionQueue.async { [weak self] in
             guard let self = self else {
                 DispatchQueue.main.async {
@@ -803,24 +921,34 @@ final class CoreMLManager {
 
         // Default values
         var intent = "unknown"
-        var confidence: Double = 0.5
+        var confidence = 0.5
         var parameters: [String: Any] = ["text": text]
 
         // Check for greetings
-        if lowercasedText.contains("hello") || lowercasedText.contains("hi ") || lowercasedText == "hi" || lowercasedText.contains("hey") {
+        if lowercasedText.contains("hello") || lowercasedText
+            .contains("hi ") || lowercasedText == "hi" || lowercasedText.contains("hey")
+        {
             intent = "greeting"
             confidence = 0.8
         }
         // Check for help requests
-        else if lowercasedText.contains("help") || lowercasedText.contains("how do i") || lowercasedText.contains("how to") {
+        else if lowercasedText.contains("help") || lowercasedText.contains("how do i") || lowercasedText
+            .contains("how to")
+        {
             intent = "help"
             confidence = 0.7
         }
         // Check for navigation requests
-        else if let range = lowercasedText.range(of: "(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?([^?]+?)\\s+(?:tab|screen|page|section)", options: .regularExpression) {
+        else if let range = lowercasedText.range(
+            of: "(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?([^?]+?)\\s+(?:tab|screen|page|section)",
+            options: .regularExpression
+        ) {
             intent = "navigate"
 
-            let destination = String(lowercasedText[range]).replacing(regularExpression: "(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?|\\s+(?:tab|screen|page|section)", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let destination = String(lowercasedText[range]).replacing(
+                regularExpression: "(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?|\\s+(?:tab|screen|page|section)",
+                with: ""
+            ).trimmingCharacters(in: .whitespacesAndNewlines)
 
             parameters["destination"] = destination
             confidence = 0.65
@@ -829,17 +957,31 @@ final class CoreMLManager {
         else if lowercasedText.contains("sign") && (lowercasedText.contains("app") || lowercasedText.contains("ipa")) {
             intent = "sign_app"
 
-            if let range = lowercasedText.range(of: "sign\\s+(the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?]+)", options: .regularExpression) {
-                let appName = String(lowercasedText[range]).replacing(regularExpression: "sign\\s+(the\\s+)?app\\s+(?:called\\s+|named\\s+)?", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if let range = lowercasedText.range(
+                of: "sign\\s+(the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?]+)",
+                options: .regularExpression
+            ) {
+                let appName = String(lowercasedText[range]).replacing(
+                    regularExpression: "sign\\s+(the\\s+)?app\\s+(?:called\\s+|named\\s+)?",
+                    with: ""
+                ).trimmingCharacters(in: .whitespacesAndNewlines)
                 parameters["appName"] = appName
             }
 
             confidence = 0.6
-        } else if lowercasedText.contains("install") && (lowercasedText.contains("app") || lowercasedText.contains("ipa")) {
+        } else if lowercasedText
+            .contains("install") && (lowercasedText.contains("app") || lowercasedText.contains("ipa"))
+        {
             intent = "install"
 
-            if let range = lowercasedText.range(of: "install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?]+)", options: .regularExpression) {
-                let appName = String(lowercasedText[range]).replacing(regularExpression: "install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if let range = lowercasedText.range(
+                of: "install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?]+)",
+                options: .regularExpression
+            ) {
+                let appName = String(lowercasedText[range]).replacing(
+                    regularExpression: "install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?",
+                    with: ""
+                ).trimmingCharacters(in: .whitespacesAndNewlines)
                 parameters["appName"] = appName
             }
 
@@ -850,7 +992,10 @@ final class CoreMLManager {
             intent = "question"
 
             // Extract topic from question
-            let topic = lowercasedText.replacing(regularExpression: "\\?|what|how|when|where|why|who|is|are|can|could|would|will|should", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let topic = lowercasedText.replacing(
+                regularExpression: "\\?|what|how|when|where|why|who|is|are|can|could|would|will|should",
+                with: ""
+            ).trimmingCharacters(in: .whitespacesAndNewlines)
             parameters["topic"] = topic
 
             confidence = 0.55
@@ -858,7 +1003,7 @@ final class CoreMLManager {
 
         // Create a dictionary of all possible intents with probabilities
         var probabilities: [String: Double] = [
-            intent: confidence
+            intent: confidence,
         ]
 
         // Add some low-probability alternatives
@@ -892,7 +1037,7 @@ final class CoreMLManager {
     private func processOutputs(prediction: MLFeatureProvider, text: String) throws -> PredictionResult {
         // Default values
         var intent = "unknown"
-        var confidence: Double = 0.0
+        var confidence = 0.0
         var parameters: [String: Any] = [:]
         var probabilities: [String: Double] = [:]
 
@@ -927,7 +1072,7 @@ final class CoreMLManager {
                     // This is a simplified version - we'd need model metadata to map indices to labels
                     let count = multiArray.count
 
-                    for i in 0..<count {
+                    for i in 0 ..< count {
                         let index = i
                         let value = multiArray[index].doubleValue
                         if value != 0 { // Assuming 0 means no value, adjust as needed
@@ -967,35 +1112,50 @@ final class CoreMLManager {
         switch intent.lowercased() {
         case "sign_app", "signing":
             // Extract app name
-            let appNameMatches = text.extractMatch(pattern: "(?i)sign\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?.,]+)", groupIndex: 1)
+            let appNameMatches = text.extractMatch(
+                pattern: "(?i)sign\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?.,]+)",
+                groupIndex: 1
+            )
             if let appName = appNameMatches {
                 parameters["appName"] = appName.trimmingCharacters(in: .whitespacesAndNewlines)
             }
 
         case "navigate", "navigation":
             // Extract destination
-            let destinationMatches = text.extractMatch(pattern: "(?i)(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?([^?.,]+?)\\s+(?:tab|screen|page|section)", groupIndex: 1)
+            let destinationMatches = text.extractMatch(
+                pattern: "(?i)(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?([^?.,]+?)\\s+(?:tab|screen|page|section)",
+                groupIndex: 1
+            )
             if let destination = destinationMatches {
                 parameters["destination"] = destination.trimmingCharacters(in: .whitespacesAndNewlines)
             }
 
         case "add_source", "source":
             // Extract URL
-            let urlMatches = text.extractMatch(pattern: "(?i)add\\s+(?:a\\s+)?(?:new\\s+)?source\\s+(?:with\\s+url\\s+|at\\s+|from\\s+)?([^?.,\\s]+)", groupIndex: 1)
+            let urlMatches = text.extractMatch(
+                pattern: "(?i)add\\s+(?:a\\s+)?(?:new\\s+)?source\\s+(?:with\\s+url\\s+|at\\s+|from\\s+)?([^?.,\\s]+)",
+                groupIndex: 1
+            )
             if let url = urlMatches {
                 parameters["url"] = url.trimmingCharacters(in: .whitespacesAndNewlines)
             }
 
         case "install_app", "install":
             // Extract app name
-            let appNameMatches = text.extractMatch(pattern: "(?i)install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?.,]+)", groupIndex: 1)
+            let appNameMatches = text.extractMatch(
+                pattern: "(?i)install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?.,]+)",
+                groupIndex: 1
+            )
             if let appName = appNameMatches {
                 parameters["appName"] = appName.trimmingCharacters(in: .whitespacesAndNewlines)
             }
 
         case "question", "query":
             // Extract question topic
-            let topicMatches = text.extractMatch(pattern: "(?i)(?:about|regarding|related\\s+to)\\s+([^?.,]+)", groupIndex: 1)
+            let topicMatches = text.extractMatch(
+                pattern: "(?i)(?:about|regarding|related\\s+to)\\s+([^?.,]+)",
+                groupIndex: 1
+            )
             if let topic = topicMatches {
                 parameters["topic"] = topic.trimmingCharacters(in: .whitespacesAndNewlines)
             }
@@ -1018,10 +1178,16 @@ final class CoreMLManager {
 
         case "generate", "create":
             // Extract creation type and content
-            if let createType = text.extractMatch(pattern: "(?i)(?:generate|create)\\s+(?:a\\s+)?(?:new\\s+)?([\\w\\s]+?)\\s+(?:for|with|that)\\s+(.+)", groupIndex: 1) {
+            if let createType = text.extractMatch(
+                pattern: "(?i)(?:generate|create)\\s+(?:a\\s+)?(?:new\\s+)?([\\w\\s]+?)\\s+(?:for|with|that)\\s+(.+)",
+                groupIndex: 1
+            ) {
                 parameters["type"] = createType.trimmingCharacters(in: .whitespacesAndNewlines)
 
-                if let content = text.extractMatch(pattern: "(?i)(?:generate|create)\\s+(?:a\\s+)?(?:new\\s+)?[\\w\\s]+?\\s+(?:for|with|that)\\s+(.+)", groupIndex: 1) {
+                if let content = text.extractMatch(
+                    pattern: "(?i)(?:generate|create)\\s+(?:a\\s+)?(?:new\\s+)?[\\w\\s]+?\\s+(?:for|with|that)\\s+(.+)",
+                    groupIndex: 1
+                ) {
                     parameters["content"] = content.trimmingCharacters(in: .whitespacesAndNewlines)
                 }
             }
@@ -1037,23 +1203,35 @@ final class CoreMLManager {
     /// Extract common parameters from any text
     private func extractCommonParameters(from text: String, into parameters: inout [String: Any]) {
         // Look for app names
-        if let appName = text.extractMatch(pattern: "(?i)\\b(?:app|application)\\s+(?:called|named)\\s+\"?([^\".,?!]+)\"?", groupIndex: 1) {
+        if let appName = text.extractMatch(
+            pattern: "(?i)\\b(?:app|application)\\s+(?:called|named)\\s+\"?([^\".,?!]+)\"?",
+            groupIndex: 1
+        ) {
             parameters["appName"] = appName.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
         // Look for URLs
-        if let url = text.extractMatch(pattern: "(?i)(?:https?://|www\\.)([^\\s.,]+\\.[^\\s.,]+[^\\s.,?!]*)", groupIndex: 0) {
+        if let url = text.extractMatch(
+            pattern: "(?i)(?:https?://|www\\.)([^\\s.,]+\\.[^\\s.,]+[^\\s.,?!]*)",
+            groupIndex: 0
+        ) {
             parameters["url"] = url.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
         // Look for file paths
-        if let filePath = text.extractMatch(pattern: "(?i)(?:file|path)\\s+(?:at|in)?\\s+\"?([^\".,:;?!]+)\"?", groupIndex: 1) {
+        if let filePath = text.extractMatch(
+            pattern: "(?i)(?:file|path)\\s+(?:at|in)?\\s+\"?([^\".,:;?!]+)\"?",
+            groupIndex: 1
+        ) {
             parameters["filePath"] = filePath.trimmingCharacters(in: .whitespacesAndNewlines)
         }
     }
 
     /// Performs sentiment analysis on text (private implementation)
-    private func performSentimentAnalysisLegacy(text: String, completion: @escaping (Result<SentimentResult, PredictionError>) -> Void) {
+    private func performSentimentAnalysisLegacy(
+        text: String,
+        completion: @escaping (Result<SentimentResult, PredictionError>) -> Void
+    ) {
         predictionQueue.async { [weak self] in
             guard let self = self, let model = self.mlModel else {
                 DispatchQueue.main.async {
@@ -1072,7 +1250,7 @@ final class CoreMLManager {
 
                 let featureName = inputDescription.key
                 let provider = try MLDictionaryFeatureProvider(dictionary: [
-                    featureName: MLFeatureValue(string: text)
+                    featureName: MLFeatureValue(string: text),
                 ])
 
                 // Make prediction
@@ -1080,13 +1258,15 @@ final class CoreMLManager {
 
                 // Process sentiment outputs - simplified for common sentiment models
                 var sentiment = SentimentType.neutral
-                var score: Double = 0.5
+                var score = 0.5
 
                 for featureName in prediction.featureNames {
                     guard let feature = prediction.featureValue(for: featureName) else { continue }
 
                     // Check if the feature matches one of our sentiment values
-                    if feature.type == .string && ["positive", "negative", "neutral"].contains(feature.stringValue.lowercased()) {
+                    if feature.type == .string,
+                       ["positive", "negative", "neutral"].contains(feature.stringValue.lowercased())
+                    {
                         // Direct sentiment classification
                         sentiment = SentimentType(rawValue: feature.stringValue.lowercased()) ?? .neutral
                         score = sentiment == .neutral ? 0.5 : (sentiment == .positive ? 0.75 : 0.25)
@@ -1100,10 +1280,14 @@ final class CoreMLManager {
                         // Some models use integers (0, 1, 2) for sentiment
                         let sentimentValue = Int(feature.int64Value)
                         switch sentimentValue {
-                        case 0: sentiment = .negative; score = 0.25
-                        case 1: sentiment = .neutral; score = 0.5
-                        case 2: sentiment = .positive; score = 0.75
-                        default: sentiment = .neutral; score = 0.5
+                        case 0: sentiment = .negative
+                            score = 0.25
+                        case 1: sentiment = .neutral
+                            score = 0.5
+                        case 2: sentiment = .positive
+                            score = 0.75
+                        default: sentiment = .neutral
+                            score = 0.5
                         }
                     }
                 }

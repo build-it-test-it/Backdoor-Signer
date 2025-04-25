@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -33,9 +27,14 @@ class SigningsInputViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.largeTitleDisplayMode = .never
-        self.title = initialValue.capitalized
+        title = initialValue.capitalized
 
-        let saveButton = UIBarButtonItem(title: String.localized("SAVE"), style: .done, target: self, action: #selector(saveButton))
+        let saveButton = UIBarButtonItem(
+            title: String.localized("SAVE"),
+            style: .done,
+            target: self,
+            action: #selector(saveButton)
+        )
         saveButton.isEnabled = false
         navigationItem.rightBarButtonItem = saveButton
 
@@ -44,17 +43,17 @@ class SigningsInputViewController: UITableViewController {
 
     @objc func saveButton() {
         switch valueToSaveTo {
-            case 1:
-                parentView.mainOptions.mainOptions.name = changedValue
-            case 2:
-                parentView.mainOptions.mainOptions.bundleId = changedValue
-            case 3:
-                parentView.mainOptions.mainOptions.version = changedValue
-            default:
-                break
+        case 1:
+            parentView.mainOptions.mainOptions.name = changedValue
+        case 2:
+            parentView.mainOptions.mainOptions.bundleId = changedValue
+        case 3:
+            parentView.mainOptions.mainOptions.version = changedValue
+        default:
+            break
         }
 
-        self.navigationController?.popViewController(animated: true)
+        navigationController?.popViewController(animated: true)
     }
 
     @objc private func textDidChange() {
@@ -68,21 +67,21 @@ class SigningsInputViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "InputCell", for: indexPath)
         switch indexPath.section {
-            case 0:
-                textField.text = initialValue
-                textField.placeholder = initialValue
+        case 0:
+            textField.text = initialValue
+            textField.placeholder = initialValue
 
-                if textField.superview == nil {
-                    cell.contentView.addSubview(textField)
-                    NSLayoutConstraint.activate([
-                        textField.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
-                        textField.leadingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.leadingAnchor),
-                        textField.trailingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.trailingAnchor)
-                    ])
-                }
+            if textField.superview == nil {
+                cell.contentView.addSubview(textField)
+                NSLayoutConstraint.activate([
+                    textField.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+                    textField.leadingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.leadingAnchor),
+                    textField.trailingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.trailingAnchor),
+                ])
+            }
 
-                cell.selectionStyle = .none
-            default: break
+            cell.selectionStyle = .none
+        default: break
         }
         return cell
     }

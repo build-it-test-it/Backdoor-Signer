@@ -1,15 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// Extension for adding defensive initialization and error recovery to view controllers
 extension UIViewController {
-
     /// Execute a function with proper error handling and recovery
     /// - Parameters:
     ///   - operation: The operation to execute
@@ -106,9 +98,9 @@ extension UIViewController {
     /// Check if view controller is in an invalid state
     var isInvalidState: Bool {
         return isBeingDismissed ||
-               isMovingFromParent ||
-               isBeingPresented ||
-               view.window == nil
+            isMovingFromParent ||
+            isBeingPresented ||
+            view.window == nil
     }
 
     /// Safe method to push a view controller
@@ -123,7 +115,8 @@ extension UIViewController {
     ) {
         // Check if we're in a valid state to push
         guard let navigationController = navigationController,
-              !isInvalidState else {
+              !isInvalidState
+        else {
             Debug.shared.log(message: "Cannot push - invalid state or no navigation controller", type: .warning)
             return
         }
@@ -153,7 +146,8 @@ extension UIViewController {
     ) {
         // Check if we're in a valid state to present
         guard !isInvalidState,
-              presentedViewController == nil else {
+              presentedViewController == nil
+        else {
             Debug.shared.log(message: "Cannot present - invalid state or already presenting", type: .warning)
             return
         }
@@ -187,7 +181,7 @@ extension UIViewController {
             container.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             container.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             container.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.9),
-            container.heightAnchor.constraint(greaterThanOrEqualToConstant: 40)
+            container.heightAnchor.constraint(greaterThanOrEqualToConstant: 40),
         ])
 
         // Add message label if provided
@@ -205,7 +199,7 @@ extension UIViewController {
                 label.topAnchor.constraint(equalTo: container.topAnchor, constant: 10),
                 label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 15),
                 label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -15),
-                label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -10)
+                label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -10),
             ])
         }
 

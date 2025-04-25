@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 import ZIPFoundation
 
@@ -33,7 +27,9 @@ class FileContextMenu: NSObject, UIContextMenuInteractionDelegate {
 
     // MARK: - UIContextMenuInteractionDelegate
 
-    func contextMenuInteraction(_: UIContextMenuInteraction, configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration? {
+    func contextMenuInteraction(_: UIContextMenuInteraction,
+                                configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration?
+    {
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             guard let self = self else { return nil }
             return self.createContextMenu()
@@ -48,16 +44,24 @@ class FileContextMenu: NSObject, UIContextMenuInteractionDelegate {
         var actions: [UIAction] = []
 
         // Open action - always available
-        actions.append(UIAction(title: "Open", image: UIImage(systemName: "arrow.up.forward.app"), handler: { [weak self] _ in
-            guard let self = self, let viewController = self.viewController as? HomeViewController else { return }
-            viewController.openFile(self.file)
-        }))
+        actions.append(UIAction(
+            title: "Open",
+            image: UIImage(systemName: "arrow.up.forward.app"),
+            handler: { [weak self] _ in
+                guard let self = self, let viewController = self.viewController as? HomeViewController else { return }
+                viewController.openFile(self.file)
+            }
+        ))
 
         // Share action - always available
-        actions.append(UIAction(title: "Share", image: UIImage(systemName: "square.and.arrow.up"), handler: { [weak self] _ in
-            guard let self = self, let viewController = self.viewController else { return }
-            self.shareFile(viewController)
-        }))
+        actions.append(UIAction(
+            title: "Share",
+            image: UIImage(systemName: "square.and.arrow.up"),
+            handler: { [weak self] _ in
+                guard let self = self, let viewController = self.viewController else { return }
+                self.shareFile(viewController)
+            }
+        ))
 
         // Rename action - always available
         actions.append(UIAction(title: "Rename", image: UIImage(systemName: "pencil"), handler: { [weak self] _ in
@@ -68,54 +72,82 @@ class FileContextMenu: NSObject, UIContextMenuInteractionDelegate {
         // Type-specific actions
         if file.isDirectory {
             // Directory-specific actions
-            actions.append(UIAction(title: "Compress", image: UIImage(systemName: "archivebox"), handler: { [weak self] _ in
-                guard let self = self, let viewController = self.viewController else { return }
-                self.compressDirectory(viewController)
-            }))
+            actions.append(UIAction(
+                title: "Compress",
+                image: UIImage(systemName: "archivebox"),
+                handler: { [weak self] _ in
+                    guard let self = self, let viewController = self.viewController else { return }
+                    self.compressDirectory(viewController)
+                }
+            ))
         } else {
             // File-specific actions
 
             // Compress action
-            actions.append(UIAction(title: "Compress", image: UIImage(systemName: "archivebox"), handler: { [weak self] _ in
-                guard let self = self, let viewController = self.viewController else { return }
-                self.compressFile(viewController)
-            }))
+            actions.append(UIAction(
+                title: "Compress",
+                image: UIImage(systemName: "archivebox"),
+                handler: { [weak self] _ in
+                    guard let self = self, let viewController = self.viewController else { return }
+                    self.compressFile(viewController)
+                }
+            ))
 
             // Add compress/extract options for archives
             let fileExtension = file.url.pathExtension.lowercased()
             if ["zip", "rar", "tar", "gz", "7z"].contains(fileExtension) {
-                actions.append(UIAction(title: "Extract", image: UIImage(systemName: "archivebox.fill"), handler: { [weak self] _ in
-                    guard let self = self, let viewController = self.viewController as? HomeViewController else { return }
-                    viewController.extractArchive(self.file)
-                }))
+                actions.append(UIAction(
+                    title: "Extract",
+                    image: UIImage(systemName: "archivebox.fill"),
+                    handler: { [weak self] _ in
+                        guard let self = self,
+                              let viewController = self.viewController as? HomeViewController else { return }
+                        viewController.extractArchive(self.file)
+                    }
+                ))
             }
 
             // Add edit option for text files
-            if ["txt", "md", "swift", "h", "m", "c", "cpp", "js", "html", "css", "json", "strings", "plist"].contains(fileExtension) {
-                actions.append(UIAction(title: "Edit", image: UIImage(systemName: "pencil.line"), handler: { [weak self] _ in
-                    guard let self = self, let viewController = self.viewController else { return }
-                    self.editFile(viewController)
-                }))
+            if ["txt", "md", "swift", "h", "m", "c", "cpp", "js", "html", "css", "json", "strings", "plist"]
+                .contains(fileExtension)
+            {
+                actions.append(UIAction(
+                    title: "Edit",
+                    image: UIImage(systemName: "pencil.line"),
+                    handler: { [weak self] _ in
+                        guard let self = self, let viewController = self.viewController else { return }
+                        self.editFile(viewController)
+                    }
+                ))
             }
 
             // Add sign option for IPA files
             if fileExtension == "ipa" {
-                actions.append(UIAction(title: "Sign IPA", image: UIImage(systemName: "signature"), handler: { [weak self] _ in
-                    guard let self = self, let viewController = self.viewController else { return }
-                    self.signIPA(viewController)
-                }))
+                actions.append(UIAction(
+                    title: "Sign IPA",
+                    image: UIImage(systemName: "signature"),
+                    handler: { [weak self] _ in
+                        guard let self = self, let viewController = self.viewController else { return }
+                        self.signIPA(viewController)
+                    }
+                ))
             }
         }
 
         // Delete action - always available but in destructive section
-        let deleteAction = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive, handler: { [weak self] _ in
-            guard let self = self, let viewController = self.viewController as? HomeViewController else { return }
+        let deleteAction = UIAction(
+            title: "Delete",
+            image: UIImage(systemName: "trash"),
+            attributes: .destructive,
+            handler: { [weak self] _ in
+                guard let self = self, let viewController = self.viewController as? HomeViewController else { return }
 
-            // Find index of file in the file list
-            if let index = viewController.fileList.firstIndex(where: { $0.url == self.file.url }) {
-                viewController.deleteFile(at: index)
+                // Find index of file in the file list
+                if let index = viewController.fileList.firstIndex(where: { $0.url == self.file.url }) {
+                    viewController.deleteFile(at: index)
+                }
             }
-        })
+        )
 
         // Create menu with actions
         return UIMenu(title: file.name, children: actions + [deleteAction])
@@ -131,7 +163,12 @@ class FileContextMenu: NSObject, UIContextMenuInteractionDelegate {
         // For iPad support
         if let popoverController = activityViewController.popoverPresentationController {
             popoverController.sourceView = viewController.view
-            popoverController.sourceRect = CGRect(x: viewController.view.bounds.midX, y: viewController.view.bounds.midY, width: 0, height: 0)
+            popoverController.sourceRect = CGRect(
+                x: viewController.view.bounds.midX,
+                y: viewController.view.bounds.midY,
+                width: 0,
+                height: 0
+            )
             popoverController.permittedArrowDirections = []
         }
 

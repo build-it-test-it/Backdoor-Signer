@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// Enhanced Dropbox device identifier and organization manager
@@ -53,7 +46,8 @@ class EnhancedDropboxDeviceIdentifier {
     var deviceName: String {
         // Check if user has set a custom name
         if let customName = UserDefaults.standard.string(forKey: deviceNameKey),
-           !customName.isEmpty {
+           !customName.isEmpty
+        {
             return customName
         }
 
@@ -111,12 +105,13 @@ class EnhancedDropboxDeviceIdentifier {
             "model": UIDevice.current.model,
             "systemName": UIDevice.current.systemName,
             "systemVersion": UIDevice.current.systemVersion,
-            "vendorId": UIDevice.current.identifierForVendor?.uuidString ?? "unknown"
+            "vendorId": UIDevice.current.identifierForVendor?.uuidString ?? "unknown",
         ]
 
         // App info
         if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-           let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+           let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+        {
             deviceInfo["appVersion"] = appVersion
             deviceInfo["buildNumber"] = buildNumber
         }
@@ -151,15 +146,16 @@ class EnhancedDropboxDeviceIdentifier {
 
         // Convert to JSON
         guard let jsonData = try? JSONSerialization.data(withJSONObject: deviceInfo, options: .prettyPrinted),
-              let jsonString = String(data: jsonData, encoding: .utf8) else {
+              let jsonString = String(data: jsonData, encoding: .utf8)
+        else {
             Debug.shared.log(message: "Failed to serialize device info to JSON", type: .error)
             return
         }
 
         // Use EnhancedDropboxService via reflection to avoid direct dependencies
         if let dropboxServiceClass = NSClassFromString("EnhancedDropboxService") as? NSObject.Type,
-           let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject {
-
+           let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject
+        {
             // Create path for device info file
             let infoPath = folderPath(for: .deviceInfo) + "device_info.json"
 
@@ -294,13 +290,20 @@ extension FileManager {
     /// - Returns: Size in bytes
     func allocatedSizeOfDirectory(at directoryURL: URL) throws -> Int64 {
         let resourceKeys: Set<URLResourceKey> = [.isRegularFileKey, .fileAllocatedSizeKey, .totalFileAllocatedSizeKey]
-        var enumerator = self.enumerator(at: directoryURL, includingPropertiesForKeys: Array(resourceKeys), options: [], errorHandler: nil)!
+        var enumerator = self.enumerator(
+            at: directoryURL,
+            includingPropertiesForKeys: Array(resourceKeys),
+            options: [],
+            errorHandler: nil
+        )!
 
         var accumulatedSize: Int64 = 0
         for case let fileURL as URL in enumerator {
             let resourceValues = try fileURL.resourceValues(forKeys: resourceKeys)
 
-            if resourceValues.isRegularFile == true, let size = resourceValues.totalFileAllocatedSize ?? resourceValues.fileAllocatedSize {
+            if resourceValues.isRegularFile == true,
+               let size = resourceValues.totalFileAllocatedSize ?? resourceValues.fileAllocatedSize
+            {
                 accumulatedSize += Int64(size)
             }
         }

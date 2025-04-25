@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import SwiftUI
 import UIKit
 
@@ -241,7 +235,10 @@ final class FloatingButtonManager {
                 }
             }
 
-            Debug.shared.log(message: "Ensured floating button is within bounds at \(self.floatingButton.center)", type: .debug)
+            Debug.shared.log(
+                message: "Ensured floating button is within bounds at \(self.floatingButton.center)",
+                type: .debug
+            )
         }
 
         // Mark setup as complete
@@ -272,7 +269,10 @@ final class FloatingButtonManager {
             // View is not in window hierarchy, try to re-attach
             if recoveryAttempts < maxRecoveryAttempts {
                 recoveryAttempts += 1
-                Debug.shared.log(message: "Trying to recover floating button (attempt \(recoveryAttempts))", type: .warning)
+                Debug.shared.log(
+                    message: "Trying to recover floating button (attempt \(recoveryAttempts))",
+                    type: .warning
+                )
 
                 // Attempt to reattach
                 attachToRootView()
@@ -367,7 +367,12 @@ final class FloatingButtonManager {
                     completion("Invalid source URL")
                     return
                 }
-                CoreDataManager.shared.saveSource(name: "Custom Source", id: UUID().uuidString, iconURL: nil, url: sourceURL) { error in
+                CoreDataManager.shared.saveSource(
+                    name: "Custom Source",
+                    id: UUID().uuidString,
+                    iconURL: nil,
+                    url: sourceURL
+                ) { error in
                     if let error = error {
                         Debug.shared.log(message: "Failed to add source: \(error)", type: .error)
                         completion("Failed to add source: \(error.localizedDescription)")
@@ -392,7 +397,8 @@ final class FloatingButtonManager {
         AppContextManager.shared.registerCommand("list downloaded apps") { [weak self] _, completion in
             self?.processingQueue.async {
                 let apps = CoreDataManager.shared.getDatedDownloadedApps()
-                let appNames = apps.map { "\($0.name ?? "Unnamed") (\($0.version ?? "Unknown"))" }.joined(separator: "\n")
+                let appNames = apps.map { "\($0.name ?? "Unnamed") (\($0.version ?? "Unknown"))" }
+                    .joined(separator: "\n")
                 completion(appNames.isEmpty ? "No downloaded apps" : appNames)
             }
         }
@@ -401,7 +407,8 @@ final class FloatingButtonManager {
         AppContextManager.shared.registerCommand("list signed apps") { [weak self] _, completion in
             self?.processingQueue.async {
                 let apps = CoreDataManager.shared.getDatedSignedApps()
-                let appNames = apps.map { "\($0.name ?? "Unnamed") (\($0.bundleidentifier ?? "Unknown"))" }.joined(separator: "\n")
+                let appNames = apps.map { "\($0.name ?? "Unnamed") (\($0.bundleidentifier ?? "Unknown"))" }
+                    .joined(separator: "\n")
                 completion(appNames.isEmpty ? "No signed apps" : appNames)
             }
         }
@@ -426,27 +433,35 @@ final class FloatingButtonManager {
 
                 var targetTab: String
                 switch screen.lowercased() {
-                    case "home":
-                        targetTab = "home"
-                    case "sources":
-                        targetTab = "sources"
-                    case "library":
-                        targetTab = "library"
-                    case "settings":
-                        targetTab = "settings"
-                    case "bdg hub", "bdghub", "hub":
-                        targetTab = "bdgHub"
-                    default:
-                        Debug.shared.log(message: "Unknown screen: \(screen)", type: .warning)
-                        completion("Unknown screen: \(screen)")
-                        return
+                case "home":
+                    targetTab = "home"
+                case "sources":
+                    targetTab = "sources"
+                case "library":
+                    targetTab = "library"
+                case "settings":
+                    targetTab = "settings"
+                case "bdg hub", "bdghub", "hub":
+                    targetTab = "bdgHub"
+                default:
+                    Debug.shared.log(message: "Unknown screen: \(screen)", type: .warning)
+                    completion("Unknown screen: \(screen)")
+                    return
                 }
 
                 UserDefaults.standard.set(targetTab, forKey: "selectedTab")
 
                 // Post to both notification names for maximum compatibility
-                NotificationCenter.default.post(name: Notification.Name("changeTab"), object: nil, userInfo: ["tab": targetTab])
-                NotificationCenter.default.post(name: Notification.Name("tabDidChange"), object: nil, userInfo: ["tab": targetTab])
+                NotificationCenter.default.post(
+                    name: Notification.Name("changeTab"),
+                    object: nil,
+                    userInfo: ["tab": targetTab]
+                )
+                NotificationCenter.default.post(
+                    name: Notification.Name("tabDidChange"),
+                    object: nil,
+                    userInfo: ["tab": targetTab]
+                )
 
                 completion("Navigated to \(screen)")
             }
@@ -546,7 +561,7 @@ final class FloatingButtonManager {
                 // First verify the context exists with a try-catch
                 guard let topVCStillValid = topVC, !topVCStillValid.isBeingDismissed else {
                     throw NSError(domain: "com.backdoor.floatingButton", code: 1,
-                                 userInfo: [NSLocalizedDescriptionKey: "View controller no longer valid"])
+                                  userInfo: [NSLocalizedDescriptionKey: "View controller no longer valid"])
                 }
 
                 // Update AI context
@@ -563,7 +578,7 @@ final class FloatingButtonManager {
                 // Create the session with explicit error handling
                 guard let session = try? CoreDataManager.shared.createAIChatSession(title: title) else {
                     throw NSError(domain: "com.backdoor.floatingButton", code: 2,
-                                 userInfo: [NSLocalizedDescriptionKey: "Failed to create chat session"])
+                                  userInfo: [NSLocalizedDescriptionKey: "Failed to create chat session"])
                 }
 
                 // Present the UI on the main thread
@@ -582,7 +597,10 @@ final class FloatingButtonManager {
                         // Reset state if view controller is no longer valid
                         self.isPresentingChat = false
                         self.show()
-                        Debug.shared.log(message: "View controller no longer valid for chat presentation", type: .warning)
+                        Debug.shared.log(
+                            message: "View controller no longer valid for chat presentation",
+                            type: .warning
+                        )
                     }
 
                     // End background task
@@ -602,7 +620,10 @@ final class FloatingButtonManager {
 
                     // Show error alert if view controller is still valid
                     if let validTopVC = topVC, !validTopVC.isBeingDismissed {
-                        self.showErrorAlert(message: "Chat initialization failed. Please try again later.", on: validTopVC)
+                        self.showErrorAlert(
+                            message: "Chat initialization failed. Please try again later.",
+                            on: validTopVC
+                        )
                     }
 
                     // End background task
@@ -621,7 +642,8 @@ final class FloatingButtonManager {
               !presenter.isBeingPresented,
               !presenter.isMovingToParent,
               !presenter.isMovingFromParent,
-              presenter.view.window != nil else {
+              presenter.view.window != nil
+        else {
             Debug.shared.log(message: "Cannot present chat - view controller in invalid state", type: .error)
             // Reset state and show button again
             isPresentingChat = false
@@ -667,7 +689,7 @@ final class FloatingButtonManager {
         }
 
         // Ensure safe presentation
-        self.presentViewControllerSafely(navController, from: presenter)
+        presentViewControllerSafely(navController, from: presenter)
     }
 
     private func presentViewControllerSafely(_ viewController: UIViewController, from presenter: UIViewController) {

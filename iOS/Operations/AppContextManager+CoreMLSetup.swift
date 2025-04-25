@@ -1,16 +1,9 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import Foundation
 import CoreML
+import Foundation
 import UIKit
 
 /// Extension to AppContextManager for CoreML setup and integration
 extension AppContextManager {
-
     /// Initialize CoreML for app-wide use
     func setupCoreML() {
         Debug.shared.log(message: "Setting up CoreML integration", type: .info)
@@ -29,8 +22,11 @@ extension AppContextManager {
         // Ensure model file is available
         ModelFileManager.shared.prepareMLModel { result in
             switch result {
-            case .success(let modelURL):
-                Debug.shared.log(message: "CoreML model prepared successfully at: \(modelURL?.path ?? "unknown path")", type: .info)
+            case let .success(modelURL):
+                Debug.shared.log(
+                    message: "CoreML model prepared successfully at: \(modelURL?.path ?? "unknown path")",
+                    type: .info
+                )
 
                 // Preload the model to avoid delay during first use
                 CoreMLManager.shared.loadModel { success in
@@ -47,7 +43,7 @@ extension AppContextManager {
                     }
                 }
 
-            case .failure(let error):
+            case let .failure(error):
                 Debug.shared.log(message: "Failed to prepare CoreML model: \(error.localizedDescription)", type: .error)
             }
         }
@@ -59,7 +55,7 @@ extension AppContextManager {
         registerCommand("analyze text") { text, completion in
             CoreMLManager.shared.predictIntent(from: text) { result in
                 switch result {
-                case .success(let prediction):
+                case let .success(prediction):
                     var responseText = "Analysis results:\n"
                     responseText += "Intent: \(prediction.intent)\n"
                     responseText += "Confidence: \(Int(prediction.confidence * 100))%\n"
@@ -73,7 +69,7 @@ extension AppContextManager {
 
                     completion(responseText)
 
-                case .failure(let error):
+                case let .failure(error):
                     completion("Failed to analyze text: \(error.localizedDescription)")
                 }
             }
@@ -83,7 +79,7 @@ extension AppContextManager {
         registerCommand("sentiment") { text, completion in
             CoreMLManager.shared.analyzeSentiment(from: text) { result in
                 switch result {
-                case .success(let sentiment):
+                case let .success(sentiment):
                     let sentimentText: String
                     switch sentiment.sentiment {
                     case .positive:
@@ -96,7 +92,7 @@ extension AppContextManager {
 
                     completion("The sentiment of the text is \(sentimentText) (score: \(Int(sentiment.score * 100))%)")
 
-                case .failure(let error):
+                case let .failure(error):
                     completion("Failed to analyze sentiment: \(error.localizedDescription)")
                 }
             }

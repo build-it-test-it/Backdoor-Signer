@@ -1,12 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 // MARK: - Safe Mode Extension
+
 extension AppDelegate {
     /// Set up minimal UI for safe mode
     func setupSafeModeUI() {
@@ -33,7 +28,9 @@ extension AppDelegate {
 
         // Add description label
         let descLabel = UILabel()
-        descLabel.text = "The app has been started in safe mode due to previous crashes. Advanced features are disabled for stability."
+        descLabel
+            .text =
+            "The app has been started in safe mode due to previous crashes. Advanced features are disabled for stability."
         descLabel.font = UIFont.systemFont(ofSize: 16)
         descLabel.textAlignment = .center
         descLabel.numberOfLines = 0
@@ -77,9 +74,12 @@ extension AppDelegate {
             restartButton.trailingAnchor.constraint(equalTo: safeModeVC.view.trailingAnchor, constant: -20),
 
             continueButton.centerXAnchor.constraint(equalTo: safeModeVC.view.centerXAnchor),
-            continueButton.bottomAnchor.constraint(equalTo: safeModeVC.view.safeAreaLayoutGuide.bottomAnchor, constant: -40),
+            continueButton.bottomAnchor.constraint(
+                equalTo: safeModeVC.view.safeAreaLayoutGuide.bottomAnchor,
+                constant: -40
+            ),
             continueButton.leadingAnchor.constraint(equalTo: safeModeVC.view.leadingAnchor, constant: 20),
-            continueButton.trailingAnchor.constraint(equalTo: safeModeVC.view.trailingAnchor, constant: -20)
+            continueButton.trailingAnchor.constraint(equalTo: safeModeVC.view.trailingAnchor, constant: -20),
         ])
 
         // Set as root view controller
@@ -212,7 +212,7 @@ extension AppDelegate {
             guard let self = self else { return }
 
             // Find the top view controller to present alert
-            // Note: using UIApplication.topMostViewController() as a safer alternative 
+            // Note: using UIApplication.topMostViewController() as a safer alternative
             // to the custom topPresentedViewController property
             guard let topVC = UIApplication.shared.topMostViewController() ?? self.window?.rootViewController else {
                 return

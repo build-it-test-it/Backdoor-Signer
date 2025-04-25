@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -97,7 +91,7 @@ struct CodableColor: Codable {
     let alpha: CGFloat
 
     var uiColor: UIColor {
-        return UIColor(red: self.red, green: self.green, blue: self.blue, alpha: self.alpha)
+        return UIColor(red: red, green: green, blue: blue, alpha: alpha)
     }
 
     init(_ color: UIColor) {
@@ -105,9 +99,9 @@ struct CodableColor: Codable {
 
         color.getRed(&_red, green: &_green, blue: &_blue, alpha: &_alpha)
 
-        self.red = _red
-        self.blue = _blue
-        self.green = _green
-        self.alpha = _alpha
+        red = _red
+        blue = _blue
+        green = _green
+        alpha = _alpha
     }
 }

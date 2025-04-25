@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -43,7 +37,7 @@ class CollectionTableViewCell: UITableViewCell, UICollectionViewDelegate, UIColl
             collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            collectionView.heightAnchor.constraint(greaterThanOrEqualToConstant: 100)
+            collectionView.heightAnchor.constraint(greaterThanOrEqualToConstant: 100),
         ])
     }
 
@@ -54,7 +48,7 @@ class CollectionTableViewCell: UITableViewCell, UICollectionViewDelegate, UIColl
 
     func setData(collectionData: [String], colors: [String]) {
         self.collectionData = collectionData
-        self.collectionDataColors = colors
+        collectionDataColors = colors
         collectionView.reloadData()
     }
 
@@ -62,8 +56,13 @@ class CollectionTableViewCell: UITableViewCell, UICollectionViewDelegate, UIColl
         return collectionData.count
     }
 
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CollectionItemCell", for: indexPath) as! CollectionItemCell
+    func collectionView(_ collectionView: UICollectionView,
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
+    {
+        let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: "CollectionItemCell",
+            for: indexPath
+        ) as! CollectionItemCell
         cell.setData(title: collectionData[indexPath.item], colorHex: collectionDataColors[indexPath.item])
 
         let storedTintColor = Preferences.appTintColor.uiColor
@@ -115,9 +114,7 @@ class CollectionItemCell: UICollectionViewCell {
         return stackView
     }()
 
-    let colorCircleView: UIView = {
-        return UIView()
-    }()
+    let colorCircleView: UIView = .init()
 
     let titleLabel: UILabel = {
         let label = UILabel()
@@ -143,7 +140,7 @@ class CollectionItemCell: UICollectionViewCell {
             colorCircleView.widthAnchor.constraint(equalToConstant: 30),
             colorCircleView.heightAnchor.constraint(equalToConstant: 30),
 
-            titleLabel.widthAnchor.constraint(equalTo: stackView.widthAnchor)
+            titleLabel.widthAnchor.constraint(equalTo: stackView.widthAnchor),
         ])
 
         colorCircleView.layer.cornerRadius = 15

@@ -1,14 +1,6 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 extension UIView {
-
     /// Apply modern card styling to a view
     /// - Parameters:
     ///   - backgroundColor: The background color of the card
@@ -61,7 +53,7 @@ extension UIView {
     ///   - duration: Duration of each pulse
     ///   - minScale: Minimum scale factor during pulse
     ///   - maxScale: Maximum scale factor during pulse
-    func addPulseAnimation(duration: TimeInterval = 1.5, minScale: CGFloat = 0.97, maxScale: CGFloat = 1.03) {
+    func addPulseAnimation(duration: TimeInterval = 1.5, minScale _: CGFloat = 0.97, maxScale: CGFloat = 1.03) {
         UIView.animate(withDuration: duration / 2, delay: 0, options: [.autoreverse, .repeat], animations: {
             self.transform = CGAffineTransform(scaleX: maxScale, y: maxScale)
         })
@@ -135,7 +127,11 @@ extension UIView {
     ///   - style: The blur style to use
     ///   - cornerRadius: Corner radius for the blur view
     ///   - alpha: Opacity of the blur effect
-    func addGlassEffect(style: UIBlurEffect.Style = .systemUltraThinMaterial, cornerRadius: CGFloat = 0, alpha: CGFloat = 1.0) {
+    func addGlassEffect(
+        style: UIBlurEffect.Style = .systemUltraThinMaterial,
+        cornerRadius: CGFloat = 0,
+        alpha: CGFloat = 1.0
+    ) {
         // Remove any existing blur effect
         subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
 

@@ -1,18 +1,12 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import UIKit
 import Foundation
 import SwiftUI // For ObservableObject support
+import UIKit
 
 class SigningsAdvancedViewController: FRSITableViewController {
     private var toggleOptions: [TogglesOption]
 
     override init(signingDataWrapper: SigningDataWrapper, mainOptions: SigningMainDataWrapper) {
-        self.toggleOptions = backdoor.toggleOptions(signingDataWrapper: signingDataWrapper)
+        toggleOptions = backdoor.toggleOptions(signingDataWrapper: signingDataWrapper)
         super.init(signingDataWrapper: signingDataWrapper, mainOptions: mainOptions)
     }
 
@@ -28,18 +22,18 @@ class SigningsAdvancedViewController: FRSITableViewController {
             [String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE")],
             [String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_MINIMUM_APP_VERSION")],
             ["Custom Entitlements"],
-            []
+            [],
         ]
 
         sectionTitles = [
             String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE"),
             String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_MINIMUM_APP_VERSION"),
             "Entitlements",
-            String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_PROPERTIES")
+            String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_PROPERTIES"),
         ]
 
-        self.title = String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_PROPERTIES")
-        self.tableData[3] = toggleOptions.map { $0.title }
+        title = String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_PROPERTIES")
+        tableData[3] = toggleOptions.map { $0.title }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -85,46 +79,54 @@ extension SigningsAdvancedViewController {
         cell.textLabel?.text = cellText
 
         switch cellText {
-            case String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE"):
-                let forceLightDarkAppearence = TweakLibraryViewCell()
-                forceLightDarkAppearence.selectionStyle = .none
-                forceLightDarkAppearence.configureSegmentedControl(
-                    with: mainOptions.mainOptions.forceLightDarkAppearenceString,
-                    selectedIndex: 0
-                )
-                forceLightDarkAppearence.segmentedControl.addTarget(self, action: #selector(forceLightDarkAppearenceDidChange(_:)), for: .valueChanged)
+        case String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE"):
+            let forceLightDarkAppearence = TweakLibraryViewCell()
+            forceLightDarkAppearence.selectionStyle = .none
+            forceLightDarkAppearence.configureSegmentedControl(
+                with: mainOptions.mainOptions.forceLightDarkAppearenceString,
+                selectedIndex: 0
+            )
+            forceLightDarkAppearence.segmentedControl.addTarget(
+                self,
+                action: #selector(forceLightDarkAppearenceDidChange(_:)),
+                for: .valueChanged
+            )
 
-                return forceLightDarkAppearence
+            return forceLightDarkAppearence
 
-            case String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_MINIMUM_APP_VERSION"):
-                let forceMinimumVersion = TweakLibraryViewCell()
-                forceMinimumVersion.selectionStyle = .none
-                forceMinimumVersion.configureSegmentedControl(
-                    with: mainOptions.mainOptions.forceMinimumVersionString,
-                    selectedIndex: 0
-                )
-                forceMinimumVersion.segmentedControl.addTarget(self, action: #selector(forceMinimumVersionDidChange(_:)), for: .valueChanged)
+        case String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_MINIMUM_APP_VERSION"):
+            let forceMinimumVersion = TweakLibraryViewCell()
+            forceMinimumVersion.selectionStyle = .none
+            forceMinimumVersion.configureSegmentedControl(
+                with: mainOptions.mainOptions.forceMinimumVersionString,
+                selectedIndex: 0
+            )
+            forceMinimumVersion.segmentedControl.addTarget(
+                self,
+                action: #selector(forceMinimumVersionDidChange(_:)),
+                for: .valueChanged
+            )
 
-                return forceMinimumVersion
+            return forceMinimumVersion
 
-            case "Custom Entitlements":
-                // Create cell for custom entitlements with disclosure indicator
-                cell.accessoryType = .disclosureIndicator
-                cell.selectionStyle = .default
+        case "Custom Entitlements":
+            // Create cell for custom entitlements with disclosure indicator
+            cell.accessoryType = .disclosureIndicator
+            cell.selectionStyle = .default
 
-                // Add count of current entitlements as detail text if any exist
-                if let entitlements = signingDataWrapper.signingOptions.customEntitlements, !entitlements.isEmpty {
-                    cell.detailTextLabel?.text = "\(entitlements.count) entitlement(s)"
-                    cell.detailTextLabel?.textColor = .systemGreen
-                } else {
-                    cell.detailTextLabel?.text = "Not configured"
-                    cell.detailTextLabel?.textColor = .secondaryLabel
-                }
+            // Add count of current entitlements as detail text if any exist
+            if let entitlements = signingDataWrapper.signingOptions.customEntitlements, !entitlements.isEmpty {
+                cell.detailTextLabel?.text = "\(entitlements.count) entitlement(s)"
+                cell.detailTextLabel?.textColor = .systemGreen
+            } else {
+                cell.detailTextLabel?.text = "Not configured"
+                cell.detailTextLabel?.textColor = .secondaryLabel
+            }
 
-                return cell
+            return cell
 
-            default:
-                break
+        default:
+            break
         }
 
         if indexPath.section == 3 {
@@ -169,28 +171,28 @@ extension SigningsAdvancedViewController {
 
     @objc func toggleOptionsSwitches(_ sender: UISwitch) {
         switch sender.tag {
-            case 0:
-                signingDataWrapper.signingOptions.removePlugins = sender.isOn
-            case 1:
-                signingDataWrapper.signingOptions.forceFileSharing = sender.isOn
-            case 2:
-                signingDataWrapper.signingOptions.removeSupportedDevices = sender.isOn
-            case 3:
-                signingDataWrapper.signingOptions.removeURLScheme = sender.isOn
-            case 4:
-                signingDataWrapper.signingOptions.forceProMotion = sender.isOn
-            case 5:
-                signingDataWrapper.signingOptions.forceForceFullScreen = sender.isOn
-            case 6:
-                signingDataWrapper.signingOptions.forceiTunesFileSharing = sender.isOn
-            case 7:
-                signingDataWrapper.signingOptions.forceTryToLocalize = sender.isOn
-            case 8:
-                signingDataWrapper.signingOptions.removeProvisioningFile = sender.isOn
-            case 9:
-                signingDataWrapper.signingOptions.removeWatchPlaceHolder = sender.isOn
-            default:
-                break
+        case 0:
+            signingDataWrapper.signingOptions.removePlugins = sender.isOn
+        case 1:
+            signingDataWrapper.signingOptions.forceFileSharing = sender.isOn
+        case 2:
+            signingDataWrapper.signingOptions.removeSupportedDevices = sender.isOn
+        case 3:
+            signingDataWrapper.signingOptions.removeURLScheme = sender.isOn
+        case 4:
+            signingDataWrapper.signingOptions.forceProMotion = sender.isOn
+        case 5:
+            signingDataWrapper.signingOptions.forceForceFullScreen = sender.isOn
+        case 6:
+            signingDataWrapper.signingOptions.forceiTunesFileSharing = sender.isOn
+        case 7:
+            signingDataWrapper.signingOptions.forceTryToLocalize = sender.isOn
+        case 8:
+            signingDataWrapper.signingOptions.removeProvisioningFile = sender.isOn
+        case 9:
+            signingDataWrapper.signingOptions.removeWatchPlaceHolder = sender.isOn
+        default:
+            break
         }
     }
 }

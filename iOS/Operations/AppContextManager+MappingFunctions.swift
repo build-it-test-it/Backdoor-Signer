@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import SwiftUI
 import UIKit
@@ -25,20 +19,20 @@ extension AppContextManager {
 
         var targetTab: String
         switch screen.lowercased() {
-            case "home", "main":
-                targetTab = "home"
-            case "sources", "repos", "repositories":
-                targetTab = "sources"
-            case "library", "apps", "applications":
-                targetTab = "library"
-            case "settings", "preferences", "options":
-                targetTab = "settings"
-            case "bdg hub", "bdghub", "hub", "web":
-                targetTab = "bdgHub"
-            default:
-                Debug.shared.log(message: "Unknown screen: \(screen)", type: .warning)
-                completion("Unknown screen: \(screen)")
-                return
+        case "home", "main":
+            targetTab = "home"
+        case "sources", "repos", "repositories":
+            targetTab = "sources"
+        case "library", "apps", "applications":
+            targetTab = "library"
+        case "settings", "preferences", "options":
+            targetTab = "settings"
+        case "bdg hub", "bdghub", "hub", "web":
+            targetTab = "bdgHub"
+        default:
+            Debug.shared.log(message: "Unknown screen: \(screen)", type: .warning)
+            completion("Unknown screen: \(screen)")
+            return
         }
 
         UserDefaults.standard.set(targetTab, forKey: "selectedTab")
@@ -56,15 +50,16 @@ extension AppContextManager {
             return
         }
 
-        CoreDataManager.shared.saveSource(name: "AI Added Source", id: UUID().uuidString, iconURL: nil, url: sourceURL) { error in
-            if let error = error {
-                Debug.shared.log(message: "Failed to add source: \(error)", type: .error)
-                completion("Failed to add source: \(error.localizedDescription)")
-            } else {
-                Debug.shared.log(message: "Added source: \(sourceURL)", type: .success)
-                completion("Source added successfully. You can find it in the Sources tab.")
+        CoreDataManager.shared
+            .saveSource(name: "AI Added Source", id: UUID().uuidString, iconURL: nil, url: sourceURL) { error in
+                if let error = error {
+                    Debug.shared.log(message: "Failed to add source: \(error)", type: .error)
+                    completion("Failed to add source: \(error.localizedDescription)")
+                } else {
+                    Debug.shared.log(message: "Added source: \(sourceURL)", type: .success)
+                    completion("Source added successfully. You can find it in the Sources tab.")
+                }
             }
-        }
     }
 
     /// List all sources in the app
@@ -109,7 +104,9 @@ extension AppContextManager {
     /// Download an app from a source
     func downloadApp(_: String, completion: @escaping (String) -> Void) {
         // This is a simplified implementation - would need to be expanded based on app structure
-        completion("App download functionality requires user interaction. Please navigate to the Sources tab and select the app you want to download.")
+        completion(
+            "App download functionality requires user interaction. Please navigate to the Sources tab and select the app you want to download."
+        )
     }
 
     /// Sign an app
@@ -147,7 +144,9 @@ extension AppContextManager {
                 object: nil,
                 userInfo: ["downloadedApp": app]
             )
-            completion("Started signing process for \(app.name ?? "the app"). Please follow the on-screen instructions.")
+            completion(
+                "Started signing process for \(app.name ?? "the app"). Please follow the on-screen instructions."
+            )
         }
     }
 
@@ -177,7 +176,9 @@ extension AppContextManager {
         }
 
         // This is a placeholder - the actual installation would require access to the LibraryViewController
-        completion("Installation requires user interaction. Please go to the Library tab, find the app, and select 'Install'.")
+        completion(
+            "Installation requires user interaction. Please go to the Library tab, find the app, and select 'Install'."
+        )
     }
 
     /// List all downloaded apps
@@ -224,7 +225,9 @@ extension AppContextManager {
     /// Delete an app (downloaded or signed)
     func deleteApp(_: String, completion: @escaping (String) -> Void) {
         // This is a placeholder - the actual implementation would need to be expanded
-        completion("App deletion requires user interaction. Please go to the Library tab, swipe left on the app, and select 'Delete'.")
+        completion(
+            "App deletion requires user interaction. Please go to the Library tab, swipe left on the app, and select 'Delete'."
+        )
     }
 
     // MARK: - Certificate Management
@@ -290,7 +293,9 @@ extension AppContextManager {
 
     /// Import a certificate
     func importCertificate(completion: @escaping (String) -> Void) {
-        completion("Certificate import requires user interaction. Please go to Settings > Certificates > Import Certificate.")
+        completion(
+            "Certificate import requires user interaction. Please go to Settings > Certificates > Import Certificate."
+        )
     }
 
     // MARK: - Settings Management
@@ -299,22 +304,23 @@ extension AppContextManager {
     func changeTheme(_ theme: String, completion: @escaping (String) -> Void) {
         let themeMode: Int
         switch theme.lowercased() {
-            case "light", "day":
-                themeMode = UIUserInterfaceStyle.light.rawValue
-            case "dark", "night":
-                themeMode = UIUserInterfaceStyle.dark.rawValue
-            case "system", "auto", "automatic":
-                themeMode = UIUserInterfaceStyle.unspecified.rawValue
-            default:
-                completion("Unknown theme: \(theme). Available options are: light, dark, system")
-                return
+        case "light", "day":
+            themeMode = UIUserInterfaceStyle.light.rawValue
+        case "dark", "night":
+            themeMode = UIUserInterfaceStyle.dark.rawValue
+        case "system", "auto", "automatic":
+            themeMode = UIUserInterfaceStyle.unspecified.rawValue
+        default:
+            completion("Unknown theme: \(theme). Available options are: light, dark, system")
+            return
         }
 
         Preferences.preferredInterfaceStyle = themeMode
 
         // Apply theme to current window
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first {
+           let window = windowScene.windows.first
+        {
             window.overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: themeMode) ?? .unspecified
         }
 
@@ -325,20 +331,20 @@ extension AppContextManager {
     func toggleSetting(_ setting: String, completion: @escaping (String) -> Void) {
         // Simple implementation for a few common settings - would need to be expanded
         switch setting.lowercased() {
-            case "app updates", "updates":
-                Preferences.appUpdates.toggle()
-                let newState = Preferences.appUpdates ? "enabled" : "disabled"
-                completion("App updates \(newState)")
+        case "app updates", "updates":
+            Preferences.appUpdates.toggle()
+            let newState = Preferences.appUpdates ? "enabled" : "disabled"
+            completion("App updates \(newState)")
 
-            case "install after signing", "auto install":
-                var options = UserDefaults.standard.signingOptions
-                options.installAfterSigned.toggle()
-                UserDefaults.standard.signingOptions = options
-                let newState = options.installAfterSigned ? "enabled" : "disabled"
-                completion("Install after signing \(newState)")
+        case "install after signing", "auto install":
+            var options = UserDefaults.standard.signingOptions
+            options.installAfterSigned.toggle()
+            UserDefaults.standard.signingOptions = options
+            let newState = options.installAfterSigned ? "enabled" : "disabled"
+            completion("Install after signing \(newState)")
 
-            default:
-                completion("Unknown setting: \(setting). Please specify a valid setting name.")
+        default:
+            completion("Unknown setting: \(setting). Please specify a valid setting name.")
         }
     }
 
@@ -423,7 +429,9 @@ extension AppContextManager {
     /// Resign an app with the current certificate
     func resignApp(_: String, completion: @escaping (String) -> Void) {
         // This is a placeholder - would need to be implemented with access to the app's UI
-        completion("App re-signing requires user interaction. Please go to the Library tab, select the app, and choose 'Resign'.")
+        completion(
+            "App re-signing requires user interaction. Please go to the Library tab, select the app, and choose 'Resign'."
+        )
     }
 
     /// Add a tweak to an app
@@ -435,7 +443,9 @@ extension AppContextManager {
     /// Modify an app's bundle ID
     func modifyBundleId(_: String, completion: @escaping (String) -> Void) {
         // This is a placeholder - would need to be implemented with access to the app's UI
-        completion("Modifying bundle ID requires user interaction. Please start the signing process and edit the Bundle Identifier field.")
+        completion(
+            "Modifying bundle ID requires user interaction. Please start the signing process and edit the Bundle Identifier field."
+        )
     }
 
     /// Get current app status
@@ -450,11 +460,12 @@ extension AppContextManager {
         statusInfo += "- Signed Apps: \(signedCount)\n"
         statusInfo += "- Certificates: \(certificateCount)\n"
         statusInfo += "- Current Certificate: \(currentCert)\n"
-        statusInfo += "- Auto-Install After Signing: \(UserDefaults.standard.signingOptions.installAfterSigned ? "Enabled" : "Disabled")\n"
+        statusInfo +=
+            "- Auto-Install After Signing: \(UserDefaults.standard.signingOptions.installAfterSigned ? "Enabled" : "Disabled")\n"
         statusInfo += "- App Updates: \(Preferences.appUpdates ? "Enabled" : "Disabled")\n"
 
         // Add current screen info
-        let currentScreen = self.currentState?.currentScreen ?? "Unknown"
+        let currentScreen = currentState?.currentScreen ?? "Unknown"
         statusInfo += "- Current Screen: \(currentScreen)\n"
 
         completion(statusInfo)
@@ -491,7 +502,9 @@ extension AppContextManager {
             if success {
                 completion("Opening \(matchingApps[0].name ?? "the app")...")
             } else {
-                completion("Unable to open \(matchingApps[0].name ?? "the app"). It may not be installed or might have a different bundle identifier.")
+                completion(
+                    "Unable to open \(matchingApps[0].name ?? "the app"). It may not be installed or might have a different bundle identifier."
+                )
             }
         } else {
             completion("Failed to access application workspace. Cannot open app.")
@@ -503,99 +516,99 @@ extension AppContextManager {
     /// Provide help information
     func provideHelp(_ topic: String, completion: @escaping (String) -> Void) {
         switch topic.lowercased() {
-            case "":
-                let generalHelp = """
-                Backdoor AI Assistant Help:
+        case "":
+            let generalHelp = """
+            Backdoor AI Assistant Help:
 
-                I can help you with app signing, management, and settings. Here are some common topics:
+            I can help you with app signing, management, and settings. Here are some common topics:
 
-                - signing: Get help with app signing
-                - certificates: Information about certificate management
-                - sources: Help with adding and managing sources
-                - commands: List all available commands
-                - apps: Help with managing apps
+            - signing: Get help with app signing
+            - certificates: Information about certificate management
+            - sources: Help with adding and managing sources
+            - commands: List all available commands
+            - apps: Help with managing apps
 
-                Type [help:topic] for specific help on any topic.
-                """
-                completion(generalHelp)
+            Type [help:topic] for specific help on any topic.
+            """
+            completion(generalHelp)
 
-            case "signing", "sign":
-                let signingHelp = """
-                App Signing Help:
+        case "signing", "sign":
+            let signingHelp = """
+            App Signing Help:
 
-                To sign an app:
-                1. First, download the app from a source
-                2. Make sure you have a valid certificate
-                3. Use [sign app:app_name] to start the signing process
-                4. Follow on-screen instructions to complete signing
+            To sign an app:
+            1. First, download the app from a source
+            2. Make sure you have a valid certificate
+            3. Use [sign app:app_name] to start the signing process
+            4. Follow on-screen instructions to complete signing
 
-                You can customize signing options during the process, including:
-                - Bundle ID
-                - App name
-                - Adding tweaks
-                - Modifying dylibs
+            You can customize signing options during the process, including:
+            - Bundle ID
+            - App name
+            - Adding tweaks
+            - Modifying dylibs
 
-                After signing, you can install the app using the installation option.
-                """
-                completion(signingHelp)
+            After signing, you can install the app using the installation option.
+            """
+            completion(signingHelp)
 
-            case "certificates", "certificate", "cert":
-                let certHelp = """
-                Certificate Management Help:
+        case "certificates", "certificate", "cert":
+            let certHelp = """
+            Certificate Management Help:
 
-                Certificates are required for signing apps. You can:
+            Certificates are required for signing apps. You can:
 
-                - View certificates with [list certificates]
-                - Select a certificate with [select certificate:name]
-                - Import a new certificate by going to Settings > Certificates
+            - View certificates with [list certificates]
+            - Select a certificate with [select certificate:name]
+            - Import a new certificate by going to Settings > Certificates
 
-                A valid certificate is required before you can sign or install apps.
-                """
-                completion(certHelp)
+            A valid certificate is required before you can sign or install apps.
+            """
+            completion(certHelp)
 
-            case "sources", "source", "repo", "repos":
-                let sourceHelp = """
-                Sources Help:
+        case "sources", "source", "repo", "repos":
+            let sourceHelp = """
+            Sources Help:
 
-                Sources provide apps that you can download and sign. You can:
+            Sources provide apps that you can download and sign. You can:
 
-                - View sources with [list sources]
-                - Add a new source with [add source:url]
-                - Refresh sources with [refresh sources]
+            - View sources with [list sources]
+            - Add a new source with [add source:url]
+            - Refresh sources with [refresh sources]
 
-                To browse apps from sources, go to the Sources tab.
-                """
-                completion(sourceHelp)
+            To browse apps from sources, go to the Sources tab.
+            """
+            completion(sourceHelp)
 
-            case "commands", "command":
-                let commandList = availableCommands().joined(separator: "\n")
-                let commandHelp = """
-                Available Commands:
+        case "commands", "command":
+            let commandList = availableCommands().joined(separator: "\n")
+            let commandHelp = """
+            Available Commands:
 
-                \(commandList)
+            \(commandList)
 
-                Use commands in the format [command:parameter]
-                """
-                completion(commandHelp)
+            Use commands in the format [command:parameter]
+            """
+            completion(commandHelp)
 
-            case "apps", "app":
-                let appHelp = """
-                App Management Help:
+        case "apps", "app":
+            let appHelp = """
+            App Management Help:
 
-                You can manage your apps with these functions:
+            You can manage your apps with these functions:
 
-                - View downloaded apps with [list downloaded apps]
-                - View signed apps with [list signed apps]
-                - Sign an app with [sign app:app_name]
-                - Get app details with [get app info:app_name]
-                - Open an installed app with [open app:app_name]
+            - View downloaded apps with [list downloaded apps]
+            - View signed apps with [list signed apps]
+            - Sign an app with [sign app:app_name]
+            - Get app details with [get app info:app_name]
+            - Open an installed app with [open app:app_name]
 
-                For more app management, visit the Library tab.
-                """
-                completion(appHelp)
+            For more app management, visit the Library tab.
+            """
+            completion(appHelp)
 
-            default:
-                completion("No help available for '\(topic)'. Try [help] for general assistance.")
+        default:
+            completion("No help available for '\(topic)'. Try [help] for general assistance.")
         }
     }
 }

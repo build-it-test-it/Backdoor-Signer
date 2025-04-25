@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import AlertKit
 import Foundation
 import Nuke
@@ -48,7 +41,8 @@ extension SourceAppViewController {
     ) {
         guard let downloadURL = downloadURL,
               let appUUID = appUUID,
-              let cell = tableView.cellForRow(at: indexPath) as? AppTableViewCell else {
+              let cell = tableView.cellForRow(at: indexPath) as? AppTableViewCell
+        else {
             return
         }
 
@@ -61,7 +55,11 @@ extension SourceAppViewController {
         // Use NetworkManager to handle the download with improved error handling
         Task {
             do {
-                let downloadedURL = try await downloadFile(downloadURL: downloadURL, appUUID: appUUID, indexPath: indexPath)
+                let downloadedURL = try await downloadFile(
+                    downloadURL: downloadURL,
+                    appUUID: appUUID,
+                    indexPath: indexPath
+                )
                 try verifyDownloadedFile(at: downloadedURL)
 
                 // Extract and process the bundle
@@ -73,7 +71,13 @@ extension SourceAppViewController {
                     sourceLocation: sourceLocation
                 )
             } catch {
-                await handleDownloadError(error, cell: cell, animationView: animationView, appUUID: appUUID, downloadURL: downloadURL)
+                await handleDownloadError(
+                    error,
+                    cell: cell,
+                    animationView: animationView,
+                    appUUID: appUUID,
+                    downloadURL: downloadURL
+                )
             }
         }
     }
@@ -101,7 +105,7 @@ extension SourceAppViewController {
             animationView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
             animationView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
             animationView.widthAnchor.constraint(equalToConstant: 40),
-            animationView.heightAnchor.constraint(equalToConstant: 40)
+            animationView.heightAnchor.constraint(equalToConstant: 40),
         ])
 
         return animationView
@@ -113,7 +117,7 @@ extension SourceAppViewController {
         let filePath = tempDir.appendingPathComponent("app_\(appUUID).ipa")
 
         // Start download and show progress
-        self.startDownload(uuid: appUUID, indexPath: indexPath)
+        startDownload(uuid: appUUID, indexPath: indexPath)
 
         // Download file with URLSession
         let request = URLRequest(url: downloadURL)
@@ -270,7 +274,7 @@ extension SourceAppViewController {
             animation.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
             animation.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
             animation.widthAnchor.constraint(equalToConstant: 40),
-            animation.heightAnchor.constraint(equalToConstant: 40)
+            animation.heightAnchor.constraint(equalToConstant: 40),
         ])
 
         // Remove animation after delay

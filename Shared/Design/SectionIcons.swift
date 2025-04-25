@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import Nuke
 import UIKit
@@ -35,7 +28,7 @@ private enum SectionIconConstants {
 /// Utility class for creating and managing section icons in table views
 class SectionIcons {
     /// Adds a SF Symbol icon with background color to a table view cell
-    /// 
+    ///
     /// - Parameters:
     ///   - cell: The table cell to add the icon to
     ///   - symbolName: The SF Symbol name to use
@@ -138,8 +131,8 @@ class SectionIcons {
     static func loadSectionImageFromURL(
         from url: URL,
         for cell: UITableViewCell,
-        at indexPath: IndexPath,
-        in tableView: UITableView
+        at _: IndexPath,
+        in _: UITableView
     ) {
         // Create the image request
         let request = ImageRequest(url: url)

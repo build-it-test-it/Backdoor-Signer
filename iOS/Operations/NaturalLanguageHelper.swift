@@ -1,15 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import NaturalLanguage
 
 /// Helper class for natural language processing features
 class NaturalLanguageHelper {
-
     // Singleton instance
     static let shared = NaturalLanguageHelper()
 
@@ -51,7 +44,7 @@ class NaturalLanguageHelper {
         tagger.string = text
 
         // Process entire text for entities
-        tagger.enumerateTags(in: text.startIndex..<text.endIndex, unit: .word, scheme: .nameType) { tag, range in
+        tagger.enumerateTags(in: text.startIndex ..< text.endIndex, unit: .word, scheme: .nameType) { tag, range in
             if let tag = tag {
                 let entity = String(text[range])
                 entities[entity] = tag.rawValue
@@ -69,7 +62,7 @@ class NaturalLanguageHelper {
         let tokenizer = NLTokenizer(unit: .word)
         tokenizer.string = text
 
-        tokenizer.enumerateTokens(in: text.startIndex..<text.endIndex) { range, _ in
+        tokenizer.enumerateTokens(in: text.startIndex ..< text.endIndex) { range, _ in
             tokens.append(String(text[range]))
             return true
         }

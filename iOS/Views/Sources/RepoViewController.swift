@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import SwiftUI
 import UIKit
 
@@ -169,8 +162,8 @@ extension RepoViewController {
                 do {
                     if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let identifier = jsonObject["identifier"] as? String,
-                       !identifier.isEmpty {
-
+                       !identifier.isEmpty
+                    {
                         DispatchQueue.main.async {
                             self.validationStatus = .validJSON
                         }
@@ -266,7 +259,8 @@ extension RepoViewController {
 
     private func decodeBase64String(_ base64String: String) -> String? {
         guard let data = Data(base64Encoded: base64String),
-              let decodedString = String(data: data, encoding: .utf8) else {
+              let decodedString = String(data: data, encoding: .utf8)
+        else {
             return nil
         }
         return decodedString

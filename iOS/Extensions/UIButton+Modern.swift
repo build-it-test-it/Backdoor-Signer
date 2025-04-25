@@ -1,14 +1,6 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 extension UIButton {
-
     /// Apply modern style to a button with customizable parameters
     ///
     /// - Parameters:
@@ -47,7 +39,13 @@ extension UIButton {
         }
 
         // Add transition animation for state changes
-        UIView.transition(with: self, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+        UIView.transition(
+            with: self,
+            duration: 0.3,
+            options: .transitionCrossDissolve,
+            animations: nil,
+            completion: nil
+        )
 
         // Add press animation
         addPressAnimation()
@@ -56,7 +54,11 @@ extension UIButton {
     /// Adds a scale-down animation when button is pressed
     func addPressAnimation() {
         addTarget(self, action: #selector(buttonPressed), for: [.touchDown, .touchDragEnter])
-        addTarget(self, action: #selector(buttonReleased), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit])
+        addTarget(
+            self,
+            action: #selector(buttonReleased),
+            for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit]
+        )
     }
 
     @objc private func buttonPressed() {
@@ -115,7 +117,7 @@ extension UIButton {
 
 // Helper extension to determine if a color is light or dark
 // Use extension in same file instead of global to avoid redeclarations
-fileprivate extension UIColor {
+private extension UIColor {
     /// Determine if the color is light or dark
     /// - Returns: True if the color is light, false if it's dark
     func isLight() -> Bool {
@@ -124,7 +126,7 @@ fileprivate extension UIColor {
         var blue: CGFloat = 0
         var alpha: CGFloat = 0
 
-        self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 
         // Calculate relative luminance
         let luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue

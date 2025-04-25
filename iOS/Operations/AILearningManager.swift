@@ -1,13 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import Foundation
-import UIKit
 import CoreML
 import CreateML
+import Foundation
+import UIKit
 
 /// Manager for on-device AI learning and improvement
 class AILearningManager {
@@ -15,19 +9,19 @@ class AILearningManager {
     static let shared = AILearningManager()
 
     // Local storage for interactions
-    internal var storedInteractions: [AIInteraction] = []
-    internal var userBehaviors: [UserBehavior] = []
-    internal var appUsagePatterns: [AppUsagePattern] = []
+    var storedInteractions: [AIInteraction] = []
+    var userBehaviors: [UserBehavior] = []
+    var appUsagePatterns: [AppUsagePattern] = []
 
     // Lock for thread-safe access
-    internal let interactionsLock = NSLock()
-    internal let behaviorsLock = NSLock()
-    internal let patternsLock = NSLock()
+    let interactionsLock = NSLock()
+    let behaviorsLock = NSLock()
+    let patternsLock = NSLock()
 
     // Settings keys
     private let learningEnabledKey = "AILearningEnabled"
-    internal let lastTrainingKey = "AILastTrainingDate"
-    internal let modelVersionKey = "AILocalModelVersion"
+    let lastTrainingKey = "AILastTrainingDate"
+    let modelVersionKey = "AILocalModelVersion"
     private let exportPasswordKey = "ExportPasswordHash"
 
     // Export password
@@ -37,11 +31,11 @@ class AILearningManager {
     private let interactionsPath: URL
     private let behaviorsPath: URL
     private let patternsPath: URL
-    internal let modelsDirectory: URL  // Changed to internal for extension access
+    let modelsDirectory: URL // Changed to internal for extension access
     private let exportsDirectory: URL
 
     // Training configuration
-    private let minInteractionsForTraining = 5  // Reduced for faster initial model creation
+    private let minInteractionsForTraining = 5 // Reduced for faster initial model creation
     private let minDaysBetweenTraining = 1
 
     // Current model version
@@ -93,7 +87,7 @@ class AILearningManager {
     }
 
     /// This method is maintained for backward compatibility but all server sync is disabled
-    func setServerSyncEnabled(_ enabled: Bool) {
+    func setServerSyncEnabled(_: Bool) {
         UserDefaults.standard.set(false, forKey: "AIServerSyncEnabled")
         Debug.shared.log(message: "AI server sync is permanently disabled - using local model only", type: .info)
     }
@@ -332,7 +326,10 @@ class AILearningManager {
             // Check if we have enough data
             if self.storedInteractions.count < self.minInteractionsForTraining {
                 DispatchQueue.main.async {
-                    completion(false, "Not enough interactions for training (need at least \(self.minInteractionsForTraining))")
+                    completion(
+                        false,
+                        "Not enough interactions for training (need at least \(self.minInteractionsForTraining))"
+                    )
                 }
                 return
             }
@@ -372,7 +369,10 @@ class AILearningManager {
         let threshold = minimumInteractions ?? minInteractionsForTraining
 
         guard interactionCount >= threshold else {
-            Debug.shared.log(message: "Not enough interactions for training (need at least \(threshold))", type: .warning)
+            Debug.shared.log(
+                message: "Not enough interactions for training (need at least \(threshold))",
+                type: .warning
+            )
             return false
         }
 
@@ -399,7 +399,7 @@ class AILearningManager {
         recordUserBehavior(
             action: "view",
             screen: context.currentScreen,
-            duration: 0,  // Duration unknown at this point
+            duration: 0, // Duration unknown at this point
             details: details
         )
 
@@ -407,7 +407,10 @@ class AILearningManager {
         if !CoreMLManager.shared.isModelLoaded {
             let stats = getLearningStatistics()
             if stats.totalDataPoints >= 5 {
-                Debug.shared.log(message: "Collecting background data - we have \(stats.totalDataPoints) data points, enough for an initial model", type: .info)
+                Debug.shared.log(
+                    message: "Collecting background data - we have \(stats.totalDataPoints) data points, enough for an initial model",
+                    type: .info
+                )
 
                 // Try to train an initial model with reduced requirements
                 DispatchQueue.global(qos: .background).async { [weak self] in
@@ -422,7 +425,13 @@ class AILearningManager {
     /// Schedule periodic evaluation for training
     private func scheduleTrainingEvaluation() {
         // Check once per day if training should be performed
-        let timer = Timer(timeInterval: 24 * 60 * 60, target: self, selector: #selector(timerFired), userInfo: nil, repeats: true)
+        let timer = Timer(
+            timeInterval: 24 * 60 * 60,
+            target: self,
+            selector: #selector(timerFired),
+            userInfo: nil,
+            repeats: true
+        )
         RunLoop.main.add(timer, forMode: .common)
     }
 
@@ -448,7 +457,8 @@ class AILearningManager {
 
         // Check when we last trained
         let lastTraining = UserDefaults.standard.object(forKey: lastTrainingKey) as? Date ?? Date.distantPast
-        let daysSinceLastTraining = Calendar.current.dateComponents([.day], from: lastTraining, to: Date()).day ?? Int.max
+        let daysSinceLastTraining = Calendar.current.dateComponents([.day], from: lastTraining, to: Date()).day ?? Int
+            .max
 
         guard daysSinceLastTraining >= minDaysBetweenTraining else {
             return
@@ -465,7 +475,7 @@ class AILearningManager {
     }
 
     /// Train a new model using all collected data
-    internal func trainNewModel() -> (success: Bool, version: String, errorMessage: String?) {
+    func trainNewModel() -> (success: Bool, version: String, errorMessage: String?) {
         Debug.shared.log(message: "Starting comprehensive AI model training", type: .info)
 
         do {
@@ -494,7 +504,7 @@ class AILearningManager {
             if withFeedback.count >= 3 {
                 trainingData = interactionsToUse.filter {
                     if let feedback = $0.feedback {
-                        return feedback.rating >= 3  // Only use moderate to positive examples
+                        return feedback.rating >= 3 // Only use moderate to positive examples
                     }
                     return false
                 }
@@ -504,7 +514,10 @@ class AILearningManager {
             if trainingData.count < 3 {
                 // If we don't have enough feedback data but have some regular interactions, use those
                 if interactionsToUse.count >= 3 {
-                    Debug.shared.log(message: "Using all available interactions without feedback filtering", type: .info)
+                    Debug.shared.log(
+                        message: "Using all available interactions without feedback filtering",
+                        type: .info
+                    )
                     trainingData = interactionsToUse
                 } else {
                     Debug.shared.log(message: "Not enough training examples", type: .warning)
@@ -532,7 +545,10 @@ class AILearningManager {
 
             // Add behavior data to enhance the model
             if !behaviorsToUse.isEmpty {
-                Debug.shared.log(message: "Incorporating \(behaviorsToUse.count) behavior records into training", type: .info)
+                Debug.shared.log(
+                    message: "Incorporating \(behaviorsToUse.count) behavior records into training",
+                    type: .info
+                )
 
                 // Convert behaviors to training features
                 for behavior in behaviorsToUse {
@@ -548,7 +564,10 @@ class AILearningManager {
 
             // Add usage patterns to enhance the model
             if !patternsToUse.isEmpty {
-                Debug.shared.log(message: "Incorporating \(patternsToUse.count) usage patterns into training", type: .info)
+                Debug.shared.log(
+                    message: "Incorporating \(patternsToUse.count) usage patterns into training",
+                    type: .info
+                )
 
                 // Convert patterns to training features
                 for pattern in patternsToUse where pattern.completedTask {
@@ -570,7 +589,7 @@ class AILearningManager {
             let dataTable = try MLDataTable(
                 dictionary: [
                     "text": textInput,
-                    "label": intentOutput
+                    "label": intentOutput,
                 ]
             )
 
@@ -589,7 +608,10 @@ class AILearningManager {
             UserDefaults.standard.set(newVersion, forKey: modelVersionKey)
             UserDefaults.standard.set(Date(), forKey: lastTrainingKey)
 
-            Debug.shared.log(message: "Successfully trained new comprehensive model version: \(newVersion)", type: .info)
+            Debug.shared.log(
+                message: "Successfully trained new comprehensive model version: \(newVersion)",
+                type: .info
+            )
 
             // Notify that a new model is available
             DispatchQueue.main.async {
@@ -616,7 +638,7 @@ class AILearningManager {
     }
 
     /// Save interactions to disk
-    internal func saveInteractions() {
+    func saveInteractions() {
         interactionsLock.lock()
         defer { interactionsLock.unlock() }
 
@@ -630,7 +652,7 @@ class AILearningManager {
     }
 
     /// Save user behaviors to disk
-    internal func saveBehaviors() {
+    func saveBehaviors() {
         behaviorsLock.lock()
         defer { behaviorsLock.unlock() }
 
@@ -644,7 +666,7 @@ class AILearningManager {
     }
 
     /// Save app usage patterns to disk
-    internal func savePatterns() {
+    func savePatterns() {
         patternsLock.lock()
         defer { patternsLock.unlock() }
 
@@ -676,7 +698,7 @@ class AILearningManager {
     }
 
     /// Map user behavior to an intent
-    internal func getIntentFromBehavior(_ behavior: UserBehavior) -> String {
+    func getIntentFromBehavior(_ behavior: UserBehavior) -> String {
         switch behavior.action {
         case "open":
             return "navigate:\(behavior.screen)"
@@ -827,7 +849,7 @@ enum ExportError: Error, LocalizedError {
             return "Invalid password provided for model export"
         case .modelNotFound:
             return "No trained model found to export"
-        case .exportFailed(let error):
+        case let .exportFailed(error):
             return "Export failed: \(error.localizedDescription)"
         }
     }

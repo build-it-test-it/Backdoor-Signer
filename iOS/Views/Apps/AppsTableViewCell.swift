@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except
-// as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import Foundation
 import UIKit
@@ -91,7 +84,7 @@ class AppsTableViewCell: UITableViewCell {
             pillsStackView.leadingAnchor.constraint(equalTo: imageView!.trailingAnchor, constant: 15),
             pillsStackView.topAnchor.constraint(equalTo: versionLabel.bottomAnchor, constant: 10),
             pillsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
-            pillsStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+            pillsStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
         ])
     }
 
@@ -100,10 +93,15 @@ class AppsTableViewCell: UITableViewCell {
         super.setHighlighted(highlighted, animated: animated)
 
         if animated {
-            UIView.animate(withDuration: 0.1, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState], animations: {
-                self.contentView.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
-                self.contentView.alpha = highlighted ? 0.9 : 1.0
-            })
+            UIView.animate(
+                withDuration: 0.1,
+                delay: 0,
+                options: [.allowUserInteraction, .beginFromCurrentState],
+                animations: {
+                    self.contentView.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
+                    self.contentView.alpha = highlighted ? 0.9 : 1.0
+                }
+            )
         } else {
             contentView.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
             contentView.alpha = highlighted ? 0.9 : 1.0
@@ -114,9 +112,14 @@ class AppsTableViewCell: UITableViewCell {
         super.setSelected(selected, animated: animated)
 
         if animated {
-            UIView.animate(withDuration: 0.1, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState], animations: {
-                self.contentView.transform = selected ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
-            })
+            UIView.animate(
+                withDuration: 0.1,
+                delay: 0,
+                options: [.allowUserInteraction, .beginFromCurrentState],
+                animations: {
+                    self.contentView.transform = selected ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
+                }
+            )
         } else {
             contentView.transform = selected ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
         }
@@ -173,8 +176,8 @@ class AppsTableViewCell: UITableViewCell {
                let hasUpdate = app.value(forKey: "hasUpdate") as? Bool,
                hasUpdate,
                let currentVersion = app.value(forKey: "version") as? String,
-               let updateVersion = app.value(forKey: "updateVersion") as? String {
-
+               let updateVersion = app.value(forKey: "updateVersion") as? String
+            {
                 let updateText = "\(currentVersion) → \(updateVersion)"
                 let updatePill = PillView(
                     text: updateText,
@@ -219,12 +222,12 @@ func getValue<T>(forKey key: String, from app: NSManagedObject) -> T? {
     }
 
     switch attributeType {
-        case .stringAttributeType:
-            return app.value(forKey: key) as? T
-        case .dateAttributeType:
-            return app.value(forKey: key) as? T
-        default:
-            return nil
+    case .stringAttributeType:
+        return app.value(forKey: key) as? T
+    case .dateAttributeType:
+        return app.value(forKey: key) as? T
+    default:
+        return nil
     }
 }
 
@@ -255,7 +258,7 @@ class BadgeView: UIView {
             badgeLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             badgeLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
             badgeLabel.widthAnchor.constraint(equalToConstant: 50),
-            badgeLabel.heightAnchor.constraint(equalToConstant: 20)
+            badgeLabel.heightAnchor.constraint(equalToConstant: 20),
         ])
 
         badgeLabel.layer.cornerRadius = 10

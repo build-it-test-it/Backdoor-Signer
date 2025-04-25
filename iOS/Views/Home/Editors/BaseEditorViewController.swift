@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 class BaseEditorViewController: UIViewController, UITextViewDelegate {
@@ -29,8 +23,8 @@ class BaseEditorViewController: UIViewController, UITextViewDelegate {
     /// - Parameter fileURL: The URL of the file to edit
     init(fileURL: URL) {
         self.fileURL = fileURL
-        self.textView = UITextView()
-        self.toolbar = UIToolbar()
+        textView = UITextView()
+        toolbar = UIToolbar()
         super.init(nibName: nil, bundle: nil)
         title = fileURL.lastPathComponent
     }
@@ -85,7 +79,12 @@ class BaseEditorViewController: UIViewController, UITextViewDelegate {
 
         let saveButton = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(saveChanges))
         let copyButton = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(copyContent))
-        let findReplaceButton = UIBarButtonItem(title: "Find/Replace", style: .plain, target: self, action: #selector(promptFindReplace))
+        let findReplaceButton = UIBarButtonItem(
+            title: "Find/Replace",
+            style: .plain,
+            target: self,
+            action: #selector(promptFindReplace)
+        )
         let undoButton = UIBarButtonItem(barButtonSystemItem: .undo, target: self, action: #selector(undoAction))
         let redoButton = UIBarButtonItem(barButtonSystemItem: .redo, target: self, action: #selector(redoAction))
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
@@ -107,7 +106,7 @@ class BaseEditorViewController: UIViewController, UITextViewDelegate {
             toolbar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
             toolbar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
             toolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-            toolbar.heightAnchor.constraint(equalToConstant: 44)
+            toolbar.heightAnchor.constraint(equalToConstant: 44),
         ])
     }
 
@@ -129,7 +128,11 @@ class BaseEditorViewController: UIViewController, UITextViewDelegate {
         do {
             let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
             guard let fileSize = fileAttributes[.size] as? UInt64 else {
-                throw NSError(domain: "FileAttributeError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not determine file size"])
+                throw NSError(
+                    domain: "FileAttributeError",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "Could not determine file size"]
+                )
             }
 
             if fileSize > maxDirectLoadSize {

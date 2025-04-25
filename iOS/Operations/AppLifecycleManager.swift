@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Combine
 import CoreData
 import Foundation
@@ -239,14 +233,14 @@ final class AppLifecycleManager {
 
         // Capture timestamp of save
         let timestamp = Date()
-        self.lastSaveTimestamp = timestamp
+        lastSaveTimestamp = timestamp
 
         // Create state container
         var state: [String: Any] = [
             "timestamp": timestamp,
             "appVersion": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown",
             "buildNumber": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown",
-            "selectedTab": UserDefaults.standard.string(forKey: "selectedTab") ?? "home"
+            "selectedTab": UserDefaults.standard.string(forKey: "selectedTab") ?? "home",
         ]
 
         // Save view controller states
@@ -255,7 +249,7 @@ final class AppLifecycleManager {
         // Save user preferences
         state["preferences"] = [
             "interfaceStyle": Preferences.preferredInterfaceStyle,
-            "language": Preferences.preferredLanguageCode ?? "system"
+            "language": Preferences.preferredLanguageCode ?? "system",
         ]
 
         // Get active operations
@@ -286,8 +280,8 @@ final class AppLifecycleManager {
 
         // Load saved state
         if let stateData = UserDefaults.standard.data(forKey: "AppStateData"),
-           let state = try? JSONSerialization.jsonObject(with: stateData, options: []) as? [String: Any] {
-
+           let state = try? JSONSerialization.jsonObject(with: stateData, options: []) as? [String: Any]
+        {
             // Extract timestamp
             if let timestamp = state["timestamp"] as? Date {
                 lastSaveTimestamp = timestamp
@@ -309,7 +303,7 @@ final class AppLifecycleManager {
     }
 
     /// Saves the Core Data context
-    private func saveDataContext(isTerminating: Bool) {
+    private func saveDataContext(isTerminating _: Bool) {
         do {
             try CoreDataManager.shared.saveContext()
             Debug.shared.log(message: "Core Data context saved successfully", type: .debug)
@@ -378,8 +372,8 @@ final class AppLifecycleManager {
         if let selectedTab = UserDefaults.standard.string(forKey: "selectedTab") {
             // Find the active view controller for this tab
             if let rootVC = UIApplication.shared.windows.first?.rootViewController,
-               let topVC = UIApplication.shared.topMostViewController() {
-
+               let topVC = UIApplication.shared.topMostViewController()
+            {
                 // Check if view controller supports state saving
                 if let stateSavable = topVC as? StateSavable {
                     let state = stateSavable.saveState()
@@ -438,7 +432,9 @@ final class AppLifecycleManager {
         viewController.view.tintColor = Preferences.appTintColor.uiColor
 
         // Apply interface style
-        viewController.overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: Preferences.preferredInterfaceStyle) ?? .unspecified
+        viewController
+            .overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: Preferences.preferredInterfaceStyle) ??
+            .unspecified
 
         // Apply to child view controllers
         for child in viewController.children {
@@ -553,7 +549,10 @@ final class AppLifecycleManager {
             if !taskInfo.isPriority {
                 UIApplication.shared.endBackgroundTask(taskId)
                 backgroundTasks.removeValue(forKey: taskId)
-                Debug.shared.log(message: "Canceled non-essential background task due to memory pressure: \(taskInfo.name)", type: .debug)
+                Debug.shared.log(
+                    message: "Canceled non-essential background task due to memory pressure: \(taskInfo.name)",
+                    type: .debug
+                )
             }
         }
     }
@@ -607,7 +606,10 @@ final class AppLifecycleManager {
         UserDefaults.standard.set(false, forKey: "SessionEndedCleanly")
 
         if !lastSessionEndedCleanly {
-            Debug.shared.log(message: "Detected possible crash in previous session, attempting recovery", type: .warning)
+            Debug.shared.log(
+                message: "Detected possible crash in previous session, attempting recovery",
+                type: .warning
+            )
             attemptCrashRecovery()
         } else {
             Debug.shared.log(message: "Previous session ended cleanly", type: .debug)
@@ -621,7 +623,10 @@ final class AppLifecycleManager {
             try CoreDataManager.shared.verifyStoreConsistency()
             Debug.shared.log(message: "Core Data store is consistent after crash", type: .info)
         } catch {
-            Debug.shared.log(message: "Core Data inconsistency detected, attempting repair: \(error.localizedDescription)", type: .error)
+            Debug.shared.log(
+                message: "Core Data inconsistency detected, attempting repair: \(error.localizedDescription)",
+                type: .error
+            )
             CoreDataManager.shared.attemptStoreRecovery()
         }
 

@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import Foundation
 import NIOSSL
 import NIOTLS
@@ -39,7 +32,7 @@ class Installer: Identifiable, ObservableObject {
         let id: UUID = .init()
         self.id = id
         self.metadata = metadata
-        self.package = packagePath ?? URL(fileURLWithPath: "")
+        package = packagePath ?? URL(fileURLWithPath: "")
         app = try Self.setupApp(port: port)
 
         configureRoutes()
@@ -108,7 +101,7 @@ class Installer: Identifiable, ObservableObject {
             DispatchQueue.main.async { [weak self] in
                 self?.status = .sendingPayload
             }
-            return req.fileio.streamFile(at: self.package.path) { [weak self] result in
+            return req.fileio.streamFile(at: package.path) { [weak self] result in
                 DispatchQueue.main.async {
                     self?.status = .completed(result)
                 }
@@ -125,7 +118,7 @@ class Installer: Identifiable, ObservableObject {
             "bundleid=\(metadata.id)",
             "name=\(metadata.name)",
             "version=\(metadata.version)",
-            "fetchurl=\(payloadEndpoint.absoluteString)"
+            "fetchurl=\(payloadEndpoint.absoluteString)",
         ].joined(separator: "&")
 
         let encodedParams = urlParams.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
@@ -184,7 +177,7 @@ extension Installer {
         }
 
         app.http.server.configuration.hostname = Self.sni
-        Debug.shared.log(message: self.sni)
+        Debug.shared.log(message: sni)
         app.http.server.configuration.tcpNoDelay = true
 
         app.http.server.configuration.address = .hostname("0.0.0.0", port: port)

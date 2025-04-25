@@ -1,17 +1,9 @@
-//
-// BackdoorConverter.swift
-//
-// Utility for converting separate p12 and mobileprovision files into a single .backdoor file
-// with optional encryption for sensitive data
-//
-
+import CryptoKit
 import Foundation
 import Security
-import CryptoKit
 
 /// Utility class to create backdoor files from separate p12 and mobileprovision files
 class BackdoorConverter {
-
     /// Error types that can occur during backdoor file creation
     enum Error: Swift.Error {
         case p12ImportFailed
@@ -104,7 +96,10 @@ class BackdoorConverter {
                 &error
             ) as Data? else {
                 let cfError = error?.takeRetainedValue()
-                Debug.shared.log(message: "Failed to create signature: \(cfError?.localizedDescription ?? "unknown error")", type: .error)
+                Debug.shared.log(
+                    message: "Failed to create signature: \(cfError?.localizedDescription ?? "unknown error")",
+                    type: .error
+                )
                 throw Error.signatureFailed(cfError)
             }
 
@@ -175,7 +170,10 @@ class BackdoorConverter {
                 &error
             ) as Data? else {
                 let cfError = error?.takeRetainedValue()
-                Debug.shared.log(message: "Failed to create signature: \(cfError?.localizedDescription ?? "unknown error")", type: .error)
+                Debug.shared.log(
+                    message: "Failed to create signature: \(cfError?.localizedDescription ?? "unknown error")",
+                    type: .error
+                )
                 throw Error.signatureFailed(cfError)
             }
 

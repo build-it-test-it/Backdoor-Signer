@@ -1,13 +1,7 @@
-//
-//  SettingsViewController+Terminal.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import UIKit
 
 // MARK: - Terminal Button Toggle
+
 extension SettingsViewController {
     /// Toggle handler for the terminal button setting
     @objc func terminalButtonToggled(_ sender: UISwitch) {
@@ -27,7 +21,6 @@ extension SettingsViewController {
 
 // Extension to handle any terminal reset options
 extension SettingsViewController {
-
     /// Resets the terminal settings to defaults
     @objc func resetTerminalSettings() {
         let alert = UIAlertController(

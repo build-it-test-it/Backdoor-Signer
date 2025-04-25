@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 class LogsViewController: UIViewController {
@@ -27,7 +21,7 @@ class LogsViewController: UIViewController {
     }
 
     fileprivate func setupNavigation() {
-        self.navigationItem.largeTitleDisplayMode = .never
+        navigationItem.largeTitleDisplayMode = .never
     }
 
     fileprivate func setupViews() {
@@ -39,17 +33,17 @@ class LogsViewController: UIViewController {
         logTextView.textContainerInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         view.addSubview(logTextView)
 
-        self.tableView = UITableView(frame: .zero, style: .insetGrouped)
-        self.tableView.translatesAutoresizingMaskIntoConstraints = false
-        self.tableView.dataSource = self
-        self.tableView.delegate = self
-        self.tableView.backgroundColor = .background
+        tableView = UITableView(frame: .zero, style: .insetGrouped)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.backgroundColor = .background
 
-        self.tableView.layer.cornerRadius = 12
-        self.tableView.layer.cornerCurve = .continuous
-        self.tableView.layer.masksToBounds = true
+        tableView.layer.cornerRadius = 12
+        tableView.layer.cornerCurve = .continuous
+        tableView.layer.masksToBounds = true
 
-        self.view.addSubview(tableView)
+        view.addSubview(tableView)
 
         NSLayoutConstraint.activate([
             logTextView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -90,7 +84,11 @@ class LogsViewController: UIViewController {
             return
         }
 
-        let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: .write, queue: DispatchQueue.main)
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fileDescriptor,
+            eventMask: .write,
+            queue: DispatchQueue.main
+        )
         source.setEventHandler { [weak self] in
             self?.loadNewLogContents()
         }
@@ -169,10 +167,10 @@ extension LogsViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-            case 0: return 1
-            case 1: return 2
-            default:
-                return 0
+        case 0: return 1
+        case 1: return 2
+        default:
+            return 0
         }
     }
 
@@ -183,23 +181,23 @@ extension LogsViewController: UITableViewDataSource, UITableViewDelegate {
         cell.selectionStyle = .none
 
         switch (indexPath.section, indexPath.row) {
-            case (0, 0):
-                cell.textLabel?.text = String.localized("LOGS_VIEW_SECTION_TITLE_ERROR", arguments: "\(errCount)")
-                cell.textLabel?.textColor = .white
-                cell.textLabel?.font = .boldSystemFont(ofSize: 14)
-                cell.backgroundColor = .systemRed
-            case (1, 0):
-                cell.textLabel?.text = String.localized("LOGS_VIEW_SECTION_TITLE_SHARE")
-                cell.textLabel?.textColor = .tintColor
-                cell.selectionStyle = .default
-                cell.setAccessoryIcon(with: "square.and.arrow.up")
-            case (1, 1):
-                cell.textLabel?.text = String.localized("LOGS_VIEW_SECTION_TITLE_COPY")
-                cell.textLabel?.textColor = .tintColor
-                cell.selectionStyle = .default
-                cell.setAccessoryIcon(with: "arrow.up.right")
-            default:
-                print("ball")
+        case (0, 0):
+            cell.textLabel?.text = String.localized("LOGS_VIEW_SECTION_TITLE_ERROR", arguments: "\(errCount)")
+            cell.textLabel?.textColor = .white
+            cell.textLabel?.font = .boldSystemFont(ofSize: 14)
+            cell.backgroundColor = .systemRed
+        case (1, 0):
+            cell.textLabel?.text = String.localized("LOGS_VIEW_SECTION_TITLE_SHARE")
+            cell.textLabel?.textColor = .tintColor
+            cell.selectionStyle = .default
+            cell.setAccessoryIcon(with: "square.and.arrow.up")
+        case (1, 1):
+            cell.textLabel?.text = String.localized("LOGS_VIEW_SECTION_TITLE_COPY")
+            cell.textLabel?.textColor = .tintColor
+            cell.selectionStyle = .default
+            cell.setAccessoryIcon(with: "arrow.up.right")
+        default:
+            print("ball")
         }
 
         return cell
@@ -207,32 +205,40 @@ extension LogsViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch (indexPath.section, indexPath.row) {
-            case (1, 0):
-                let logFilePath = getDocumentsDirectory().appendingPathComponent("logs.txt")
-                let activityVC = UIActivityViewController(activityItems: [logFilePath], applicationActivities: nil)
+        case (1, 0):
+            let logFilePath = getDocumentsDirectory().appendingPathComponent("logs.txt")
+            let activityVC = UIActivityViewController(activityItems: [logFilePath], applicationActivities: nil)
 
-                if let sheet = activityVC.sheetPresentationController {
-                    sheet.detents = [.medium()]
-                    sheet.prefersGrabberVisible = true
-                }
+            if let sheet = activityVC.sheetPresentationController {
+                sheet.detents = [.medium()]
+                sheet.prefersGrabberVisible = true
+            }
 
-                present(activityVC, animated: true)
-            case (1, 1):
-                let logFilePath = getDocumentsDirectory().appendingPathComponent("logs.txt")
+            present(activityVC, animated: true)
+        case (1, 1):
+            let logFilePath = getDocumentsDirectory().appendingPathComponent("logs.txt")
 
-                do {
-                    let logContents = try String(contentsOf: logFilePath, encoding: .utf8)
-                    UIPasteboard.general.string = logContents
-                    let alert = UIAlertController(title: String.localized("ALERT_COPIED"), message: String.localized("LOGS_VIEW_SUCCESS_DESCRIPTION"), preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: String.localized("OK"), style: .default))
-                    present(alert, animated: true)
-                } catch {
-                    let alert = UIAlertController(title: String.localized("ALERT_ERROR"), message: String.localized("LOGS_VIEW_ERROR_DESCRIPTION"), preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: String.localized("OK"), style: .default))
-                    present(alert, animated: true)
-                }
-            default:
-                break
+            do {
+                let logContents = try String(contentsOf: logFilePath, encoding: .utf8)
+                UIPasteboard.general.string = logContents
+                let alert = UIAlertController(
+                    title: String.localized("ALERT_COPIED"),
+                    message: String.localized("LOGS_VIEW_SUCCESS_DESCRIPTION"),
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: String.localized("OK"), style: .default))
+                present(alert, animated: true)
+            } catch {
+                let alert = UIAlertController(
+                    title: String.localized("ALERT_ERROR"),
+                    message: String.localized("LOGS_VIEW_ERROR_DESCRIPTION"),
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: String.localized("OK"), style: .default))
+                present(alert, animated: true)
+            }
+        default:
+            break
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }

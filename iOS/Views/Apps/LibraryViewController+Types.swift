@@ -1,10 +1,3 @@
-//
-// LibraryViewController+Types.swift
-// backdoor
-//
-// Created by Mentat AI on 2025-04-08.
-//
-
 import Foundation
 
 /// Source application version representation
@@ -17,19 +10,20 @@ struct SourceAppVersion {
     // Initializer from StoreAppsDataVersion (if this type exists in the codebase)
     init(from storeVersion: Any) {
         if let storeAppsVersion = storeVersion as? [String: Any] {
-            self.version = storeAppsVersion["version"] as? String ?? "unknown"
+            version = storeAppsVersion["version"] as? String ?? "unknown"
 
             if let urlString = storeAppsVersion["downloadURL"] as? String,
-               let url = URL(string: urlString) {
-                self.downloadURL = url
+               let url = URL(string: urlString)
+            {
+                downloadURL = url
             } else {
                 // Default URL if none provided
-                self.downloadURL = URL(string: "https://example.com")!
+                downloadURL = URL(string: "https://example.com")!
             }
         } else {
             // Default values if conversion fails
-            self.version = "unknown"
-            self.downloadURL = URL(string: "https://example.com")!
+            version = "unknown"
+            downloadURL = URL(string: "https://example.com")!
         }
     }
 }

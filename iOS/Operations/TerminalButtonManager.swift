@@ -1,10 +1,3 @@
-//
-//  TerminalButtonManager.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import UIKit
 
 /// Manages the floating terminal button across the app
@@ -119,7 +112,7 @@ final class TerminalButtonManager {
         )
     }
 
-    @objc private func handleTabChange(_ notification: Notification) {
+    @objc private func handleTabChange(_: Notification) {
         // Skip if app is inactive
         guard isAppActive else {
             logger.log(message: "Tab change ignored - app inactive", type: .debug)
@@ -346,7 +339,11 @@ final class TerminalButtonManager {
         let navController = UINavigationController(rootViewController: terminalVC)
 
         // Add dismiss handler
-        let dismissButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissTerminal))
+        let dismissButton = UIBarButtonItem(
+            barButtonSystemItem: .done,
+            target: self,
+            action: #selector(dismissTerminal)
+        )
         terminalVC.navigationItem.leftBarButtonItem = dismissButton
 
         // Present terminal

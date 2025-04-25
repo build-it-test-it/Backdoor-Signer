@@ -1,13 +1,6 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
+import SafariServices
 import UIKit
 import WebKit
-import SafariServices
 
 /// Enhanced WebViewController for BDG Hub with modern UI and features
 @preconcurrency class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
@@ -172,7 +165,7 @@ import SafariServices
 
             titleLabel.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 8),
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            titleLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
         ])
 
         return view
@@ -219,7 +212,7 @@ import SafariServices
         themeButton.addTarget(self, action: #selector(toggleTheme), for: .touchUpInside)
 
         // Add haptic feedback to buttons
-        [backButton, forwardButton, reloadButton, shareButton, themeButton].forEach { button in
+        for button in [backButton, forwardButton, reloadButton, shareButton, themeButton] {
             button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         }
 
@@ -328,7 +321,7 @@ import SafariServices
             webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
 
         // Set constraints for progress view
@@ -336,7 +329,7 @@ import SafariServices
             progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            progressView.heightAnchor.constraint(equalToConstant: 2)
+            progressView.heightAnchor.constraint(equalToConstant: 2),
         ])
 
         // Set constraints for pulse effect view
@@ -344,7 +337,7 @@ import SafariServices
             pulseEffectView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             pulseEffectView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             pulseEffectView.widthAnchor.constraint(equalToConstant: 80),
-            pulseEffectView.heightAnchor.constraint(equalToConstant: 80)
+            pulseEffectView.heightAnchor.constraint(equalToConstant: 80),
         ])
 
         // Set constraints for blur effect
@@ -352,7 +345,7 @@ import SafariServices
             blurEffectView.topAnchor.constraint(equalTo: floatingButtonsContainer.topAnchor),
             blurEffectView.leadingAnchor.constraint(equalTo: floatingButtonsContainer.leadingAnchor),
             blurEffectView.trailingAnchor.constraint(equalTo: floatingButtonsContainer.trailingAnchor),
-            blurEffectView.bottomAnchor.constraint(equalTo: floatingButtonsContainer.bottomAnchor)
+            blurEffectView.bottomAnchor.constraint(equalTo: floatingButtonsContainer.bottomAnchor),
         ])
 
         // Set constraints for button stack view
@@ -360,18 +353,21 @@ import SafariServices
             buttonStackView.topAnchor.constraint(equalTo: floatingButtonsContainer.topAnchor, constant: 12),
             buttonStackView.leadingAnchor.constraint(equalTo: floatingButtonsContainer.leadingAnchor, constant: 20),
             buttonStackView.trailingAnchor.constraint(equalTo: floatingButtonsContainer.trailingAnchor, constant: -20),
-            buttonStackView.bottomAnchor.constraint(equalTo: floatingButtonsContainer.bottomAnchor, constant: -12)
+            buttonStackView.bottomAnchor.constraint(equalTo: floatingButtonsContainer.bottomAnchor, constant: -12),
         ])
 
         // Set constraints for floating buttons container
         NSLayoutConstraint.activate([
             floatingButtonsContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             floatingButtonsContainer.heightAnchor.constraint(equalToConstant: 50),
-            floatingButtonsContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 300)
+            floatingButtonsContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 300),
         ])
 
         // Store the bottom constraint so we can animate it
-        floatingButtonsBottomConstraint = floatingButtonsContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 100)
+        floatingButtonsBottomConstraint = floatingButtonsContainer.bottomAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+            constant: 100
+        )
         floatingButtonsBottomConstraint?.isActive = true
 
         // Apply initial button states
@@ -403,7 +399,12 @@ import SafariServices
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
     }
 
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+    override func observeValue(
+        forKeyPath keyPath: String?,
+        of _: Any?,
+        change _: [NSKeyValueChangeKey: Any]?,
+        context _: UnsafeMutableRawPointer?
+    ) {
         if keyPath == #keyPath(WKWebView.title) {
             if let title = webView.title, !title.isEmpty {
                 // Don't change navigation title - we're using our custom logo view
@@ -480,12 +481,12 @@ import SafariServices
         let currentStyle = view.window?.overrideUserInterfaceStyle ?? .unspecified
 
         switch currentStyle {
-            case .unspecified, .light:
-                view.window?.overrideUserInterfaceStyle = .dark
-            case .dark:
-                view.window?.overrideUserInterfaceStyle = .light
-            @unknown default:
-                view.window?.overrideUserInterfaceStyle = .unspecified
+        case .unspecified, .light:
+            view.window?.overrideUserInterfaceStyle = .dark
+        case .dark:
+            view.window?.overrideUserInterfaceStyle = .light
+        @unknown default:
+            view.window?.overrideUserInterfaceStyle = .unspecified
         }
 
         // Update theme button icon
@@ -536,7 +537,7 @@ import SafariServices
 
     // MARK: - Button Animation Methods
 
-    @objc private func buttonTapped(_ sender: UIButton) {
+    @objc private func buttonTapped(_: UIButton) {
         let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
         feedbackGenerator.prepare()
         feedbackGenerator.impactOccurred(intensity: 0.7)
@@ -555,10 +556,16 @@ import SafariServices
     // MARK: - Floating Buttons Animation
 
     private func animateShowFloatingButtons() {
-        self.floatingButtonsContainer.alpha = 0
-        self.floatingButtonsBottomConstraint?.constant = 20
+        floatingButtonsContainer.alpha = 0
+        floatingButtonsBottomConstraint?.constant = 20
 
-        UIView.animate(withDuration: 0.5, delay: 0.2, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: .curveEaseOut) {
+        UIView.animate(
+            withDuration: 0.5,
+            delay: 0.2,
+            usingSpringWithDamping: 0.7,
+            initialSpringVelocity: 0.5,
+            options: .curveEaseOut
+        ) {
             self.floatingButtonsContainer.alpha = 1
             self.view.layoutIfNeeded()
         }
@@ -572,7 +579,13 @@ import SafariServices
         floatingButtonsBottomConstraint?.constant = show ? 20 : 100
 
         if animated {
-            UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: .curveEaseInOut) {
+            UIView.animate(
+                withDuration: 0.5,
+                delay: 0,
+                usingSpringWithDamping: 0.7,
+                initialSpringVelocity: 0.5,
+                options: .curveEaseInOut
+            ) {
                 self.floatingButtonsContainer.alpha = show ? 1.0 : 0.0
                 self.view.layoutIfNeeded()
             }
@@ -584,7 +597,7 @@ import SafariServices
 
     // MARK: - WKNavigationDelegate Methods
 
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    func webView(_: WKWebView, didFinish _: WKNavigation!) {
         updateButtonStates()
         refreshControl.endRefreshing()
 
@@ -592,7 +605,7 @@ import SafariServices
         applyCustomStyleToWebContent()
     }
 
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+    func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
         refreshControl.endRefreshing()
 
         // Show error if needed
@@ -607,7 +620,11 @@ import SafariServices
         }
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(
+        _: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
         // IMPORTANT: Restrict navigation to prevent users from leaving the BDG Hub domain
         if let url = navigationAction.request.url {
             // Allow main domain navigation
@@ -618,8 +635,9 @@ import SafariServices
 
             // Allow navigation within the app (back/forward, etc.)
             if navigationAction.navigationType == .backForward ||
-               navigationAction.navigationType == .reload ||
-               url.scheme == "about" {
+                navigationAction.navigationType == .reload ||
+                url.scheme == "about"
+            {
                 decisionHandler(.allow)
                 return
             }
@@ -661,14 +679,14 @@ import SafariServices
         lastContentOffset = currentOffset
     }
 
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDragging(_: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             // When user stops dragging and scrolling will stop immediately
             toggleFloatingButtons(show: true)
         }
     }
 
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    func scrollViewDidEndDecelerating(_: UIScrollView) {
         // When scrolling stops completely
         toggleFloatingButtons(show: true)
     }
@@ -813,7 +831,8 @@ extension WebViewController {
         hr, .divider {
             height: 2px !important;
             border: none !important;
-            background: linear-gradient(to right, transparent, \(isDarkMode ? "rgba(255,100,130,0.5)" : "rgba(255,100,130,0.5)"), transparent) !important;
+            background: linear-gradient(to right, transparent, \(isDarkMode ? "rgba(255,100,130,0.5)" :
+            "rgba(255,100,130,0.5)"), transparent) !important;
             margin: 20px 0 !important;
         }
 
@@ -857,7 +876,8 @@ extension WebViewController {
         // If the web view was previously hidden, reload the page
         // but only if it's been more than 30 minutes since the last load
         if let lastNavigationDate = UserDefaults.standard.object(forKey: "BDGLastNavigationDate") as? Date,
-           Date().timeIntervalSince(lastNavigationDate) > 1800 {
+           Date().timeIntervalSince(lastNavigationDate) > 1800
+        {
             webView.reload()
         }
 

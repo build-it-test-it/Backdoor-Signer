@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -146,7 +139,7 @@ class OfflineSigningManager {
         NSLayoutConstraint.activate([
             indicator.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             indicator.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 8),
-            indicator.heightAnchor.constraint(equalToConstant: 28)
+            indicator.heightAnchor.constraint(equalToConstant: 28),
         ])
 
         // Add animation
@@ -203,7 +196,8 @@ class OfflineSigningManager {
     private func validateLocalCertificates() -> Bool {
         // Prevent frequent revalidation
         if let lastValidation = lastCertificateValidationTime,
-           Date().timeIntervalSince(lastValidation) < 60 { // Only validate once per minute
+           Date().timeIntervalSince(lastValidation) < 60
+        { // Only validate once per minute
             return localCertificatesValidated
         }
 
@@ -227,13 +221,17 @@ class OfflineSigningManager {
                 let keyAttributes = try fileManager.attributesOfItem(atPath: serverKeyPath.path)
 
                 if let certSize = certAttributes[.size] as? NSNumber,
-                   let keySize = keyAttributes[.size] as? NSNumber {
+                   let keySize = keyAttributes[.size] as? NSNumber
+                {
                     isValid = certSize.intValue > 0 && keySize.intValue > 0
                 } else {
                     isValid = false
                 }
             } catch {
-                Debug.shared.log(message: "Error checking certificate sizes: \(error.localizedDescription)", type: .error)
+                Debug.shared.log(
+                    message: "Error checking certificate sizes: \(error.localizedDescription)",
+                    type: .error
+                )
                 isValid = false
             }
         }
@@ -265,7 +263,7 @@ class OfflineSigningManager {
             label.topAnchor.constraint(equalTo: container.topAnchor, constant: 4),
             label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -4),
             label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8),
-            label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8)
+            label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
         ])
 
         // Add LED glow effect

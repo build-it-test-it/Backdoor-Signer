@@ -1,14 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// A reusable table view cell with a modern, enhanced switch control
 class SwitchTableViewCell: UITableViewCell {
-
     // MARK: - UI Components
 
     let switchControl = UISwitch()
@@ -27,7 +20,7 @@ class SwitchTableViewCell: UITableViewCell {
 
     // MARK: - Initialization
 
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+    override init(style _: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .value1, reuseIdentifier: reuseIdentifier)
 
         setupSwitchControl()
@@ -39,7 +32,8 @@ class SwitchTableViewCell: UITableViewCell {
         contentView.addGestureRecognizer(tapGesture)
     }
 
-    required init?(coder: NSCoder) {
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -65,7 +59,7 @@ class SwitchTableViewCell: UITableViewCell {
             subtitleLabel.topAnchor.constraint(equalTo: textLabel!.bottomAnchor, constant: 4),
             subtitleLabel.leadingAnchor.constraint(equalTo: textLabel!.leadingAnchor),
             subtitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -60),
-            subtitleLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -8)
+            subtitleLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -8),
         ])
 
         // Hide initially
@@ -93,7 +87,7 @@ class SwitchTableViewCell: UITableViewCell {
         // Adjust cell height constraints if needed
         if !subtitleLabel.isHidden {
             // Make sure the cell can expand to fit the subtitle
-            contentView.constraints.forEach { constraint in
+            for constraint in contentView.constraints {
                 if constraint.firstAttribute == .height {
                     constraint.isActive = false
                 }

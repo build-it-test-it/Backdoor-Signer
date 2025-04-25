@@ -1,16 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
-import UIKit
 import CoreData
+import UIKit
 
 /// Extension to fix popup menu sizing and presentation issues
 extension PopupViewController {
-
     /// Apply essential fixes to prevent crashes and improve functionality
     func applyMenuFixes() {
         // Fix button layout and sizing
@@ -28,7 +20,7 @@ extension PopupViewController {
 
     /// Fix sizing and presentation issues with the popup sheet
     private func fixSheetPresentation() {
-        if let sheet = self.sheetPresentationController {
+        if let sheet = sheetPresentationController {
             // Calculate proper height based on content
             let buttonCount = stackView.arrangedSubviews.count
             let buttonHeight: CGFloat = 50.0
@@ -36,13 +28,13 @@ extension PopupViewController {
             let verticalPadding: CGFloat = 40.0
 
             let estimatedHeight = (CGFloat(buttonCount) * buttonHeight) +
-                                 (CGFloat(max(0, buttonCount - 1)) * buttonSpacing) +
-                                 verticalPadding
+                (CGFloat(max(0, buttonCount - 1)) * buttonSpacing) +
+                verticalPadding
 
             // Apply custom detent if available, otherwise use built-in sizes
             if #available(iOS 16.0, *) {
                 let customDetent = UISheetPresentationController.Detent.custom { _ in
-                    return estimatedHeight
+                    estimatedHeight
                 }
                 sheet.detents = [customDetent]
             } else if #available(iOS 15.0, *) {
@@ -65,14 +57,14 @@ extension PopupViewController {
     /// - Parameter hasUpdate: Whether this popup contains update options (affects sizing)
     func configurePopupDetents(hasUpdate: Bool = false) {
         // Get sheet presentation controller if available
-        if let sheet = self.sheetPresentationController {
+        if let sheet = sheetPresentationController {
             let buttonCount = stackView.arrangedSubviews.count
             let requiredHeight = calculateRequiredHeight(buttonCount: buttonCount, hasUpdate: hasUpdate)
 
             if #available(iOS 16.0, *) {
                 // Use custom detent in iOS 16+ for precise height control
                 let customDetent = UISheetPresentationController.Detent.custom { _ in
-                    return requiredHeight
+                    requiredHeight
                 }
                 sheet.detents = [customDetent]
             } else if #available(iOS 15.0, *) {
@@ -160,7 +152,7 @@ extension PopupViewController {
             NSLayoutConstraint.activate([
                 stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
                 stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-                stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20)
+                stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             ])
 
             // Add bottom constraint but make it a priority lower than required
@@ -198,7 +190,7 @@ extension PopupViewController {
                 lastButton.bottomAnchor.constraint(
                     lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor,
                     constant: -20
-                )
+                ),
             ])
         }
 
@@ -356,8 +348,9 @@ extension PopupViewController {
 
         // If we can cast to DownloadedApps, proceed with signing
         if let downloadedApp = app as? DownloadedApps,
-           let libraryVC = viewController.navigationController?.viewControllers.first(where: { $0 is LibraryViewController }) as? LibraryViewController {
-
+           let libraryVC = viewController.navigationController?.viewControllers
+           .first(where: { $0 is LibraryViewController }) as? LibraryViewController
+        {
             // Create and configure signing view controller
             let signingVC = SigningsViewController(
                 signingDataWrapper: signingDataWrapper,

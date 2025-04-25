@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 // MARK: - Certificate (Mobileprovision file)
@@ -35,7 +29,19 @@ public struct Cert: Codable {
         case derEncodedProfile = "DER-Encoded-Profile"
     }
 
-    public init(AppIDName: String, CreationDate: Date, IsXcodeManaged: Bool, derEncodedProfile: Data, PPQCheck: Bool?, ExpirationDate: Date, Name: String, TeamName: String, TimeToLive: Int, UUID: String, Version: Int) {
+    public init(
+        AppIDName: String,
+        CreationDate: Date,
+        IsXcodeManaged: Bool,
+        derEncodedProfile: Data,
+        PPQCheck: Bool?,
+        ExpirationDate: Date,
+        Name: String,
+        TeamName: String,
+        TimeToLive: Int,
+        UUID: String,
+        Version: Int
+    ) {
         self.AppIDName = AppIDName
         self.CreationDate = CreationDate
         self.IsXcodeManaged = IsXcodeManaged

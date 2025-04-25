@@ -1,56 +1,53 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
 /// Extension for CustomAIService to add deep search capabilities
 extension CustomAIService {
-
     /// Determine the appropriate search depth for a query
     func determineSearchDepth(for query: String) -> SearchDepth {
         let lowercasedQuery = query.lowercased()
 
         // Check for deep search indicators
         if lowercasedQuery.contains("deep search") ||
-           lowercasedQuery.contains("comprehensive") ||
-           lowercasedQuery.contains("detailed") ||
-           lowercasedQuery.contains("in-depth") ||
-           lowercasedQuery.contains("thorough") {
+            lowercasedQuery.contains("comprehensive") ||
+            lowercasedQuery.contains("detailed") ||
+            lowercasedQuery.contains("in-depth") ||
+            lowercasedQuery.contains("thorough")
+        {
             return .deep
         }
 
         // Check for academic search indicators
         if lowercasedQuery.contains("academic") ||
-           lowercasedQuery.contains("scientific") ||
-           lowercasedQuery.contains("research") ||
-           lowercasedQuery.contains("scholarly") ||
-           lowercasedQuery.contains("journal") ||
-           lowercasedQuery.contains("paper") ||
-           lowercasedQuery.contains("study") {
+            lowercasedQuery.contains("scientific") ||
+            lowercasedQuery.contains("research") ||
+            lowercasedQuery.contains("scholarly") ||
+            lowercasedQuery.contains("journal") ||
+            lowercasedQuery.contains("paper") ||
+            lowercasedQuery.contains("study")
+        {
             return .specialized
         }
 
         // Check for news search indicators
         if lowercasedQuery.contains("news") ||
-           lowercasedQuery.contains("recent") ||
-           lowercasedQuery.contains("latest") ||
-           lowercasedQuery.contains("current events") ||
-           lowercasedQuery.contains("today") ||
-           lowercasedQuery.contains("breaking") {
+            lowercasedQuery.contains("recent") ||
+            lowercasedQuery.contains("latest") ||
+            lowercasedQuery.contains("current events") ||
+            lowercasedQuery.contains("today") ||
+            lowercasedQuery.contains("breaking")
+        {
             return .specialized
         }
 
         // Check for enhanced search indicators
         if lowercasedQuery.contains("more about") ||
-           lowercasedQuery.contains("learn more") ||
-           lowercasedQuery.contains("better") ||
-           lowercasedQuery.contains("improved") ||
-           lowercasedQuery.contains("enhanced") ||
-           query.count > 60 { // Longer queries often need more detailed results
+            lowercasedQuery.contains("learn more") ||
+            lowercasedQuery.contains("better") ||
+            lowercasedQuery.contains("improved") ||
+            lowercasedQuery.contains("enhanced") ||
+            query.count > 60
+        { // Longer queries often need more detailed results
             return .enhanced
         }
 
@@ -64,43 +61,47 @@ extension CustomAIService {
 
         // Academic content
         if lowercasedQuery.contains("academic") ||
-           lowercasedQuery.contains("research") ||
-           lowercasedQuery.contains("scientific") ||
-           lowercasedQuery.contains("journal") ||
-           lowercasedQuery.contains("paper") ||
-           lowercasedQuery.contains("study") ||
-           lowercasedQuery.contains("thesis") {
+            lowercasedQuery.contains("research") ||
+            lowercasedQuery.contains("scientific") ||
+            lowercasedQuery.contains("journal") ||
+            lowercasedQuery.contains("paper") ||
+            lowercasedQuery.contains("study") ||
+            lowercasedQuery.contains("thesis")
+        {
             return .academic
         }
 
         // News content
         if lowercasedQuery.contains("news") ||
-           lowercasedQuery.contains("latest") ||
-           lowercasedQuery.contains("current") ||
-           lowercasedQuery.contains("recent") ||
-           lowercasedQuery.contains("today") ||
-           lowercasedQuery.contains("breaking") {
+            lowercasedQuery.contains("latest") ||
+            lowercasedQuery.contains("current") ||
+            lowercasedQuery.contains("recent") ||
+            lowercasedQuery.contains("today") ||
+            lowercasedQuery.contains("breaking")
+        {
             return .news
         }
 
         // Technical content
         if lowercasedQuery.contains("technical") ||
-           lowercasedQuery.contains("developer") ||
-           lowercasedQuery.contains("programming") ||
-           lowercasedQuery.contains("code") ||
-           lowercasedQuery.contains("framework") ||
-           lowercasedQuery.contains("api") ||
-           lowercasedQuery.contains("software") {
+            lowercasedQuery.contains("developer") ||
+            lowercasedQuery.contains("programming") ||
+            lowercasedQuery.contains("code") ||
+            lowercasedQuery.contains("framework") ||
+            lowercasedQuery.contains("api") ||
+            lowercasedQuery.contains("software")
+        {
             return .technical
         }
 
         // Reference content
         if lowercasedQuery.contains("definition") ||
-           lowercasedQuery.contains("meaning") ||
-           lowercasedQuery.contains("what is") ||
-           lowercasedQuery.contains("who is") ||
-           lowercasedQuery.contains("explain") ||
-           lowercasedQuery.contains("describe") {
+            lowercasedQuery.contains("meaning") ||
+            lowercasedQuery.contains("what is") ||
+            lowercasedQuery.contains("who is") ||
+            lowercasedQuery.contains("explain") ||
+            lowercasedQuery.contains("describe")
+        {
             return .reference
         }
 
@@ -114,26 +115,28 @@ extension CustomAIService {
 
         WebSearchManager.shared.performSearch(query: query) { result in
             switch result {
-            case .success(let searchResults):
+            case let .success(searchResults):
                 // Format the results for user-friendly display
                 let formattedResults = WebSearchManager.shared.formatSearchResults(searchResults)
 
                 completion("Here are the search results for \"\(query)\":\n\n\(formattedResults)")
 
-            case .failure(let error):
+            case let .failure(error):
                 // Handle search errors
                 let errorMessage: String
                 switch error {
                 case SearchError.invalidQuery:
                     errorMessage = "Sorry, the search query appears to be invalid. Please try a different search term."
                 case SearchError.emptyResults:
-                    errorMessage = "I couldn't find any results for \"\(query)\". Would you like to try a different search?"
+                    errorMessage =
+                        "I couldn't find any results for \"\(query)\". Would you like to try a different search?"
                 case SearchError.rateLimitExceeded:
                     errorMessage = "The search service is currently busy. Please try again in a moment."
                 case SearchError.accessDenied:
                     errorMessage = "Search functionality is currently disabled in privacy settings."
                 default:
-                    errorMessage = "I encountered an issue while searching. Please try again or use a different search term."
+                    errorMessage =
+                        "I encountered an issue while searching. Please try again or use a different search term."
                 }
 
                 completion(errorMessage)
@@ -142,7 +145,12 @@ extension CustomAIService {
     }
 
     /// Perform a deep search with enhanced capabilities
-    func performDeepSearch(query: String, depth: SearchDepth = .enhanced, queryType: SearchQueryType = .general, completion: @escaping (String) -> Void) {
+    func performDeepSearch(
+        query: String,
+        depth: SearchDepth = .enhanced,
+        queryType: SearchQueryType = .general,
+        completion: @escaping (String) -> Void
+    ) {
         Debug.shared.log(message: "Performing deep search for: \(query) with depth: \(depth)", type: .info)
 
         // Convert query type to source types
@@ -166,7 +174,7 @@ extension CustomAIService {
         // Perform the deep search
         WebSearchManager.shared.performDeepSearch(query: query, depth: depth, sourceTypes: sourceTypes) { result in
             switch result {
-            case .success(let deepResults):
+            case let .success(deepResults):
                 // Format the results for user-friendly display
                 let formattedResults = WebSearchManager.shared.formatDeepSearchResults(deepResults)
 
@@ -207,27 +215,30 @@ extension CustomAIService {
                             "query": query,
                             "depth": "\(depth)",
                             "queryType": "\(queryType)",
-                            "resultCount": "\(deepResults.count)"
+                            "resultCount": "\(deepResults.count)",
                         ]
                     )
                 }
 
-            case .failure(let error):
+            case let .failure(error):
                 // Handle search errors with context-appropriate messages
                 let errorMessage: String
                 switch error {
                 case SearchError.invalidQuery:
                     errorMessage = "Sorry, the search query appears to be invalid. Please try a different search term."
                 case SearchError.emptyResults:
-                    errorMessage = "I couldn't find any results for \"\(query)\". Would you like to try a different search?"
+                    errorMessage =
+                        "I couldn't find any results for \"\(query)\". Would you like to try a different search?"
                 case SearchError.rateLimitExceeded:
                     errorMessage = "The deep search service is currently at capacity. Please try again in a moment."
                 case SearchError.accessDenied:
                     errorMessage = "Deep search functionality is currently disabled in privacy settings."
                 case SearchError.crawlFailed:
-                    errorMessage = "I started searching for detailed information but encountered issues with some sources. Here are the partial results I could find."
+                    errorMessage =
+                        "I started searching for detailed information but encountered issues with some sources. Here are the partial results I could find."
                 default:
-                    errorMessage = "I encountered an issue while performing a deep search. Please try again or use a different search term."
+                    errorMessage =
+                        "I encountered an issue while performing a deep search. Please try again or use a different search term."
                 }
 
                 completion(errorMessage)

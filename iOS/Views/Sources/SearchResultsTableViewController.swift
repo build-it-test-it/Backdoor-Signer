@@ -1,19 +1,13 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
 // MARK: - SearchResultsTableViewController
 
 class SearchResultsTableViewController: UIViewController,
-                                        UISearchResultsUpdating,
-                                        UITableViewDataSource,
-                                        UITableViewDelegate {
+    UISearchResultsUpdating,
+    UITableViewDataSource,
+    UITableViewDelegate
+{
     // MARK: - Properties
 
     var tableView: UITableView!
@@ -50,7 +44,7 @@ class SearchResultsTableViewController: UIViewController,
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
 
         tableView.dataSource = self
@@ -117,7 +111,7 @@ class SearchResultsTableViewController: UIViewController,
         // Configure subtitle
         let appVersion = (app?.versions?.first?.version ?? app?.version) ?? "1.0"
         let appSubtitle = app?.subtitle ??
-                         (app?.localizedDescription ?? String.localized("SOURCES_CELLS_DEFAULT_SUBTITLE"))
+            (app?.localizedDescription ?? String.localized("SOURCES_CELLS_DEFAULT_SUBTITLE"))
         let displayText = appVersion + " • " + appSubtitle
 
         cell.detailTextLabel?.text = displayText

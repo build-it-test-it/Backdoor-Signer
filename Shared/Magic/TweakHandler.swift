@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except
-// as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import SWCompression
 
@@ -30,7 +23,7 @@ class TweakHandler {
         let frameworksPath = app.appendingPathComponent("Frameworks").appendingPathComponent("CydiaSubstrate.framework")
         if !fileManager.fileExists(atPath: frameworksPath.path) {
             if let ellekitURL = Bundle.main.url(forResource: "ellekit", withExtension: "deb") {
-                self.urls.insert(ellekitURL.absoluteString, at: 0)
+                urls.insert(ellekitURL.absoluteString, at: 0)
             } else {
                 Debug.shared.log(message: "Error: ellekit.deb not found in the app bundle ⁉️", type: .error)
                 return
@@ -49,12 +42,12 @@ class TweakHandler {
             for url in urls {
                 let urlf = URL(string: url)
                 switch urlf!.pathExtension.lowercased() {
-                    case "dylib":
-                        try handleDylib(at: urlf!)
-                    case "deb":
-                        try handleDeb(at: urlf!, baseTmpDir: baseTmpDir)
-                    default:
-                        Debug.shared.log(message: "Unsupported file type: \(urlf!.lastPathComponent), skipping.")
+                case "dylib":
+                    try handleDylib(at: urlf!)
+                case "deb":
+                    try handleDeb(at: urlf!, baseTmpDir: baseTmpDir)
+                default:
+                    Debug.shared.log(message: "Unsupported file type: \(urlf!.lastPathComponent), skipping.")
                 }
             }
 
@@ -74,19 +67,19 @@ class TweakHandler {
     private func handleExtractedDirectoryContents(at urls: [URL]) throws {
         for url in urls {
             switch url.pathExtension.lowercased() {
-                case "dylib":
-                    try handleDylib(at: url)
-                case "framework":
-                    let destinationURL = app
-                        .appendingPathComponent("Frameworks")
-                        .appendingPathComponent(url.lastPathComponent)
-                    try Self.moveFile(from: url, to: destinationURL)
-                    try handleDylib(framework: destinationURL)
-                case "bundle":
-                    let destinationURL = app.appendingPathComponent(url.lastPathComponent)
-                    try Self.moveFile(from: url, to: destinationURL)
-                default:
-                    Debug.shared.log(message: "Unsupported file type: \(url.lastPathComponent), skipping.")
+            case "dylib":
+                try handleDylib(at: url)
+            case "framework":
+                let destinationURL = app
+                    .appendingPathComponent("Frameworks")
+                    .appendingPathComponent(url.lastPathComponent)
+                try Self.moveFile(from: url, to: destinationURL)
+                try handleDylib(framework: destinationURL)
+            case "bundle":
+                let destinationURL = app.appendingPathComponent(url.lastPathComponent)
+                try Self.moveFile(from: url, to: destinationURL)
+            default:
+                Debug.shared.log(message: "Unsupported file type: \(url.lastPathComponent), skipping.")
             }
         }
     }
@@ -139,7 +132,8 @@ class TweakHandler {
 
                 // inject if there's a valid app main executable
                 if let appexe = try Self.findExecutable(at: app) {
-                    let dylibPath = "@executable_path/Frameworks/\(framework.lastPathComponent)/\(fexe.lastPathComponent)"
+                    let dylibPath =
+                        "@executable_path/Frameworks/\(framework.lastPathComponent)/\(fexe.lastPathComponent)"
                     _ = injectDylib(
                         filePath: appexe.path,
                         dylibPath: dylibPath,
@@ -189,7 +183,7 @@ class TweakHandler {
             "Library/MobileSubstrate/DynamicLibraries/",
             "var/jb/Library/MobileSubstrate/DynamicLibraries/",
             "Library/Application Support/",
-            "var/jb/Library/Application Support/"
+            "var/jb/Library/Application Support/",
         ]
 
         let fileManager = FileManager.default
@@ -204,23 +198,23 @@ class TweakHandler {
                 }
 
                 switch directory {
-                    case "Library/MobileSubstrate/DynamicLibraries/", "var/jb/Library/MobileSubstrate/DynamicLibraries/":
-                        let dylibFiles = try locateDylibFiles(in: directoryURL)
-                        for fileURL in dylibFiles {
-                            urlsToInject.append(fileURL)
-                        }
+                case "Library/MobileSubstrate/DynamicLibraries/", "var/jb/Library/MobileSubstrate/DynamicLibraries/":
+                    let dylibFiles = try locateDylibFiles(in: directoryURL)
+                    for fileURL in dylibFiles {
+                        urlsToInject.append(fileURL)
+                    }
 
-                    case "Library/Frameworks/", "var/jb/Library/Frameworks/":
-                        let frameworkDirectories = try locateFrameworkDirectories(in: directoryURL)
-                        for frameworkURL in frameworkDirectories {
-                            urlsToInject.append(frameworkURL)
-                        }
+                case "Library/Frameworks/", "var/jb/Library/Frameworks/":
+                    let frameworkDirectories = try locateFrameworkDirectories(in: directoryURL)
+                    for frameworkURL in frameworkDirectories {
+                        urlsToInject.append(frameworkURL)
+                    }
 
-                    case "Library/Application Support/", "var/jb/Library/Application Support/":
-                        try searchForBundles(in: directoryURL)
+                case "Library/Application Support/", "var/jb/Library/Application Support/":
+                    try searchForBundles(in: directoryURL)
 
-                    default:
-                        Debug.shared.log(message: "Unexpected directory path: \(directoryURL.path)")
+                default:
+                    Debug.shared.log(message: "Unexpected directory path: \(directoryURL.path)")
                 }
             }
         }
@@ -300,8 +294,10 @@ extension TweakHandler {
         let infoPlistURL = frameworkURL.appendingPathComponent("Info.plist")
 
         let plistData = try Data(contentsOf: infoPlistURL)
-        if let plist = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any],
-           let executableName = plist["CFBundleExecutable"] as? String {
+        if let plist = try PropertyListSerialization
+            .propertyList(from: plistData, options: [], format: nil) as? [String: Any],
+            let executableName = plist["CFBundleExecutable"] as? String
+        {
             return frameworkURL.appendingPathComponent(executableName)
         } else {
             Debug.shared.log(message: "CFBundleExecutable not found in Info.plist")

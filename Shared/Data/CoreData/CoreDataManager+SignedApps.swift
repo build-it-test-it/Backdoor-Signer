@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import Foundation
 
@@ -76,7 +70,8 @@ extension CoreDataManager {
                 return URL(fileURLWithPath: "/error/missing_properties")
             }
 
-            guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            else {
                 Debug.shared.log(message: "Could not access documents directory", type: .error)
                 return URL(fileURLWithPath: "/error/no_documents_directory")
             }
@@ -109,7 +104,8 @@ extension CoreDataManager {
             throw FileProcessingError.missingFile("Required app properties (uuid, appPath, or directory)")
         }
 
-        guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+        guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        else {
             throw FileProcessingError.missingFile("Documents directory")
         }
 
@@ -187,12 +183,12 @@ extension CoreDataManager {
             // App is from a different context, fetch it in the current context
             if app.objectID.isTemporaryID {
                 throw NSError(domain: "CoreDataManager", code: 1004,
-                             userInfo: [NSLocalizedDescriptionKey: "App object not in persistent store"])
+                              userInfo: [NSLocalizedDescriptionKey: "App object not in persistent store"])
             }
 
             guard let appInContext = ctx.object(with: app.objectID) as? SignedApps else {
                 throw NSError(domain: "CoreDataManager", code: 1005,
-                             userInfo: [NSLocalizedDescriptionKey: "Failed to retrieve app in current context"])
+                              userInfo: [NSLocalizedDescriptionKey: "Failed to retrieve app in current context"])
             }
 
             // Update properties on the object in the correct context

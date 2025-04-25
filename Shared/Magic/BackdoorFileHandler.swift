@@ -1,25 +1,17 @@
-//
-// BackdoorFileHandler.swift
-//
-// Implementation for .backdoor file format - a secure certificate format that bundles 
-// certificate, p12, and mobileprovision files with signature verification and optional encryption
-//
-
+import CryptoKit
 import Foundation
 import Security
-import CryptoKit
 
 /// A representation of a .backdoor file which contains all components needed for signing
 struct BackdoorFile {
     let certificate: SecCertificate // DER-encoded certificate
-    let p12Data: Data              // Raw .p12 file data
-    let mobileProvisionData: Data  // Raw .mobileprovision file data
-    let signature: Data            // Signature over mobileprovision data
+    let p12Data: Data // Raw .p12 file data
+    let mobileProvisionData: Data // Raw .mobileprovision file data
+    let signature: Data // Signature over mobileprovision data
 }
 
 /// Provides encoding and decoding capabilities for .backdoor files
 class BackdoorDecoder {
-
     /// Format version constant - used to identify the encrypted format
     private static let ENCRYPTED_FORMAT_VERSION: UInt8 = 1
 
@@ -49,14 +41,15 @@ class BackdoorDecoder {
             guard offset + 4 <= data.count else {
                 throw DecodingError.invalidFormat("Not enough data for length prefix")
             }
-            let originalLength = Int(data[offset..<offset + 4].withUnsafeBytes { $0.load(as: UInt32.self).bigEndian })
+            let originalLength = Int(data[offset ..< offset + 4].withUnsafeBytes { $0.load(as: UInt32.self).bigEndian })
             offset += 4
 
             // Read encrypted length
             guard offset + 4 <= data.count else {
                 throw DecodingError.invalidFormat("Not enough data for encrypted length prefix")
             }
-            let encryptedLength = Int(data[offset..<offset + 4].withUnsafeBytes { $0.load(as: UInt32.self).bigEndian })
+            let encryptedLength = Int(data[offset ..< offset + 4]
+                .withUnsafeBytes { $0.load(as: UInt32.self).bigEndian })
             offset += 4
 
             // Ensure we have enough data
@@ -65,7 +58,7 @@ class BackdoorDecoder {
             }
 
             // Get encrypted data
-            let encryptedData = data[offset..<offset + encryptedLength]
+            let encryptedData = data[offset ..< offset + encryptedLength]
             offset += encryptedLength
 
             // Decrypt data
@@ -414,12 +407,12 @@ class BackdoorDecoder {
         guard offset + 4 <= data.count else {
             throw DecodingError.invalidFormat("Not enough data for length prefix")
         }
-        let length = Int(data[offset..<offset + 4].withUnsafeBytes { $0.load(as: UInt32.self).bigEndian })
+        let length = Int(data[offset ..< offset + 4].withUnsafeBytes { $0.load(as: UInt32.self).bigEndian })
         offset += 4
         guard offset + length <= data.count else {
             throw DecodingError.invalidFormat("Not enough data for chunk of length \(length)")
         }
-        let chunk = data[offset..<offset + length]
+        let chunk = data[offset ..< offset + length]
         offset += length
         return chunk
     }
@@ -466,13 +459,15 @@ extension BackdoorFile {
         if let trustResult = SecTrustCopyResult(trustObj) as? [String: Any] {
             if let details = trustResult["TrustResultDetails"] as? [[String: Any]],
                let certDetails = details.first,
-               let notAfterDate = certDetails["NotAfter"] as? Date {
+               let notAfterDate = certDetails["NotAfter"] as? Date
+            {
                 return notAfterDate
             }
 
             // Try alternative keys that might be present in the result dictionary
             if let certDetails = trustResult["CertificateDetail"] as? [String: Any],
-               let notAfterDate = certDetails["NotAfter"] as? Date {
+               let notAfterDate = certDetails["NotAfter"] as? Date
+            {
                 return notAfterDate
             }
         }

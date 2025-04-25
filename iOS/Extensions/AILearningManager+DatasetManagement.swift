@@ -1,16 +1,9 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import Foundation
 import CoreML
+import Foundation
 
 // MARK: - Dataset Management Extension
 
 extension AILearningManager {
-
     /// Incorporate external dataset into training
     func incorporateDataset(_ datasetContent: [String: Any]) -> Bool {
         Debug.shared.log(message: "Incorporating external dataset into AI training", type: .info)
@@ -39,18 +32,32 @@ extension AILearningManager {
 
             // Log the result
             if result.success {
-                Debug.shared.log(message: "Successfully incorporated dataset into training, new model version: \(result.version)", type: .info)
+                Debug.shared.log(
+                    message: "Successfully incorporated dataset into training, new model version: \(result.version)",
+                    type: .info
+                )
 
                 // Upload logs to Dropbox if user has consented
                 if UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") {
-                    logDatasetIncorporation(datasetSize: trainingData.count, success: true, modelVersion: result.version)
+                    logDatasetIncorporation(
+                        datasetSize: trainingData.count,
+                        success: true,
+                        modelVersion: result.version
+                    )
                 }
             } else {
-                Debug.shared.log(message: "Failed to incorporate dataset: \(result.errorMessage ?? "Unknown error")", type: .error)
+                Debug.shared.log(
+                    message: "Failed to incorporate dataset: \(result.errorMessage ?? "Unknown error")",
+                    type: .error
+                )
 
                 // Upload logs to Dropbox if user has consented
                 if UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") {
-                    logDatasetIncorporation(datasetSize: trainingData.count, success: false, modelVersion: currentModelVersion)
+                    logDatasetIncorporation(
+                        datasetSize: trainingData.count,
+                        success: false,
+                        modelVersion: currentModelVersion
+                    )
                 }
             }
 
@@ -62,7 +69,9 @@ extension AILearningManager {
     }
 
     /// Extract training data from dataset content
-    private func extractTrainingData(from dataset: [String: Any]) -> (training: [[String: Any]], evaluation: [[String: Any]])? {
+    private func extractTrainingData(from dataset: [String: Any])
+        -> (training: [[String: Any]], evaluation: [[String: Any]])?
+    {
         var trainingData: [[String: Any]] = []
         var evaluationData: [[String: Any]] = []
 
@@ -70,8 +79,8 @@ extension AILearningManager {
         if let dataArray = dataset["data"] as? [[String: Any]] {
             // Split into training and evaluation (80/20 split)
             let splitIndex = Int(Double(dataArray.count) * 0.8)
-            trainingData = Array(dataArray[0..<splitIndex])
-            evaluationData = Array(dataArray[splitIndex..<dataArray.count])
+            trainingData = Array(dataArray[0 ..< splitIndex])
+            evaluationData = Array(dataArray[splitIndex ..< dataArray.count])
         }
         // Check if dataset has explicit training/evaluation split
         else if let training = dataset["training"] as? [[String: Any]] {
@@ -85,8 +94,8 @@ extension AILearningManager {
         else if let items = dataset["items"] as? [[String: Any]] {
             // Split into training and evaluation (80/20 split)
             let splitIndex = Int(Double(items.count) * 0.8)
-            trainingData = Array(items[0..<splitIndex])
-            evaluationData = Array(items[splitIndex..<items.count])
+            trainingData = Array(items[0 ..< splitIndex])
+            evaluationData = Array(items[splitIndex ..< items.count])
         }
         // If dataset is in a format we don't recognize
         else {
@@ -159,7 +168,10 @@ extension AILearningManager {
             let jsonData = try JSONSerialization.data(withJSONObject: data, options: .prettyPrinted)
             try jsonData.write(to: evalDataPath)
 
-            Debug.shared.log(message: "Successfully saved evaluation data to \(evalDataPath.lastPathComponent)", type: .info)
+            Debug.shared.log(
+                message: "Successfully saved evaluation data to \(evalDataPath.lastPathComponent)",
+                type: .info
+            )
 
             // Store the path for future reference
             UserDefaults.standard.set(evalDataPath.path, forKey: "LatestEvaluationDataPath")
@@ -191,7 +203,8 @@ extension AILearningManager {
     func checkForAvailableDatasets() {
         // Only proceed if auto-download is enabled and consent was given
         guard UserDefaults.standard.bool(forKey: "AIAutomaticDatasetDownload"),
-              UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") else {
+              UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection")
+        else {
             return
         }
 
@@ -239,11 +252,11 @@ extension AILearningManager {
 
         // Higher probability for certain intents
         if intent.contains("sign") || intent.contains("install") || intent.contains("navigation") {
-            return Double.random(in: 0...1) > 0.7 // 30% chance
+            return Double.random(in: 0 ... 1) > 0.7 // 30% chance
         }
 
         // Lower probability for other intents
-        return Double.random(in: 0...1) > 0.9 // 10% chance
+        return Double.random(in: 0 ... 1) > 0.9 // 10% chance
     }
 
     /// Simulate finding and downloading a dataset for an intent

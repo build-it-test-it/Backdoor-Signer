@@ -1,24 +1,19 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 // MARK: - UIView Extensions for AutoLayout
+
 extension UIView {
     /// Set up constraints with native AutoLayout
     /// - Parameter constraints: Array of constraints to activate
     func setupConstraints(_ constraints: [NSLayoutConstraint]) {
-        self.translatesAutoresizingMaskIntoConstraints = false
+        translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate(constraints)
     }
 
     /// Set up constraints with a closure
     /// - Parameter setup: Closure that returns constraints to activate
     func setupConstraints(_ setup: (UIView) -> [NSLayoutConstraint]) {
-        self.translatesAutoresizingMaskIntoConstraints = false
+        translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate(setup(self))
     }
 
@@ -26,7 +21,7 @@ extension UIView {
     /// - Parameter update: Closure that performs constraint updates
     func updateConstraints(_ update: () -> Void) {
         update()
-        self.layoutIfNeeded()
+        layoutIfNeeded()
     }
 
     /// Create a stack view with standard configuration
@@ -37,9 +32,10 @@ extension UIView {
     ///   - insets: Insets to apply to the stack view
     /// - Returns: Configured UIStackView
     static func createStack(axis: NSLayoutConstraint.Axis,
-                           spacing: CGFloat = 8,
-                           views: [UIView],
-                           insets: UIEdgeInsets = .zero) -> UIStackView {
+                            spacing: CGFloat = 8,
+                            views: [UIView],
+                            insets: UIEdgeInsets = .zero) -> UIStackView
+    {
         let stackView = UIStackView(arrangedSubviews: views)
         stackView.axis = axis
         stackView.spacing = spacing
@@ -50,6 +46,7 @@ extension UIView {
 }
 
 // MARK: - Internal Animation Helper
+
 class InternalAnimationHelper {
     /// Add an animated icon to a view (replacement for Lottie)
     /// - Parameters:
@@ -59,8 +56,9 @@ class InternalAnimationHelper {
     ///   - size: Size for the animation view
     /// - Returns: The configured UIImageView
     static func addAnimation(systemName: String, to view: UIView,
-                            loopMode: UIView.AnimationRepeatCount = .infinity,
-                            size: CGSize? = nil) -> UIImageView {
+                             loopMode _: UIView.AnimationRepeatCount = .infinity,
+                             size: CGSize? = nil) -> UIImageView
+    {
         // Create image view with SF Symbol
         let imageView = UIImageView()
         if let image = UIImage(systemName: systemName) {
@@ -84,14 +82,14 @@ class InternalAnimationHelper {
                 imageView.widthAnchor.constraint(equalToConstant: size.width),
                 imageView.heightAnchor.constraint(equalToConstant: size.height),
                 imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+                imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             ])
         } else {
             NSLayoutConstraint.activate([
                 imageView.topAnchor.constraint(equalTo: view.topAnchor),
                 imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                 imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+                imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             ])
         }
 
@@ -121,7 +119,7 @@ class InternalAnimationHelper {
             container.topAnchor.constraint(equalTo: view.topAnchor),
             container.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             container.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            container.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            container.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
 
         // Create content container with blur effect
@@ -137,7 +135,7 @@ class InternalAnimationHelper {
             contentContainer.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             contentContainer.centerYAnchor.constraint(equalTo: container.centerYAnchor),
             contentContainer.widthAnchor.constraint(equalToConstant: 200),
-            contentContainer.heightAnchor.constraint(equalToConstant: message != nil ? 200 : 150)
+            contentContainer.heightAnchor.constraint(equalToConstant: message != nil ? 200 : 150),
         ])
 
         // Add activity indicator to the content container
@@ -150,9 +148,9 @@ class InternalAnimationHelper {
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: contentContainer.contentView.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: contentContainer.contentView.centerYAnchor,
-                                                     constant: message != nil ? -20 : 0),
+                                                       constant: message != nil ? -20 : 0),
             activityIndicator.widthAnchor.constraint(equalToConstant: 50),
-            activityIndicator.heightAnchor.constraint(equalToConstant: 50)
+            activityIndicator.heightAnchor.constraint(equalToConstant: 50),
         ])
 
         // Add message label if provided
@@ -170,7 +168,7 @@ class InternalAnimationHelper {
                 label.centerXAnchor.constraint(equalTo: contentContainer.contentView.centerXAnchor),
                 label.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 20),
                 label.leadingAnchor.constraint(equalTo: contentContainer.contentView.leadingAnchor, constant: 16),
-                label.trailingAnchor.constraint(equalTo: contentContainer.contentView.trailingAnchor, constant: -16)
+                label.trailingAnchor.constraint(equalTo: contentContainer.contentView.trailingAnchor, constant: -16),
             ])
         }
 
@@ -189,6 +187,7 @@ class InternalAnimationHelper {
 }
 
 // MARK: - Internal UI Components
+
 class InternalUIComponents {
     /// Create a beautifully styled button with gradient
     /// - Parameters:
@@ -198,9 +197,10 @@ class InternalUIComponents {
     ///   - fontSize: Font size (default 16)
     /// - Returns: Configured button
     static func createGradientButton(title: String,
-                                    colors: [UIColor] = [.systemBlue, UIColor(red: 0, green: 0.5, blue: 1, alpha: 1)],
-                                    cornerRadius: CGFloat = 12,
-                                    fontSize: CGFloat = 16) -> UIButton {
+                                     colors: [UIColor] = [.systemBlue, UIColor(red: 0, green: 0.5, blue: 1, alpha: 1)],
+                                     cornerRadius: CGFloat = 12,
+                                     fontSize: CGFloat = 16) -> UIButton
+    {
         let button = UIButton(type: .custom)
         button.setTitle(title, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: fontSize, weight: .semibold)
@@ -237,7 +237,8 @@ class InternalUIComponents {
     ///   - cornerRadius: Corner radius
     /// - Returns: Configured card view
     static func createCardView(backgroundColor: UIColor = .systemBackground,
-                             cornerRadius: CGFloat = 16) -> UIView {
+                               cornerRadius: CGFloat = 16) -> UIView
+    {
         let cardView = UIView()
         cardView.backgroundColor = backgroundColor
         cardView.layer.cornerRadius = cornerRadius
@@ -259,8 +260,9 @@ class InternalUIComponents {
     ///   - borderColor: Border color
     /// - Returns: Configured text field with container
     static func createFloatingTextField(placeholder: String,
-                                      backgroundColor: UIColor = .systemBackground,
-                                      borderColor: UIColor = .systemGray4) -> UIView {
+                                        backgroundColor: UIColor = .systemBackground,
+                                        borderColor: UIColor = .systemGray4) -> UIView
+    {
         let container = UIView()
         container.backgroundColor = backgroundColor
         container.layer.cornerRadius = 8
@@ -277,7 +279,7 @@ class InternalUIComponents {
             textField.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
             textField.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
             textField.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
-            textField.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12)
+            textField.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12),
         ])
 
         return container
@@ -295,7 +297,7 @@ extension UIView {
             switch self {
             case .once:
                 return 1.0
-            case .finite(let count):
+            case let .finite(count):
                 return Float(count)
             case .infinity:
                 return .infinity

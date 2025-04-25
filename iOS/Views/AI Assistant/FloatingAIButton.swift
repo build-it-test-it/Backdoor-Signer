@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import UIKit
 
 // MARK: - FloatingAIButton
@@ -16,7 +9,7 @@ final class FloatingAIButton: UIView {
     private let aiButton: UIButton = {
         let btn = UIButton(type: .custom)
         btn.layer.cornerRadius = 30
-        
+
         let symbolConfig = UIImage.SymbolConfiguration(
             pointSize: 24,
             weight: .medium
@@ -25,7 +18,7 @@ final class FloatingAIButton: UIView {
             systemName: "bubble.left.and.bubble.right.fill",
             withConfiguration: symbolConfig
         )
-        
+
         btn.setImage(image, for: .normal)
         btn.tintColor = .white
         btn.accessibilityLabel = "AI Assistant"
@@ -64,12 +57,12 @@ final class FloatingAIButton: UIView {
         // Add and configure the button
         addSubview(aiButton)
         aiButton.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             aiButton.topAnchor.constraint(equalTo: topAnchor),
             aiButton.leadingAnchor.constraint(equalTo: leadingAnchor),
             aiButton.trailingAnchor.constraint(equalTo: trailingAnchor),
-            aiButton.bottomAnchor.constraint(equalTo: bottomAnchor)
+            aiButton.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
 
         // Set frame size
@@ -78,7 +71,7 @@ final class FloatingAIButton: UIView {
         configureShadow()
         configureGestures()
     }
-    
+
     private func configureShadow() {
         // Add shadow
         layer.shadowColor = UIColor.black.cgColor
@@ -86,7 +79,7 @@ final class FloatingAIButton: UIView {
         layer.shadowOffset = CGSize(width: 0, height: 4)
         layer.shadowRadius = shadowRadius
     }
-    
+
     private func configureGestures() {
         // Add gestures
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
@@ -131,16 +124,17 @@ final class FloatingAIButton: UIView {
         guard let position = retrievePosition(),
               let superview = superview,
               position.x > 0,
-              position.y > 0 else {
+              position.y > 0
+        else {
             return
         }
-        
+
         center = position
         adjustPositionToSafeBounds(in: superview)
-        
+
         Debug.shared.log(message: "Restored button position to: \(center)", type: .debug)
     }
-    
+
     private func adjustPositionToSafeBounds(in view: UIView) {
         let safeArea = view.safeAreaInsets
         let minX = defaultMargin + safeArea.left + frame.width / 2
@@ -154,17 +148,18 @@ final class FloatingAIButton: UIView {
 
     private func persistPosition() {
         guard let positionData = try? JSONEncoder().encode(center) else { return }
-        
+
         UserDefaults.standard.set(positionData, forKey: positionStorageKey)
         UserDefaults.standard.synchronize() // Ensure the position is saved immediately
         lastStoredPosition = center
-        
+
         Debug.shared.log(message: "Saved button position: \(center)", type: .debug)
     }
 
     private func retrievePosition() -> CGPoint? {
         if let positionData = UserDefaults.standard.data(forKey: positionStorageKey),
-           let position = try? JSONDecoder().decode(CGPoint.self, from: positionData) {
+           let position = try? JSONDecoder().decode(CGPoint.self, from: positionData)
+        {
             return position
         }
         return lastStoredPosition
@@ -223,13 +218,13 @@ final class FloatingAIButton: UIView {
         let halfWidth = frame.width / 2
         let halfHeight = frame.height / 2
         let margin = defaultMargin
-        
+
         // Calculate safe boundaries
         let minX = margin + halfWidth
         let maxX = superview.bounds.width - margin - halfWidth
         let minY = margin + halfHeight
         let maxY = superview.bounds.height - margin - halfHeight
-        
+
         // Restrict position to safe boundaries
         center.x = max(minX, min(center.x, maxX))
         center.y = max(minY, min(center.y, maxY))
@@ -239,11 +234,11 @@ final class FloatingAIButton: UIView {
         let margin = defaultMargin
         let halfWidth = frame.width / 2
         let screenCenter = superview.bounds.width / 2
-        
+
         // Determine which edge to snap to
-        let newX = center.x < screenCenter ? 
-                   margin + halfWidth : 
-                   superview.bounds.width - margin - halfWidth
+        let newX = center.x < screenCenter ?
+            margin + halfWidth :
+            superview.bounds.width - margin - halfWidth
 
         // Animate to edge with spring effect
         UIView.animate(
@@ -263,7 +258,7 @@ final class FloatingAIButton: UIView {
         // Add haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
-        
+
         // Apply pulse animation for visual feedback
         UIView.animate(withDuration: 0.15, animations: {
             self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
@@ -277,21 +272,21 @@ final class FloatingAIButton: UIView {
                 }
             })
         })
-        
+
         // Enhance the glow effect temporarily
         let currentLayer = layer.sublayers?.first { $0 is CAGradientLayer } as? CAGradientLayer
         let originalColors = currentLayer?.colors
-        
+
         // Create a brighter glow effect
         let tintColor = Preferences.appTintColor.uiColor
         let brighterTint = tintColor.adjustBrightness(by: 0.4)
-        
+
         // Apply enhanced glow
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         currentLayer?.colors = [brighterTint.cgColor, tintColor.cgColor]
         CATransaction.commit()
-        
+
         // Restore original colors after a delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             CATransaction.begin()
@@ -323,7 +318,7 @@ extension UIColor {
         var brightness: CGFloat = 0
         var alpha: CGFloat = 0
 
-        if self.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) {
+        if getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) {
             return UIColor(
                 hue: hue,
                 saturation: saturation,
@@ -344,7 +339,7 @@ extension CGPoint: Codable {
     enum CodingKeys: String, CodingKey {
         case x, y
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let x = try container.decode(CGFloat.self, forKey: .x)

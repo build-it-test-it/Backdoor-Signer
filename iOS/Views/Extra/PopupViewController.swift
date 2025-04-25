@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -30,7 +24,7 @@ class PopupViewController: UIViewController {
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20)
+            stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
         ])
     }
 
@@ -102,8 +96,9 @@ class PopupViewControllerButton: UIButton {
 
         // Special styling for accent actions (pink colored buttons)
         if color == UIColor(hex: "#FF6482") ||
-           colorIsCloseToAccent(color) ||
-           color == .tintColor {
+            colorIsCloseToAccent(color) ||
+            color == .tintColor
+        {
             // For primary actions, use custom gradient
             setupGradient(withBaseColor: UIColor(hex: "#FF6482"))
             layer.borderWidth = 0
@@ -131,8 +126,9 @@ class PopupViewControllerButton: UIButton {
             guard let self = self else { return }
 
             if color == UIColor(hex: "#FF6482") ||
-               self.colorIsCloseToAccent(color) ||
-               color == .tintColor {
+                self.colorIsCloseToAccent(color) ||
+                color == .tintColor
+            {
                 // Primary action buttons get a flowing LED border effect
                 self.addFlowingLEDEffect(
                     color: color,
@@ -216,22 +212,29 @@ class PopupViewControllerButton: UIButton {
 
     @objc func handleButtonReleaseEvent() {
         // Visual feedback
-        UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: [], animations: {
-            self.transform = .identity
-            self.layer.shadowOpacity = 0.2
+        UIView.animate(
+            withDuration: 0.2,
+            delay: 0,
+            usingSpringWithDamping: 0.7,
+            initialSpringVelocity: 0.5,
+            options: [],
+            animations: {
+                self.transform = .identity
+                self.layer.shadowOpacity = 0.2
 
-            if self.gradientLayer.superlayer != nil {
-                // Restore original gradient colors
-                let adjustedColors = [
-                    (self.originalBackgroundColor?.lighter(by: 10) ?? .white).cgColor,
-                    (self.originalBackgroundColor?.darker(by: 10) ?? .gray).cgColor
-                ]
-                self.gradientLayer.colors = adjustedColors
-            } else {
-                // Restore solid color
-                self.alpha = 1.0
+                if self.gradientLayer.superlayer != nil {
+                    // Restore original gradient colors
+                    let adjustedColors = [
+                        (self.originalBackgroundColor?.lighter(by: 10) ?? .white).cgColor,
+                        (self.originalBackgroundColor?.darker(by: 10) ?? .gray).cgColor,
+                    ]
+                    self.gradientLayer.colors = adjustedColors
+                } else {
+                    // Restore solid color
+                    self.alpha = 1.0
+                }
             }
-        })
+        )
     }
 
     @objc private func buttonCancelled() {
@@ -243,7 +246,7 @@ class PopupViewControllerButton: UIButton {
         if gradientLayer.superlayer != nil {
             let adjustedColors = [
                 (originalBackgroundColor?.lighter(by: 10) ?? .white).cgColor,
-                (originalBackgroundColor?.darker(by: 10) ?? .gray).cgColor
+                (originalBackgroundColor?.darker(by: 10) ?? .gray).cgColor,
             ]
             gradientLayer.colors = adjustedColors
         }
@@ -267,10 +270,10 @@ class PopupViewControllerButton: UIButton {
 
 // Helper color extensions - only isLight() is needed here since lighter/darker are already defined
 // Use fileprivate to avoid conflicts with other extensions
-fileprivate extension UIColor {
+private extension UIColor {
     func isLight() -> Bool {
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-        self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 
         // Calculate relative luminance
         let luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue

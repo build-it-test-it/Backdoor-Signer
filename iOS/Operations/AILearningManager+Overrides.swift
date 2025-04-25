@@ -1,15 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
 /// Extension that patches AILearningManager's training to use all user interactions
 extension AILearningManager {
-
     /// Apply overrides to make the AI learn from ALL user interactions
     func applyAllInteractionTrainingOverrides() {
         // Replace the standard training evaluation with our enhanced version

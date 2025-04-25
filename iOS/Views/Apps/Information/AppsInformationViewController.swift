@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import Foundation
 import UIKit
@@ -16,28 +9,28 @@ class AppsInformationViewController: UIViewController {
         [
             String.localized("APPS_INFORMATION_TITLE_NAME"),
             String.localized("APPS_INFORMATION_TITLE_VERSION"),
-            String.localized("APPS_INFORMATION_TITLE_IDENTIFIER")
+            String.localized("APPS_INFORMATION_TITLE_IDENTIFIER"),
             // String.localized("APPS_INFORMATION_TITLE_SIZE")
         ],
         [
-            String.localized("APPS_INFORMATION_TITLE_DATE_ADDED")
+            String.localized("APPS_INFORMATION_TITLE_DATE_ADDED"),
         ],
         [
             String.localized("APPS_INFORMATION_TITLE_BUNDLE_NAME"),
             String.localized("APPS_INFORMATION_TITLE_BUNDLE_PATH"),
             String.localized("APPS_INFORMATION_TITLE_ICON_FILE"),
-            "UUID"
+            "UUID",
         ],
         [
-            String.localized("APPS_INFORMATION_TITLE_OPEN_IN_FILES")
-        ]
+            String.localized("APPS_INFORMATION_TITLE_OPEN_IN_FILES"),
+        ],
     ]
 
     var sectionTitles = [
         "Info",
         "",
         String.localized("APPS_INFORMATION_SECTION_TITLE_NAME"),
-        ""
+        "",
     ]
 
     var source: NSManagedObject!

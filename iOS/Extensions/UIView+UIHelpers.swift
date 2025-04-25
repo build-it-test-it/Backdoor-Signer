@@ -1,12 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
-// MARK: - UIView Extensions 
+// MARK: - UIView Extensions
+
 extension UIView {
     /// Add and setup constraints for a child view in a single call
     /// - Parameters:
@@ -53,13 +48,13 @@ extension UIView {
         let container = UIView()
         container.backgroundColor = UIColor.black.withAlphaComponent(0.3)
         container.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(container)
+        addSubview(container)
 
         NSLayoutConstraint.activate([
-            container.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            container.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            container.topAnchor.constraint(equalTo: self.topAnchor),
-            container.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            container.leadingAnchor.constraint(equalTo: leadingAnchor),
+            container.trailingAnchor.constraint(equalTo: trailingAnchor),
+            container.topAnchor.constraint(equalTo: topAnchor),
+            container.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
 
         // Create content container with blur effect
@@ -74,7 +69,7 @@ extension UIView {
             contentContainer.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             contentContainer.centerYAnchor.constraint(equalTo: container.centerYAnchor),
             contentContainer.widthAnchor.constraint(equalToConstant: 200),
-            contentContainer.heightAnchor.constraint(equalToConstant: text != nil ? 200 : 150)
+            contentContainer.heightAnchor.constraint(equalToConstant: text != nil ? 200 : 150),
         ])
 
         // Add activity indicator
@@ -86,9 +81,9 @@ extension UIView {
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: contentContainer.contentView.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: contentContainer.contentView.centerYAnchor,
-                                                     constant: text != nil ? -20 : 0),
+                                                       constant: text != nil ? -20 : 0),
             activityIndicator.widthAnchor.constraint(equalToConstant: 50),
-            activityIndicator.heightAnchor.constraint(equalToConstant: 50)
+            activityIndicator.heightAnchor.constraint(equalToConstant: 50),
         ])
 
         // Add message label if provided
@@ -105,7 +100,7 @@ extension UIView {
                 label.centerXAnchor.constraint(equalTo: contentContainer.contentView.centerXAnchor),
                 label.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 20),
                 label.leadingAnchor.constraint(equalTo: contentContainer.contentView.leadingAnchor, constant: 16),
-                label.trailingAnchor.constraint(equalTo: contentContainer.contentView.trailingAnchor, constant: -16)
+                label.trailingAnchor.constraint(equalTo: contentContainer.contentView.trailingAnchor, constant: -16),
             ])
         }
 
@@ -135,11 +130,11 @@ extension UIView {
         imageView.tintColor = tintColor
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(imageView)
+        addSubview(imageView)
 
         NSLayoutConstraint.activate([
             imageView.widthAnchor.constraint(equalToConstant: size.width),
-            imageView.heightAnchor.constraint(equalToConstant: size.height)
+            imageView.heightAnchor.constraint(equalToConstant: size.height),
         ])
 
         // Add animation
@@ -199,7 +194,7 @@ extension UIView {
         layoutIfNeeded()
     }
 
-    /// Compatibility method for existing code 
+    /// Compatibility method for existing code
     @available(*, deprecated, message: "Use addViewGradientBackground instead")
     func addGradientBackground(
         colors: [UIColor] = [.systemBlue, UIColor(red: 0, green: 0.5, blue: 1, alpha: 1)],
@@ -220,6 +215,7 @@ extension UIView {
 }
 
 // MARK: - UIButton Extensions
+
 extension UIButton {
     /// Convert a standard UIButton to a gradient button
     /// - Parameters:
@@ -279,6 +275,7 @@ extension UIButton {
 }
 
 // MARK: - UIViewController Extensions
+
 extension UIViewController {
     /// Show a loading overlay
     /// - Parameters:
@@ -311,7 +308,7 @@ extension UIViewController {
         // Center the animation
         NSLayoutConstraint.activate([
             imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
         ])
 
         // Add message label if provided
@@ -326,7 +323,7 @@ extension UIViewController {
 
             NSLayoutConstraint.activate([
                 label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8)
+                label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
             ])
 
             // Remove label after animation
@@ -344,6 +341,7 @@ extension UIViewController {
 }
 
 // MARK: - CALayer Extensions
+
 extension CALayer {
     /// Apply a shadow with blue tint to the layer
     func applyBlueTintedShadow() {
@@ -356,6 +354,7 @@ extension CALayer {
 }
 
 // MARK: - Animation Helper (replacing the Lottie-based implementation)
+
 class AnimationHelper {
     /// Show a loading animation overlay
     /// - Parameters:
@@ -378,6 +377,7 @@ class AnimationHelper {
 }
 
 // MARK: - ElegantUIComponents (Replacement without SnapKit & Lottie)
+
 class ElegantUIComponents {
     /// Create a beautifully styled button with gradient
     /// - Parameters:
@@ -392,7 +392,12 @@ class ElegantUIComponents {
         cornerRadius: CGFloat = 12,
         fontSize: CGFloat = 16
     ) -> UIButton {
-        return UIButton.createGradientButton(title: title, colors: colors, cornerRadius: cornerRadius, fontSize: fontSize)
+        return UIButton.createGradientButton(
+            title: title,
+            colors: colors,
+            cornerRadius: cornerRadius,
+            fontSize: fontSize
+        )
     }
 
     /// Create a card view with shadow
@@ -445,7 +450,7 @@ class ElegantUIComponents {
             textField.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
             textField.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
             textField.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
-            textField.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12)
+            textField.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12),
         ])
 
         return container

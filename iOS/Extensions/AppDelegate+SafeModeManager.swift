@@ -1,15 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted 
-// under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// Enhanced SafeMode manager
 extension AppDelegate {
-
     /// Check if the app should launch in safe mode based on crash history
     func shouldLaunchInSafeMode() -> Bool {
         return SafeModeLauncher.shared.inSafeMode
@@ -47,7 +39,9 @@ extension AppDelegate {
 
         // Add description label with improved explanation
         let descLabel = UILabel()
-        descLabel.text = "The app has been started in safe mode due to repeated crashes. Advanced features are disabled for stability.\n\nYou can still use basic app functions while we prevent crashes from recurring."
+        descLabel
+            .text =
+            "The app has been started in safe mode due to repeated crashes. Advanced features are disabled for stability.\n\nYou can still use basic app functions while we prevent crashes from recurring."
         descLabel.font = UIFont.systemFont(ofSize: 16)
         descLabel.textAlignment = .center
         descLabel.numberOfLines = 0
@@ -124,7 +118,7 @@ extension AppDelegate {
             crashInfoLabel.topAnchor.constraint(equalTo: continueButton.bottomAnchor, constant: 25),
             crashInfoLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             crashInfoLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
-            crashInfoLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20)
+            crashInfoLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -20),
         ])
 
         // Apply LED effects
@@ -226,7 +220,7 @@ extension AppDelegate {
             banner.heightAnchor.constraint(equalToConstant: 24),
 
             label.centerXAnchor.constraint(equalTo: banner.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: banner.centerYAnchor)
+            label.centerYAnchor.constraint(equalTo: banner.centerYAnchor),
         ])
 
         // Add LED glow effect
@@ -266,18 +260,18 @@ extension SafeModeLauncher {
     /// Check if a specific feature should be enabled in safe mode
     func isFeatureEnabledInSafeMode(_ feature: SafeModeFeature) -> Bool {
         switch feature {
-            case .fileManagement:
-                return true // Essential feature, always enabled
-            case .settings:
-                return true // Basic settings should be available
-            case .appSigningBasic:
-                return true // Basic signing without advanced features
-            case .appSigningAdvanced:
-                return false // Disable advanced signing features
-            case .aiAssistant:
-                return false // Disable AI features
-            case .sources:
-                return true // Allow viewing sources but limit downloads
+        case .fileManagement:
+            return true // Essential feature, always enabled
+        case .settings:
+            return true // Basic settings should be available
+        case .appSigningBasic:
+            return true // Basic signing without advanced features
+        case .appSigningAdvanced:
+            return false // Disable advanced signing features
+        case .aiAssistant:
+            return false // Disable AI features
+        case .sources:
+            return true // Allow viewing sources but limit downloads
         }
     }
 }

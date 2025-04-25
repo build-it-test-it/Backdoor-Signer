@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import Foundation
 
 /// Represents a single iOS app entitlement
@@ -37,15 +30,15 @@ struct Entitlement: Codable, Identifiable, Equatable {
 
         // Determine value type based on the string value
         if stringValue.lowercased() == "true" || stringValue.lowercased() == "false" {
-            self.valueType = .boolean
+            valueType = .boolean
         } else if let _ = Int(stringValue) {
-            self.valueType = .integer
+            valueType = .integer
         } else if stringValue.hasPrefix("[") && stringValue.hasSuffix("]") {
-            self.valueType = .array
+            valueType = .array
         } else if stringValue.hasPrefix("{") && stringValue.hasSuffix("}") {
-            self.valueType = .dictionary
+            valueType = .dictionary
         } else {
-            self.valueType = .string
+            valueType = .string
         }
     }
 
@@ -66,48 +59,48 @@ struct Entitlement: Codable, Identifiable, Equatable {
 
         // Validate value format based on type
         switch valueType {
-            case .boolean:
-                return stringValue.lowercased() == "true" || stringValue.lowercased() == "false"
+        case .boolean:
+            return stringValue.lowercased() == "true" || stringValue.lowercased() == "false"
 
-            case .integer:
-                return Int(stringValue) != nil
+        case .integer:
+            return Int(stringValue) != nil
 
-            case .string:
-                return !stringValue.isEmpty
+        case .string:
+            return !stringValue.isEmpty
 
-            case .array:
-                // Basic validation for array format
-                let trimmed = stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                return trimmed.hasPrefix("[") && trimmed.hasSuffix("]")
+        case .array:
+            // Basic validation for array format
+            let trimmed = stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.hasPrefix("[") && trimmed.hasSuffix("]")
 
-            case .dictionary:
-                // Basic validation for dictionary format
-                let trimmed = stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                return trimmed.hasPrefix("{") && trimmed.hasSuffix("}")
+        case .dictionary:
+            // Basic validation for dictionary format
+            let trimmed = stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.hasPrefix("{") && trimmed.hasSuffix("}")
         }
     }
 
     /// Convert to property list compatible value
     func toPlistValue() -> Any {
         switch valueType {
-            case .boolean:
-                return stringValue.lowercased() == "true"
+        case .boolean:
+            return stringValue.lowercased() == "true"
 
-            case .integer:
-                return Int(stringValue) ?? 0
+        case .integer:
+            return Int(stringValue) ?? 0
 
-            case .string:
-                return stringValue
+        case .string:
+            return stringValue
 
-            case .array:
-                // Basic array parsing - in a real implementation, this would be more robust
-                let content = stringValue.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
-                return content.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        case .array:
+            // Basic array parsing - in a real implementation, this would be more robust
+            let content = stringValue.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
+            return content.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-            case .dictionary:
-                // For simplicity, returning a string representation
-                // In a real implementation, this would parse the dictionary properly
-                return ["value": stringValue]
+        case .dictionary:
+            // For simplicity, returning a string representation
+            // In a real implementation, this would parse the dictionary properly
+            return ["value": stringValue]
         }
     }
 }
@@ -122,7 +115,7 @@ enum EntitlementValueType: String, Codable, CaseIterable {
 }
 
 /// Collection of common iOS entitlements for quick reference
-struct CommonEntitlements {
+enum CommonEntitlements {
     static let appGroups = Entitlement(
         key: "com.apple.security.application-groups",
         valueType: .array,
@@ -213,7 +206,7 @@ struct CommonEntitlements {
             hotspotConfiguration,
             nfcTagReader,
             siriKit,
-            accessWiFiInformation
+            accessWiFiInformation,
         ]
     }
 }

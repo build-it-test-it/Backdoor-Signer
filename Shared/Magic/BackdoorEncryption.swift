@@ -1,17 +1,9 @@
-//
-// BackdoorEncryption.swift
-//
-// Implements custom encryption and decryption for .backdoor files
-// Based on a Feistel network with custom padding and permutation
-//
-
-import Foundation
 import CryptoKit
+import Foundation
 
 /// Provides custom encryption and decryption capabilities for .backdoor files
 /// This implementation matches the Python reference implementation for compatibility
 class BackdoorEncryption {
-
     // Hardcoded secret key for encryption and decryption
     private static let SECRET = "bdg_was_here_2025_backdoor_245".data(using: .utf8)!
 
@@ -54,7 +46,7 @@ class BackdoorEncryption {
 
         let hash = SHA256.hash(data: combined)
         return hash.withUnsafeBytes { bytes in
-            return Data(bytes.prefix(8))
+            Data(bytes.prefix(8))
         }
     }
 
@@ -67,7 +59,7 @@ class BackdoorEncryption {
         var L = block.prefix(8)
         var R = block.suffix(8)
 
-        for round in 0..<4 {
+        for round in 0 ..< 4 {
             // Create round key
             let roundBytes = withUnsafeBytes(of: UInt32(round).bigEndian) { Data($0) }
             var roundKeyInput = key
@@ -79,7 +71,7 @@ class BackdoorEncryption {
 
             // XOR left side with F output
             var newR = Data(count: 8)
-            for i in 0..<8 {
+            for i in 0 ..< 8 {
                 newR[i] = L[i] ^ FVal[i]
             }
 
@@ -103,7 +95,7 @@ class BackdoorEncryption {
         var R = block.prefix(8)
         var L = block.suffix(8)
 
-        for round in (0..<4).reversed() {
+        for round in (0 ..< 4).reversed() {
             // Create round key (same as in encryption)
             let roundBytes = withUnsafeBytes(of: UInt32(round).bigEndian) { Data($0) }
             var roundKeyInput = key
@@ -115,7 +107,7 @@ class BackdoorEncryption {
 
             // XOR right side with F output
             var newL = Data(count: 8)
-            for i in 0..<8 {
+            for i in 0 ..< 8 {
                 newL[i] = R[i] ^ FVal[i]
             }
 
@@ -144,7 +136,7 @@ class BackdoorEncryption {
 
         for i in stride(from: 0, to: paddedData.count, by: 16) {
             let blockEnd = min(i + 16, paddedData.count)
-            let block = paddedData[i..<blockEnd]
+            let block = paddedData[i ..< blockEnd]
 
             // Encrypt and permute each block
             let encryptedBlock = permute(encryptBlock(block, key: encryptionKey))
@@ -167,7 +159,7 @@ class BackdoorEncryption {
         // Process each 16-byte block
         for i in stride(from: 0, to: encryptedData.count, by: 16) {
             let blockEnd = min(i + 16, encryptedData.count)
-            let block = encryptedData[i..<blockEnd]
+            let block = encryptedData[i ..< blockEnd]
 
             // Reverse permutation and decrypt
             let decryptedBlock = decryptBlock(permute(block), key: decryptionKey)

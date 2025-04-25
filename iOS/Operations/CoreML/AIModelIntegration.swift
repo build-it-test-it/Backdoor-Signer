@@ -1,16 +1,9 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import Foundation
 import CoreML
+import Foundation
 import UIKit
 
 /// Extension to CustomAIService that integrates CoreML model predictions
 extension CustomAIService {
-
     /// Enhanced analyze user intent using CoreML
     func analyzeUserIntentWithML(message: String, completion: @escaping (MessageIntent) -> Void) {
         // Start with traditional pattern matching as a fallback
@@ -19,7 +12,7 @@ extension CustomAIService {
         // Try to enhance with ML model
         CoreMLManager.shared.predictIntent(from: message) { result in
             switch result {
-            case .success(let prediction):
+            case let .success(prediction):
                 // Only use ML prediction if confidence is high enough
                 if prediction.confidence > 0.6 {
                     // Convert ML model's intent to our MessageIntent type
@@ -31,20 +24,28 @@ extension CustomAIService {
                     completion(enhancedIntent)
                 } else {
                     // Fall back to pattern-based intent if ML confidence is low
-                    Debug.shared.log(message: "ML confidence too low (\(prediction.confidence)), using pattern matching", type: .debug)
+                    Debug.shared.log(
+                        message: "ML confidence too low (\(prediction.confidence)), using pattern matching",
+                        type: .debug
+                    )
                     completion(patternBasedIntent)
                 }
 
-            case .failure(let error):
+            case let .failure(error):
                 // Log error and fall back to pattern matching
-                Debug.shared.log(message: "ML intent prediction failed: \(error.localizedDescription), using pattern matching", type: .warning)
+                Debug.shared.log(
+                    message: "ML intent prediction failed: \(error.localizedDescription), using pattern matching",
+                    type: .warning
+                )
                 completion(patternBasedIntent)
             }
         }
     }
 
     /// Convert ML model intent format to our MessageIntent enum
-    private func convertMLIntentToMessageIntent(intent: String, parameters: [String: Any], message: String) -> MessageIntent {
+    private func convertMLIntentToMessageIntent(intent: String, parameters: [String: Any],
+                                                message: String) -> MessageIntent
+    {
         // Map the ML model's intent to our MessageIntent format
         switch intent.lowercased() {
         case "sign_app", "signing":
@@ -86,7 +87,10 @@ extension CustomAIService {
                 return .question(topic: topic)
             } else {
                 // If no specific topic found, extract from message
-                let topic = message.replacing(regularExpression: "\\?|what|how|when|where|why|who|is|are|can|could|would|will|should", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+                let topic = message.replacing(
+                    regularExpression: "\\?|what|how|when|where|why|who|is|are|can|could|would|will|should",
+                    with: ""
+                ).trimmingCharacters(in: .whitespacesAndNewlines)
                 return .question(topic: topic)
             }
 
@@ -142,7 +146,7 @@ extension CustomAIService {
                 "I understand your frustration. ",
                 "I'm sorry to hear that. ",
                 "Let me help resolve that for you. ",
-                "I'll do my best to help with this issue. "
+                "I'll do my best to help with this issue. ",
             ]
 
             // Only add prefix if it doesn't already have one
@@ -165,7 +169,7 @@ extension Result {
     /// Get the success value or return a default
     func getOrElse(_ defaultValue: Success) -> Success {
         switch self {
-        case .success(let value):
+        case let .success(value):
             return value
         case .failure:
             return defaultValue

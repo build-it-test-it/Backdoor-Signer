@@ -1,13 +1,7 @@
-//
-//  TerminalViewController.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import UIKit
 
 // MARK: - WebDAV Models
+
 struct WebDAVCredentials: Codable {
     let url: String
     let username: String
@@ -37,6 +31,7 @@ struct WebDAVClients: Codable {
 
 class TerminalViewController: UIViewController {
     // MARK: - UI Components
+
     private let terminalOutputTextView = TerminalTextView()
     private let commandInputView = CommandInputView()
     private let activityIndicator = UIActivityIndicatorView(style: .medium)
@@ -44,6 +39,7 @@ class TerminalViewController: UIViewController {
     private let connectionStatusView = UIView()
 
     // MARK: - Properties
+
     private let history = CommandHistory()
     private var isExecuting = false
     private let logger = Debug.shared
@@ -51,6 +47,7 @@ class TerminalViewController: UIViewController {
     private var userPreferenceWebSockets = true
 
     // MARK: - Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -125,11 +122,11 @@ class TerminalViewController: UIViewController {
     private func updateTitle() {
         // Update navigation title to include connection mode
         if isWebSocketConnected {
-            self.title = "Terminal [WebSocket]"
+            title = "Terminal [WebSocket]"
         } else if !userPreferenceWebSockets {
-            self.title = "Terminal [HTTP]"
+            title = "Terminal [HTTP]"
         } else {
-            self.title = "Terminal [HTTP - Reconnecting]"
+            title = "Terminal [HTTP - Reconnecting]"
         }
     }
 
@@ -158,6 +155,7 @@ class TerminalViewController: UIViewController {
     }
 
     // MARK: - UI Setup
+
     private func setupUI() {
         view.backgroundColor = UIColor(named: "Background") ?? UIColor.systemBackground
 
@@ -294,7 +292,9 @@ class TerminalViewController: UIViewController {
         ctrlCButton.accessibilityLabel = "Interrupt Command"
 
         // WebSocket toggle button
-        let wsImage = UIImage(systemName: isWebSocketConnected ? "antenna.radiowaves.left.and.right" : "antenna.radiowaves.left.and.right.slash")
+        let wsImage =
+            UIImage(systemName: isWebSocketConnected ? "antenna.radiowaves.left.and.right" :
+                "antenna.radiowaves.left.and.right.slash")
         let wsButton = UIBarButtonItem(
             image: wsImage,
             style: .plain,
@@ -312,7 +312,20 @@ class TerminalViewController: UIViewController {
         )
         viewFilesButton.accessibilityLabel = "View Files"
 
-        toolbar.items = [clearButton, flexSpace, historyUpButton, historyDownButton, flexSpace, tabButton, flexSpace, ctrlCButton, flexSpace, viewFilesButton, flexSpace, wsButton]
+        toolbar.items = [
+            clearButton,
+            flexSpace,
+            historyUpButton,
+            historyDownButton,
+            flexSpace,
+            tabButton,
+            flexSpace,
+            ctrlCButton,
+            flexSpace,
+            viewFilesButton,
+            flexSpace,
+            wsButton,
+        ]
         toolbar.sizeToFit()
         commandInputView.inputAccessoryView = toolbar
     }
@@ -322,7 +335,10 @@ class TerminalViewController: UIViewController {
 
         // Update WebSocket toggle button (last item)
         if let wsButton = items.last {
-            wsButton.image = UIImage(systemName: isWebSocketConnected ? "antenna.radiowaves.left.and.right" : "antenna.radiowaves.left.and.right.slash")
+            wsButton
+                .image =
+                UIImage(systemName: isWebSocketConnected ? "antenna.radiowaves.left.and.right" :
+                    "antenna.radiowaves.left.and.right.slash")
             wsButton.accessibilityLabel = isWebSocketConnected ? "Disable WebSocket" : "Enable WebSocket"
         }
     }
@@ -354,7 +370,7 @@ class TerminalViewController: UIViewController {
             connectionStatusView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             connectionStatusView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
             connectionStatusView.widthAnchor.constraint(equalToConstant: 10),
-            connectionStatusView.heightAnchor.constraint(equalToConstant: 10)
+            connectionStatusView.heightAnchor.constraint(equalToConstant: 10),
         ])
     }
 
@@ -380,6 +396,7 @@ class TerminalViewController: UIViewController {
     }
 
     // MARK: - Terminal Functions
+
     private func executeCommand(_ command: String) {
         guard !command.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             appendToTerminal("\n$ ", isInput: false)
@@ -415,7 +432,7 @@ class TerminalViewController: UIViewController {
                     case .success:
                         // Terminal output already updated incrementally via streamHandler
                         break
-                    case .failure(let error):
+                    case let .failure(error):
                         self.appendToTerminal("\nError: \(error.localizedDescription)", isInput: false)
                     }
 
@@ -427,25 +444,29 @@ class TerminalViewController: UIViewController {
             // Legacy HTTP-based execution without streaming
             logger.log(message: "Executing command via HTTP: \(command)", type: .info)
 
-            TerminalService.shared.executeCommand(command, outputHandler: { _ in /* No streaming needed here */ }, completion: { [weak self] result in
-                DispatchQueue.main.async {
-                    guard let self = self else { return }
+            TerminalService.shared.executeCommand(
+                command,
+                outputHandler: { _ in /* No streaming needed here */ },
+                completion: { [weak self] result in
+                    DispatchQueue.main.async {
+                        guard let self = self else { return }
 
-                    self.activityIndicator.stopAnimating()
-                    self.isExecuting = false
+                        self.activityIndicator.stopAnimating()
+                        self.isExecuting = false
 
-                    switch result {
-                    case .success:
-                        // Success case doesn't return a String output
-                        self.appendToTerminal("Command executed successfully", isInput: false)
-                    case .failure(let error):
-                        self.appendToTerminal("Error: \(error.localizedDescription)", isInput: false)
+                        switch result {
+                        case .success:
+                            // Success case doesn't return a String output
+                            self.appendToTerminal("Command executed successfully", isInput: false)
+                        case let .failure(error):
+                            self.appendToTerminal("Error: \(error.localizedDescription)", isInput: false)
+                        }
+
+                        self.appendToTerminal("\n$ ", isInput: false)
+                        self.scrollToBottom()
                     }
-
-                    self.appendToTerminal("\n$ ", isInput: false)
-                    self.scrollToBottom()
                 }
-            })
+            )
         }
     }
 
@@ -471,11 +492,12 @@ class TerminalViewController: UIViewController {
         // Create attributed string for the new chunk
         let attributedString = NSMutableAttributedString(string: text)
         attributedString.addAttribute(.foregroundColor,
-                                     value: outputColor,
-                                     range: NSRange(location: 0, length: text.count))
+                                      value: outputColor,
+                                      range: NSRange(location: 0, length: text.count))
 
         // Append to existing text
-        let newAttributedText = NSMutableAttributedString(attributedString: terminalOutputTextView.attributedText ?? NSAttributedString())
+        let newAttributedText = NSMutableAttributedString(attributedString: terminalOutputTextView
+            .attributedText ?? NSAttributedString())
         newAttributedText.append(attributedString)
         terminalOutputTextView.attributedText = newAttributedText
 
@@ -503,8 +525,8 @@ class TerminalViewController: UIViewController {
             }
 
             attributedString.addAttribute(.foregroundColor,
-                                         value: userInputColor,
-                                         range: NSRange(location: 0, length: text.count))
+                                          value: userInputColor,
+                                          range: NSRange(location: 0, length: text.count))
         } else {
             let outputColor: UIColor
             switch colorTheme {
@@ -519,11 +541,12 @@ class TerminalViewController: UIViewController {
             }
 
             attributedString.addAttribute(.foregroundColor,
-                                         value: outputColor,
-                                         range: NSRange(location: 0, length: text.count))
+                                          value: outputColor,
+                                          range: NSRange(location: 0, length: text.count))
         }
 
-        let newAttributedText = NSMutableAttributedString(attributedString: terminalOutputTextView.attributedText ?? NSAttributedString())
+        let newAttributedText = NSMutableAttributedString(attributedString: terminalOutputTextView
+            .attributedText ?? NSAttributedString())
         newAttributedText.append(attributedString)
         terminalOutputTextView.attributedText = newAttributedText
         scrollToBottom()
@@ -538,6 +561,7 @@ class TerminalViewController: UIViewController {
     }
 
     // MARK: - Actions
+
     @objc private func clearTerminal() {
         terminalOutputTextView.text = ""
         appendToTerminal("$ ", isInput: false)
@@ -573,11 +597,11 @@ class TerminalViewController: UIViewController {
         commandInputView.becomeFirstResponder()
     }
 
-    @objc private func keyboardWillShow(_ notification: Notification) {
+    @objc private func keyboardWillShow(_: Notification) {
         scrollToBottom()
     }
 
-    @objc private func keyboardWillHide(_ notification: Notification) {
+    @objc private func keyboardWillHide(_: Notification) {
         // Handle keyboard hiding if needed
     }
 
@@ -615,11 +639,11 @@ class TerminalViewController: UIViewController {
                 self.activityIndicator.stopAnimating()
 
                 switch result {
-                case .success(let credentials):
+                case let .success(credentials):
                     // Open Files app with WebDAV connection
                     self.openWebDAVLocation(credentials: credentials)
 
-                case .failure(let error):
+                case let .failure(error):
                     // Show error alert
                     self.showErrorAlert(title: "Failed to Access Files", message: error.localizedDescription)
                     self.logger.log(message: "WebDAV access error: \(error.localizedDescription)", type: .error)
@@ -634,7 +658,11 @@ class TerminalViewController: UIViewController {
         TerminalService.shared.getCurrentSessionId { [weak self] sessionId in
             guard let self = self else { return }
             guard let sessionId = sessionId else {
-                completion(.failure(NSError(domain: "terminal", code: 1, userInfo: [NSLocalizedDescriptionKey: "No active terminal session"])))
+                completion(.failure(NSError(
+                    domain: "terminal",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "No active terminal session"]
+                )))
                 return
             }
 
@@ -643,13 +671,21 @@ class TerminalViewController: UIViewController {
             // Get base URL from TerminalService
             let baseURL = TerminalService.shared.baseURL
             guard !baseURL.isEmpty else {
-                completion(.failure(NSError(domain: "terminal", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid server URL"])))
+                completion(.failure(NSError(
+                    domain: "terminal",
+                    code: 2,
+                    userInfo: [NSLocalizedDescriptionKey: "Invalid server URL"]
+                )))
                 return
             }
 
             // Create URL for WebDAV credentials
             guard let url = URL(string: "\(baseURL)/api/webdav/credentials?session_id=\(sessionId)") else {
-                completion(.failure(NSError(domain: "terminal", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid URL for WebDAV credentials"])))
+                completion(.failure(NSError(
+                    domain: "terminal",
+                    code: 2,
+                    userInfo: [NSLocalizedDescriptionKey: "Invalid URL for WebDAV credentials"]
+                )))
                 return
             }
 
@@ -660,13 +696,20 @@ class TerminalViewController: UIViewController {
             // Send request
             URLSession.shared.dataTask(with: request) { data, _, error in
                 if let error = error {
-                    self.logger.log(message: "Network error fetching WebDAV credentials: \(error.localizedDescription)", type: .error)
+                    self.logger.log(
+                        message: "Network error fetching WebDAV credentials: \(error.localizedDescription)",
+                        type: .error
+                    )
                     completion(.failure(error))
                     return
                 }
 
                 guard let data = data else {
-                    completion(.failure(NSError(domain: "terminal", code: 3, userInfo: [NSLocalizedDescriptionKey: "No data received from server"])))
+                    completion(.failure(NSError(
+                        domain: "terminal",
+                        code: 3,
+                        userInfo: [NSLocalizedDescriptionKey: "No data received from server"]
+                    )))
                     return
                 }
 
@@ -676,7 +719,10 @@ class TerminalViewController: UIViewController {
                     self.logger.log(message: "Successfully fetched WebDAV credentials", type: .info)
                     completion(.success(webDAVResponse.credentials))
                 } catch {
-                    self.logger.log(message: "Error parsing WebDAV credentials: \(error.localizedDescription)", type: .error)
+                    self.logger.log(
+                        message: "Error parsing WebDAV credentials: \(error.localizedDescription)",
+                        type: .error
+                    )
                     completion(.failure(error))
                 }
             }.resume()
@@ -715,7 +761,7 @@ class TerminalViewController: UIViewController {
                 guard let self = self else { return }
 
                 switch result {
-                case .success(let bookmarkURL):
+                case let .success(bookmarkURL):
                     // Try to open the bookmark file
                     UIApplication.shared.open(bookmarkURL, options: [:]) { success in
                         if !success {
@@ -826,7 +872,7 @@ class TerminalViewController: UIViewController {
             toastLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -100),
             toastLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             toastLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            toastLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 40)
+            toastLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 40),
         ])
 
         UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
@@ -849,6 +895,7 @@ class TerminalViewController: UIViewController {
 }
 
 // MARK: - UITextFieldDelegate
+
 extension TerminalViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if let command = textField.text, !isExecuting {
@@ -861,6 +908,7 @@ extension TerminalViewController: UITextFieldDelegate {
 }
 
 // MARK: - TerminalService Extensions
+
 extension TerminalService {
     /// Get the current session ID
     func getCurrentSessionId(completion: @escaping (String?) -> Void) {
@@ -875,7 +923,7 @@ extension TerminalService {
         // If no current session, create one
         createSession { result in
             switch result {
-            case .success(let sessionId):
+            case let .success(sessionId):
                 completion(sessionId)
             case .failure:
                 completion(nil)

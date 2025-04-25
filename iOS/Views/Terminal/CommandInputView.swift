@@ -1,10 +1,3 @@
-//
-//  CommandInputView.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import UIKit
 
 class CommandInputView: UITextField {

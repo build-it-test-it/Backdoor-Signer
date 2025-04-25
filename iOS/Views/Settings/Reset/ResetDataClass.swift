@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import Nuke
 
@@ -29,7 +23,7 @@ class ResetDataClass {
     func deleteSignedApps() {
         do {
             try CoreDataManager.shared.clearSignedApps()
-            self.deleteDirectory(named: "Apps", additionalComponents: ["Signed"])
+            deleteDirectory(named: "Apps", additionalComponents: ["Signed"])
         } catch {
             Debug.shared.log(message: "Error clearing signed apps: \(error)", type: .error)
         }
@@ -38,7 +32,7 @@ class ResetDataClass {
     func deleteDownloadedApps() {
         do {
             try CoreDataManager.shared.clearDownloadedApps()
-            self.deleteDirectory(named: "Apps", additionalComponents: ["Unsigned"])
+            deleteDirectory(named: "Apps", additionalComponents: ["Unsigned"])
         } catch {
             Debug.shared.log(message: "Error clearing downloaded apps: \(error)", type: .error)
         }
@@ -48,7 +42,7 @@ class ResetDataClass {
         if !resetAll { Preferences.selectedCert = 0 }
         do {
             try CoreDataManager.shared.clearCertificate()
-            self.deleteDirectory(named: "Certificates")
+            deleteDirectory(named: "Certificates")
         } catch {
             Debug.shared.log(message: "Error clearing certificates: \(error)", type: .error)
         }
@@ -70,12 +64,12 @@ class ResetDataClass {
     }
 
     func resetAll() {
-        self.deleteSignedApps()
-        self.deleteDownloadedApps()
-        self.resetCertificates(resetAll: true)
-        self.resetSources(resetAll: true)
-        self.resetAllUserDefaults()
-        self.clearNetworkCache()
+        deleteSignedApps()
+        deleteDownloadedApps()
+        resetCertificates(resetAll: true)
+        resetSources(resetAll: true)
+        resetAllUserDefaults()
+        clearNetworkCache()
     }
 
     private func deleteDirectory(named directoryName: String, additionalComponents: [String]? = nil) {

@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 // enum Orientation {
@@ -83,7 +77,8 @@ extension UserDefaults {
     var signingOptions: SigningOptions {
         get {
             if let data = data(forKey: UserDefaults.signingDataKey),
-               let options = try? JSONDecoder().decode(SigningOptions.self, from: data) {
+               let options = try? JSONDecoder().decode(SigningOptions.self, from: data)
+            {
                 return options
             }
             return UserDefaults.defaultSigningData

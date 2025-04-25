@@ -1,10 +1,3 @@
-//
-//  AppDelegate+Terminal.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import UIKit
 
 extension AppDelegate {

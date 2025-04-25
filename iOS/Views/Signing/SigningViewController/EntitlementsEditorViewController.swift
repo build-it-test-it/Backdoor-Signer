@@ -1,15 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// View controller for editing custom entitlements during app signing
 class EntitlementsEditorViewController: FRSITableViewController {
-
     // MARK: - Properties
 
     /// User's custom entitlements
@@ -110,7 +102,7 @@ class EntitlementsEditorViewController: FRSITableViewController {
 
     private func applyLEDEffectsToTableView() {
         // Add subtle LED glow to section headers
-        for section in 0..<tableView.numberOfSections {
+        for section in 0 ..< tableView.numberOfSections {
             if let headerView = tableView.headerView(forSection: section) {
                 headerView.applyEntitlementHeaderStyle()
             }
@@ -130,7 +122,8 @@ class EntitlementsEditorViewController: FRSITableViewController {
             // Reduce animation intensity for better readability
             if let animationKeys = textField.layer.animationKeys() {
                 if animationKeys.contains("borderColor"),
-                   let borderAnimation = textField.layer.animation(forKey: "borderColor") as? CABasicAnimation {
+                   let borderAnimation = textField.layer.animation(forKey: "borderColor") as? CABasicAnimation
+                {
                     borderAnimation.fromValue = UIColor.systemBlue.withAlphaComponent(0.2).cgColor
                     borderAnimation.toValue = UIColor.systemBlue.withAlphaComponent(0.4).cgColor
                 }
@@ -172,7 +165,7 @@ class EntitlementsEditorViewController: FRSITableViewController {
                 emptyLabel.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
                 emptyLabel.centerYAnchor.constraint(equalTo: tableView.centerYAnchor, constant: -40),
                 emptyLabel.leadingAnchor.constraint(equalTo: tableView.leadingAnchor, constant: 40),
-                emptyLabel.trailingAnchor.constraint(equalTo: tableView.trailingAnchor, constant: -40)
+                emptyLabel.trailingAnchor.constraint(equalTo: tableView.trailingAnchor, constant: -40),
             ])
         }
 
@@ -181,7 +174,9 @@ class EntitlementsEditorViewController: FRSITableViewController {
             if isSearching {
                 emptyLabel.text = "No matching entitlements found"
             } else {
-                emptyLabel.text = "No custom entitlements configured\n\nTap + to add an entitlement or use Quick Add for common options"
+                emptyLabel
+                    .text =
+                    "No custom entitlements configured\n\nTap + to add an entitlement or use Quick Add for common options"
             }
             emptyLabel.isHidden = false
 
@@ -266,7 +261,8 @@ class EntitlementsEditorViewController: FRSITableViewController {
                   let valueField = alertController?.textFields?[1],
                   let key = keyField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   let value = valueField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !key.isEmpty, !value.isEmpty else {
+                  !key.isEmpty, !value.isEmpty
+            else {
                 return
             }
 
@@ -276,7 +272,8 @@ class EntitlementsEditorViewController: FRSITableViewController {
                 if self.isSearching {
                     // Find the actual index in the entitlements array
                     if let filteredEntitlement = self.filteredEntitlements[safe: editingIndex],
-                       let actualIndex = self.entitlements.firstIndex(where: { $0.id == filteredEntitlement.id }) {
+                       let actualIndex = self.entitlements.firstIndex(where: { $0.id == filteredEntitlement.id })
+                    {
                         self.entitlements[actualIndex] = newEntitlement
                     }
                 } else {
@@ -327,11 +324,11 @@ class EntitlementsEditorViewController: FRSITableViewController {
 
     // MARK: - UITableViewDataSource
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    override func numberOfSections(in _: UITableView) -> Int {
         return 1
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         let count = isSearching ? filteredEntitlements.count : entitlements.count
         updateEmptyStateIfNeeded()
         return count
@@ -370,7 +367,10 @@ class EntitlementsEditorViewController: FRSITableViewController {
         showEntitlementEditor(editingIndex: indexPath.row)
     }
 
-    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    override func tableView(_ tableView: UITableView,
+                            trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
+        -> UISwipeActionsConfiguration?
+    {
         // Create delete action
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, completion in
             guard let self = self else {
@@ -381,7 +381,8 @@ class EntitlementsEditorViewController: FRSITableViewController {
             if self.isSearching {
                 // Find the actual index in the entitlements array
                 if let filteredEntitlement = self.filteredEntitlements[safe: indexPath.row],
-                   let actualIndex = self.entitlements.firstIndex(where: { $0.id == filteredEntitlement.id }) {
+                   let actualIndex = self.entitlements.firstIndex(where: { $0.id == filteredEntitlement.id })
+                {
                     self.entitlements.remove(at: actualIndex)
                     self.filterEntitlements(with: self.searchController.searchBar.text ?? "")
                 }
@@ -401,7 +402,7 @@ class EntitlementsEditorViewController: FRSITableViewController {
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 
-    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    override func tableView(_: UITableView, viewForHeaderInSection _: Int) -> UIView? {
         let headerView = UIView()
         headerView.backgroundColor = .clear
 
@@ -416,7 +417,7 @@ class EntitlementsEditorViewController: FRSITableViewController {
             label.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             label.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             label.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 8),
-            label.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8)
+            label.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
         ])
 
         // Add pulsing LED effect to header
@@ -431,7 +432,7 @@ class EntitlementsEditorViewController: FRSITableViewController {
         return headerView
     }
 
-    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+    override func tableView(_: UITableView, heightForHeaderInSection _: Int) -> CGFloat {
         return 44
     }
 }
@@ -448,8 +449,8 @@ extension EntitlementsEditorViewController: UISearchResultsUpdating {
             filteredEntitlements = entitlements
         } else {
             filteredEntitlements = entitlements.filter { entitlement in
-                return entitlement.key.localizedCaseInsensitiveContains(searchText) ||
-                       entitlement.stringValue.localizedCaseInsensitiveContains(searchText)
+                entitlement.key.localizedCaseInsensitiveContains(searchText) ||
+                    entitlement.stringValue.localizedCaseInsensitiveContains(searchText)
             }
         }
 
@@ -485,7 +486,8 @@ extension SigningOptions {
         }
 
         if let data = entitlementsJson.data(using: .utf8),
-           let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+           let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        {
             return dict
         }
 
@@ -497,18 +499,18 @@ extension SigningOptions {
         if additionalData == nil {
             additionalData = [:]
         }
-            // Convert to JSON string for storage
-            if let entitlements = entitlements {
-                do {
-                    let data = try JSONSerialization.data(withJSONObject: entitlements, options: [])
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        additionalData?["customEntitlements"] = jsonString
-                    }
-                } catch {
-                    Debug.shared.log(message: "Failed to serialize entitlements: \(error)", type: .error)
+        // Convert to JSON string for storage
+        if let entitlements = entitlements {
+            do {
+                let data = try JSONSerialization.data(withJSONObject: entitlements, options: [])
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    additionalData?["customEntitlements"] = jsonString
                 }
-            } else {
-                additionalData?["customEntitlements"] = nil
+            } catch {
+                Debug.shared.log(message: "Failed to serialize entitlements: \(error)", type: .error)
             }
+        } else {
+            additionalData?["customEntitlements"] = nil
         }
     }
+}

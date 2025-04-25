@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import Foundation
 
@@ -47,13 +41,13 @@ import Foundation
                     dispatchGroup.enter()
                     SourceGET().downloadURL(from: url) { result in
                         switch result {
-                            case let .success((data, _)):
-                                Debug.shared.log(message: "Received source data from URL: \(url)", type: .info)
-                                if case let .success(sourceData) = SourceGET().parse(data: data) {
-                                    allSourceData.append((data: sourceData, url: url))
-                                }
-                            case let .failure(error):
-                                Debug.shared.log(message: "Source refresh error: \(error)", type: .info)
+                        case let .success((data, _)):
+                            Debug.shared.log(message: "Received source data from URL: \(url)", type: .info)
+                            if case let .success(sourceData) = SourceGET().parse(data: data) {
+                                allSourceData.append((data: sourceData, url: url))
+                            }
+                        case let .failure(error):
+                            Debug.shared.log(message: "Source refresh error: \(error)", type: .info)
                         }
                         dispatchGroup.leave()
                     }
@@ -86,32 +80,54 @@ import Foundation
 
                 for source in sourceData {
                     if let availableApp = source.data.apps.first(where: { $0.bundleIdentifier == bundleId }) {
-                        Debug.shared.log(message: "Found matching app in source: \(availableApp.bundleIdentifier)", type: .info)
+                        Debug.shared.log(
+                            message: "Found matching app in source: \(availableApp.bundleIdentifier)",
+                            type: .info
+                        )
 
                         let versions = availableApp.versions ?? []
-                        let latestVersion = versions.map { $0.version }.sorted { compareVersions($0, $1) > 0 }.first ?? availableApp.version
+                        let latestVersion = versions.map { $0.version }.sorted { compareVersions($0, $1) > 0 }
+                            .first ?? availableApp.version
 
                         if let latestVersion {
-                            Debug.shared.log(message: "Comparing versions - Current: \(currentVersion) vs Latest: \(latestVersion)", type: .info)
+                            Debug.shared.log(
+                                message: "Comparing versions - Current: \(currentVersion) vs Latest: \(latestVersion)",
+                                type: .info
+                            )
                             let comparison = compareVersions(latestVersion, currentVersion)
                             Debug.shared.log(message: "Version comparison result: \(comparison)", type: .info)
 
                             if comparison > 0 {
-                                Debug.shared.log(message: "Update available - \(bundleId) can be updated from \(currentVersion) to \(latestVersion)", type: .info)
+                                Debug.shared.log(
+                                    message: "Update available - \(bundleId) can be updated from \(currentVersion) to \(latestVersion)",
+                                    type: .info
+                                )
                                 updatedApps.append((name: signedApp.name ?? bundleId,
                                                     oldVersion: currentVersion,
                                                     newVersion: latestVersion))
 
-                                Debug.shared.log(message: "Setting source URL: \(source.url.absoluteString)", type: .info)
+                                Debug.shared.log(
+                                    message: "Setting source URL: \(source.url.absoluteString)",
+                                    type: .info
+                                )
                                 signedApp.originalSourceURL = source.url
                                 do {
                                     try CoreDataManager.shared.saveContext()
-                                    try CoreDataManager.shared.setUpdateAvailable(for: signedApp, newVersion: latestVersion)
-                                    Debug.shared.log(message: "CoreData updated - Update marked as available for \(bundleId) from source \(source.url.absoluteString)", type: .info)
+                                    try CoreDataManager.shared.setUpdateAvailable(
+                                        for: signedApp,
+                                        newVersion: latestVersion
+                                    )
+                                    Debug.shared.log(
+                                        message: "CoreData updated - Update marked as available for \(bundleId) from source \(source.url.absoluteString)",
+                                        type: .info
+                                    )
                                 } catch {
                                     Debug.shared.log(message: "Error updating CoreData: \(error)", type: .error)
                                 }
-                                Debug.shared.log(message: "Verifying update data - URL: \(signedApp.originalSourceURL?.absoluteString ?? "nil"), Version: \(signedApp.updateVersion ?? "nil")", type: .info)
+                                Debug.shared.log(
+                                    message: "Verifying update data - URL: \(signedApp.originalSourceURL?.absoluteString ?? "nil"), Version: \(signedApp.updateVersion ?? "nil")",
+                                    type: .info
+                                )
 
                                 DispatchQueue.main.async {
                                     NotificationCenter.default.post(name: Notification.Name("lfetch"), object: nil)
@@ -156,13 +172,19 @@ import Foundation
 
     func createMockSource(completion: @escaping (SourcesData?) -> Void) {
         let signedApps = CoreDataManager.shared.getDatedSignedApps()
-        Debug.shared.log(message: "Debug mode: Found \(signedApps.count) signed app\(signedApps.count == 1 ? "" : "s")", type: .info)
+        Debug.shared.log(
+            message: "Debug mode: Found \(signedApps.count) signed app\(signedApps.count == 1 ? "" : "s")",
+            type: .info
+        )
 
         if let firstApp = signedApps.first {
             Debug.shared.log(message: "Debug mode: Checking app data:", type: .info)
             Debug.shared.log(message: "Bundle ID: \(firstApp.bundleidentifier ?? "missing")", type: .info)
             Debug.shared.log(message: "Version: \(firstApp.version ?? "missing")", type: .info)
-            Debug.shared.log(message: "Source URL: \(firstApp.originalSourceURL?.absoluteString ?? "missing")", type: .info)
+            Debug.shared.log(
+                message: "Source URL: \(firstApp.originalSourceURL?.absoluteString ?? "missing")",
+                type: .info
+            )
 
             guard let bundleId = firstApp.bundleidentifier else {
                 Debug.shared.log(message: "Debug mode: Missing bundle identifier", type: .info)
@@ -185,7 +207,10 @@ import Foundation
                 return
             }
 
-            Debug.shared.log(message: "Debug mode: Creating mock update for \(bundleId) (current: \(currentVersion))", type: .info)
+            Debug.shared.log(
+                message: "Debug mode: Creating mock update for \(bundleId) (current: \(currentVersion))",
+                type: .info
+            )
 
             let jsonString = """
             {
@@ -212,7 +237,8 @@ import Foundation
             """
 
             if let jsonData = jsonString.data(using: .utf8),
-               case let .success(mockSource) = SourceGET().parse(data: jsonData) {
+               case let .success(mockSource) = SourceGET().parse(data: jsonData)
+            {
                 Debug.shared.log(message: "Debug mode: Successfully created mock source", type: .info)
                 completion(mockSource)
             } else {

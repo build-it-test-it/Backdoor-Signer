@@ -1,15 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
-import Foundation
 import CoreML
+import Foundation
 
 /// Extension to AILearningManager for enhanced local model functionality
 extension AILearningManager {
-
     /// Perform deep personal learning based on user data
     func performDeepPersonalLearning() {
         Debug.shared.log(message: "Starting deep personal learning process", type: .info)
@@ -29,7 +22,7 @@ extension AILearningManager {
         let hasBehaviors = !userBehaviors.isEmpty
         behaviorsLock.unlock()
 
-        if !hasInteractions && !hasBehaviors {
+        if !hasInteractions, !hasBehaviors {
             Debug.shared.log(message: "Insufficient user data for deep learning", type: .info)
             return
         }
@@ -57,7 +50,7 @@ extension AILearningManager {
 
     /// Handle web search data collection for AI improvement
     /// Internal implementation to avoid duplicate method declaration
-    internal func handleWebSearchData(query: String, results: [String]) {
+    func handleWebSearchData(query: String, results: [String]) {
         // Only process if learning is enabled
         guard isLearningEnabled else {
             return
@@ -66,7 +59,7 @@ extension AILearningManager {
         // Record the search behavior
         let searchDetails: [String: String] = [
             "query": query,
-            "resultCount": "\(results.count)"
+            "resultCount": "\(results.count)",
         ]
 
         // Add to user behaviors

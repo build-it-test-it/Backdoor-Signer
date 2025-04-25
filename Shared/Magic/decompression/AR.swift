@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except
-// as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 public struct ARFile {
@@ -84,7 +77,7 @@ func getFileInfo(_ data: Data, _ offset: Int) throws -> ARFile {
 public func extractAR(_ rawData: Data) throws -> [ARFile] {
     // Explicitly type magicBytes as [UInt8] to match the headerBytes type
     let magicBytes: [UInt8] = [0x21, 0x3C, 0x61, 0x72, 0x63, 0x68, 0x3E, 0x0A]
-    let headerData = rawData.subdata(in: 0..<8)
+    let headerData = rawData.subdata(in: 0 ..< 8)
     // Create a more explicit [UInt8] array conversion for unambiguous type checking
     let headerBytes = [UInt8](headerData)
     if headerBytes != magicBytes {

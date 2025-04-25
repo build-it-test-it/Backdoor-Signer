@@ -1,10 +1,3 @@
-//
-//  FloatingTerminalButton.swift
-//  backdoor
-//
-//  Copyright © 2025 Backdoor LLC. All rights reserved.
-//
-
 import UIKit
 
 /// Floating button that provides quick access to the terminal
@@ -36,20 +29,20 @@ class FloatingTerminalButton: UIButton {
 
     private func setupButton() {
         // Configure button appearance
-        self.frame = CGRect(x: 0, y: 0, width: buttonSize, height: buttonSize)
-        self.layer.cornerRadius = cornerRadius
+        frame = CGRect(x: 0, y: 0, width: buttonSize, height: buttonSize)
+        layer.cornerRadius = cornerRadius
 
         // Shadow for better visibility
-        self.layer.shadowColor = UIColor.black.cgColor
-        self.layer.shadowOffset = CGSize(width: 0, height: 2)
-        self.layer.shadowOpacity = 0.3
-        self.layer.shadowRadius = 4
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        layer.shadowOpacity = 0.3
+        layer.shadowRadius = 4
 
         // Button image
         let image = UIImage(systemName: "terminal")
-        self.setImage(image, for: .normal)
-        self.tintColor = .white
-        self.imageView?.contentMode = .scaleAspectFit
+        setImage(image, for: .normal)
+        tintColor = .white
+        imageView?.contentMode = .scaleAspectFit
 
         // Set up gestures
         setupGestures()
@@ -58,7 +51,7 @@ class FloatingTerminalButton: UIButton {
         updateAppearance()
 
         // Add target action for tap
-        self.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
 
         logger.log(message: "Floating terminal button initialized", type: .info)
     }
@@ -68,11 +61,11 @@ class FloatingTerminalButton: UIButton {
         panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         panGesture.minimumNumberOfTouches = 1
         panGesture.maximumNumberOfTouches = 1
-        self.addGestureRecognizer(panGesture)
+        addGestureRecognizer(panGesture)
     }
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
-        guard let superview = self.superview else { return }
+        guard let superview = superview else { return }
 
         let translation = gesture.translation(in: superview)
 
@@ -85,9 +78,9 @@ class FloatingTerminalButton: UIButton {
 
         case .changed:
             // Update button position
-            self.center = CGPoint(
-                x: self.center.x + translation.x,
-                y: self.center.y + translation.y
+            center = CGPoint(
+                x: center.x + translation.x,
+                y: center.y + translation.y
             )
 
             // Reset translation
@@ -101,8 +94,8 @@ class FloatingTerminalButton: UIButton {
             let minY = buttonSize / 2 + safeArea.top
             let maxY = superview.bounds.height - buttonSize / 2 - safeArea.bottom
 
-            let constrainedX = min(max(self.center.x, minX), maxX)
-            let constrainedY = min(max(self.center.y, minY), maxY)
+            let constrainedX = min(max(center.x, minX), maxX)
+            let constrainedY = min(max(center.y, minY), maxY)
 
             // Animate to constrained position
             UIView.animate(withDuration: 0.3, animations: {
@@ -119,8 +112,8 @@ class FloatingTerminalButton: UIButton {
     }
 
     private func savePosition() {
-        UserDefaults.standard.set(self.center.x, forKey: positionXKey)
-        UserDefaults.standard.set(self.center.y, forKey: positionYKey)
+        UserDefaults.standard.set(center.x, forKey: positionXKey)
+        UserDefaults.standard.set(center.y, forKey: positionYKey)
     }
 
     private func restorePosition() {
@@ -129,9 +122,9 @@ class FloatingTerminalButton: UIButton {
         let y = UserDefaults.standard.double(forKey: positionYKey)
 
         if x > 0 && y > 0 {
-            self.center = CGPoint(x: x, y: y)
+            center = CGPoint(x: x, y: y)
         } else {
-            self.center = defaultPosition
+            center = defaultPosition
         }
     }
 
@@ -142,10 +135,10 @@ class FloatingTerminalButton: UIButton {
 
         if interfaceStyle == .dark {
             // Dark mode
-            self.backgroundColor = UIColor(white: 0.2, alpha: 1.0)
+            backgroundColor = UIColor(white: 0.2, alpha: 1.0)
         } else {
             // Light mode
-            self.backgroundColor = UIColor.systemBlue
+            backgroundColor = UIColor.systemBlue
         }
     }
 
@@ -164,7 +157,7 @@ class FloatingTerminalButton: UIButton {
         super.didMoveToSuperview()
 
         // Restore position when added to view
-        if self.superview != nil {
+        if superview != nil {
             restorePosition()
         }
     }

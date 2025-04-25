@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import Foundation
 
 /// Manager for server.crt and server.pem certificate files used by the app
@@ -81,7 +74,8 @@ class ServerCertificateManager {
                 let keyAttributes = try fileManager.attributesOfItem(atPath: serverPemPath.path)
 
                 if let certSize = certAttributes[.size] as? NSNumber,
-                   let keySize = keyAttributes[.size] as? NSNumber {
+                   let keySize = keyAttributes[.size] as? NSNumber
+                {
                     isValid = certSize.intValue > 0 && keySize.intValue > 0
                 } else {
                     isValid = false

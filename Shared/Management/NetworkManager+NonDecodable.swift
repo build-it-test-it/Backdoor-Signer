@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 // Extension to NetworkManager for batch requests that don't need Decodable conformance
@@ -24,35 +18,48 @@ extension NetworkManager {
         let useCache = caching ?? (configuration.useCache && request.httpMethod?.uppercased() == "GET")
 
         // Check if request is already in progress
-        let existingTask = self.operationQueueAccessQueue.sync { () -> URLSessionTask? in
+        let existingTask = operationQueueAccessQueue.sync { () -> URLSessionTask? in
             return self.activeOperations[request]
         }
         if let existingTask = existingTask {
-            Debug.shared.log(message: "Request already in progress: \(request.url?.absoluteString ?? "Unknown URL")", type: .debug)
+            Debug.shared.log(
+                message: "Request already in progress: \(request.url?.absoluteString ?? "Unknown URL")",
+                type: .debug
+            )
             return existingTask
         }
 
         // Check cache if caching is enabled
         if useCache, let url = request.url {
             let cacheKey = NSString(string: url.absoluteString)
-            if let cachedResponse = self.responseCache.object(forKey: cacheKey) {
-                if !self.isCacheExpired(cachedResponse) {
-                    Debug.shared.log(message: "Cache hit for non-decodable request: \(url.absoluteString)", type: .debug)
+            if let cachedResponse = responseCache.object(forKey: cacheKey) {
+                if !isCacheExpired(cachedResponse) {
+                    Debug.shared.log(
+                        message: "Cache hit for non-decodable request: \(url.absoluteString)",
+                        type: .debug
+                    )
 
                     do {
-                        if let jsonObject = try JSONSerialization.jsonObject(with: cachedResponse.data) as? [String: Any] {
+                        if let jsonObject = try JSONSerialization
+                            .jsonObject(with: cachedResponse.data) as? [String: Any]
+                        {
                             DispatchQueue.main.async {
                                 completion(.success(jsonObject))
                             }
                             return nil
-                        } else if let jsonArray = try JSONSerialization.jsonObject(with: cachedResponse.data) as? [Any] {
+                        } else if let jsonArray = try JSONSerialization
+                            .jsonObject(with: cachedResponse.data) as? [Any]
+                        {
                             DispatchQueue.main.async {
                                 completion(.success(jsonArray))
                             }
                             return nil
                         }
                     } catch {
-                        Debug.shared.log(message: "Failed to parse cached response: \(error.localizedDescription)", type: .error)
+                        Debug.shared.log(
+                            message: "Failed to parse cached response: \(error.localizedDescription)",
+                            type: .error
+                        )
                         // Continue with network request if parsing fails
                     }
                 }
@@ -60,7 +67,7 @@ extension NetworkManager {
         }
 
         // Create a task using the configured session
-        let task = self.session.dataTask(with: request) { [weak self] (data: Data?, response: URLResponse?, error: Error?) in
+        let task = session.dataTask(with: request) { [weak self] (data: Data?, response: URLResponse?, error: Error?) in
             guard let self = self else { return }
 
             // Remove from active operations if it was tracked
@@ -135,7 +142,7 @@ extension NetworkManager {
         }
 
         // Add to active operations
-        _ = self.operationQueueAccessQueue.sync { () -> URLSessionTask in
+        _ = operationQueueAccessQueue.sync { () -> URLSessionTask in
             self.activeOperations[request] = task
             return task
         }

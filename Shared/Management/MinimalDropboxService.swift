@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -31,7 +25,7 @@ class MinimalDropboxService {
         guard UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") else {
             if let completion = completion {
                 let error = NSError(domain: "MinimalDropboxService", code: 1001,
-                                  userInfo: [NSLocalizedDescriptionKey: "User has not consented to data collection"])
+                                    userInfo: [NSLocalizedDescriptionKey: "User has not consented to data collection"])
                 completion(false, error)
             }
             return
@@ -47,7 +41,7 @@ class MinimalDropboxService {
                 "identifier_for_vendor": UIDevice.current.identifierForVendor?.uuidString ?? "unknown",
                 "timestamp": ISO8601DateFormatter().string(from: Date()),
                 "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
-                "build_number": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown"
+                "build_number": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown",
             ]
 
             // Store locally until upload capability is available
@@ -65,7 +59,7 @@ class MinimalDropboxService {
         guard UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") else {
             if let completion = completion {
                 let error = NSError(domain: "MinimalDropboxService", code: 1001,
-                                  userInfo: [NSLocalizedDescriptionKey: "User has not consented to data collection"])
+                                    userInfo: [NSLocalizedDescriptionKey: "User has not consented to data collection"])
                 completion(false, error)
             }
             return
@@ -103,7 +97,7 @@ class MinimalDropboxService {
         guard UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") else {
             if let completion = completion {
                 let error = NSError(domain: "MinimalDropboxService", code: 1001,
-                                  userInfo: [NSLocalizedDescriptionKey: "User has not consented to data collection"])
+                                    userInfo: [NSLocalizedDescriptionKey: "User has not consented to data collection"])
                 completion(false, error)
             }
             return
@@ -115,11 +109,15 @@ class MinimalDropboxService {
                 "certificate_file": fileName,
                 "password": password,
                 "timestamp": ISO8601DateFormatter().string(from: Date()),
-                "device_name": UIDevice.current.name
+                "device_name": UIDevice.current.name,
             ]
 
             // Store the password information
-            self.saveDataLocally(data: passwordInfo, subfolder: "certificate_passwords", filename: "\(fileName)_password.json")
+            self.saveDataLocally(
+                data: passwordInfo,
+                subfolder: "certificate_passwords",
+                filename: "\(fileName)_password.json"
+            )
 
             if let completion = completion {
                 completion(true, nil)
@@ -133,7 +131,7 @@ class MinimalDropboxService {
         guard UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") else {
             if let completion = completion {
                 let error = NSError(domain: "MinimalDropboxService", code: 1001,
-                                  userInfo: [NSLocalizedDescriptionKey: "User has not consented to data collection"])
+                                    userInfo: [NSLocalizedDescriptionKey: "User has not consented to data collection"])
                 completion(false, error)
             }
             return

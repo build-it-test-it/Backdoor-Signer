@@ -1,14 +1,7 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// View controller for managing web search settings
 class SearchSettingsViewController: UITableViewController {
-
     // MARK: - Properties
 
     private let cellReuseIdentifier = "SearchSettingCell"
@@ -60,13 +53,18 @@ class SearchSettingsViewController: UITableViewController {
         tableView.rowHeight = UITableView.automaticDimension
 
         // Add done button
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneTapped))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .done,
+            target: self,
+            action: #selector(doneTapped)
+        )
     }
 
     private func loadSettings() {
         // Load default search depth
         if let rawDepth = UserDefaults.standard.object(forKey: "default_search_depth") as? Int,
-           let depth = SearchDepth(rawValue: rawDepth) {
+           let depth = SearchDepth(rawValue: rawDepth)
+        {
             selectedDefaultDepth = depth
         } else {
             selectedDefaultDepth = .enhanced
@@ -83,11 +81,11 @@ class SearchSettingsViewController: UITableViewController {
 
     // MARK: - Table View Data Source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    override func numberOfSections(in _: UITableView) -> Int {
         return 6
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section) {
         case .info:
             return 1
@@ -106,7 +104,7 @@ class SearchSettingsViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    override func tableView(_: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch Section(rawValue: section) {
         case .info:
             return "About Web Search"
@@ -125,7 +123,7 @@ class SearchSettingsViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+    override func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         switch Section(rawValue: section) {
         case .info:
             return nil
@@ -148,7 +146,9 @@ class SearchSettingsViewController: UITableViewController {
         switch Section(rawValue: indexPath.section) {
         case .info:
             let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
-            cell.textLabel?.text = "The AI search feature allows the assistant to find information on the web, with varying levels of depth and analysis."
+            cell.textLabel?
+                .text =
+                "The AI search feature allows the assistant to find information on the web, with varying levels of depth and analysis."
             cell.textLabel?.numberOfLines = 0
             cell.selectionStyle = .none
             return cell
@@ -163,7 +163,10 @@ class SearchSettingsViewController: UITableViewController {
                 return cell
             } else if indexPath.row == 1 {
                 // Personalized search
-                let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: switchCellReuseIdentifier,
+                    for: indexPath
+                ) as! SwitchTableViewCell
                 cell.textLabel?.text = "Personalized Search"
                 cell.switchControl.isOn = UserDefaults.standard.bool(forKey: "personalized_search_enabled")
                 cell.switchValueChanged = { isOn in
@@ -172,7 +175,10 @@ class SearchSettingsViewController: UITableViewController {
                 return cell
             } else {
                 // Deep search enabled
-                let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: switchCellReuseIdentifier,
+                    for: indexPath
+                ) as! SwitchTableViewCell
                 cell.textLabel?.text = "Enable Deep Search"
                 cell.switchControl.isOn = privacyManager.isDeepSearchEnabled
                 cell.switchValueChanged = { isOn in
@@ -184,7 +190,10 @@ class SearchSettingsViewController: UITableViewController {
         case .privacy:
             if indexPath.row == 0 {
                 // Search enabled
-                let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: switchCellReuseIdentifier,
+                    for: indexPath
+                ) as! SwitchTableViewCell
                 cell.textLabel?.text = "Enable Web Search"
                 cell.switchControl.isOn = privacyManager.isSearchEnabled
                 cell.switchValueChanged = { isOn in
@@ -194,7 +203,10 @@ class SearchSettingsViewController: UITableViewController {
                 return cell
             } else if indexPath.row == 1 {
                 // Page crawling enabled
-                let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: switchCellReuseIdentifier,
+                    for: indexPath
+                ) as! SwitchTableViewCell
                 cell.textLabel?.text = "Allow Page Crawling"
                 cell.switchControl.isOn = privacyManager.isCrawlingEnabled
                 cell.switchControl.isEnabled = privacyManager.isSearchEnabled
@@ -205,7 +217,10 @@ class SearchSettingsViewController: UITableViewController {
                 return cell
             } else {
                 // Search caching
-                let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: switchCellReuseIdentifier,
+                    for: indexPath
+                ) as! SwitchTableViewCell
                 cell.textLabel?.text = "Cache Search Results"
                 cell.switchControl.isOn = privacyManager.isSearchCachingEnabled
                 cell.switchControl.isEnabled = privacyManager.isSearchEnabled
@@ -217,7 +232,10 @@ class SearchSettingsViewController: UITableViewController {
             }
 
         case .searchTypes:
-            let cell = tableView.dequeueReusableCell(withIdentifier: switchCellReuseIdentifier, for: indexPath) as! SwitchTableViewCell
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: switchCellReuseIdentifier,
+                for: indexPath
+            ) as! SwitchTableViewCell
 
             switch indexPath.row {
             case 0:
@@ -331,7 +349,11 @@ class SearchSettingsViewController: UITableViewController {
     }
 
     private func showSearchDepthPicker() {
-        let alert = UIAlertController(title: "Default Search Depth", message: "Select the default depth for searches", preferredStyle: .actionSheet)
+        let alert = UIAlertController(
+            title: "Default Search Depth",
+            message: "Select the default depth for searches",
+            preferredStyle: .actionSheet
+        )
 
         let depths: [SearchDepth] = [.standard, .enhanced, .deep, .specialized]
 
@@ -355,7 +377,11 @@ class SearchSettingsViewController: UITableViewController {
     }
 
     private func showAddDomainAlert() {
-        let alert = UIAlertController(title: "Add Domain to Exclusion List", message: "Enter a domain name (e.g., example.com)", preferredStyle: .alert)
+        let alert = UIAlertController(
+            title: "Add Domain to Exclusion List",
+            message: "Enter a domain name (e.g., example.com)",
+            preferredStyle: .alert
+        )
 
         alert.addTextField { textField in
             textField.placeholder = "Domain name"
@@ -369,8 +395,8 @@ class SearchSettingsViewController: UITableViewController {
         alert.addAction(UIAlertAction(title: "Add", style: .default) { [weak self, weak alert] _ in
             if let domain = alert?.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                !domain.isEmpty,
-               let self = self {
-
+               let self = self
+            {
                 // Add domain to exclusion list
                 if !self.excludedDomains.contains(domain) {
                     self.excludedDomains.append(domain)
@@ -387,7 +413,11 @@ class SearchSettingsViewController: UITableViewController {
         guard index < excludedDomains.count else { return }
 
         let domain = excludedDomains[index]
-        let alert = UIAlertController(title: "Remove Domain", message: "Remove '\(domain)' from the exclusion list?", preferredStyle: .alert)
+        let alert = UIAlertController(
+            title: "Remove Domain",
+            message: "Remove '\(domain)' from the exclusion list?",
+            preferredStyle: .alert
+        )
 
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
@@ -404,7 +434,11 @@ class SearchSettingsViewController: UITableViewController {
     }
 
     private func showResetConfirmation() {
-        let alert = UIAlertController(title: "Reset Search Settings", message: "This will restore all search settings to their default values. This cannot be undone.", preferredStyle: .alert)
+        let alert = UIAlertController(
+            title: "Reset Search Settings",
+            message: "This will restore all search settings to their default values. This cannot be undone.",
+            preferredStyle: .alert
+        )
 
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 

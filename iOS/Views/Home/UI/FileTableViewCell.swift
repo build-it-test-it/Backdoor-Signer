@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 class FileTableViewCell: UITableViewCell {
@@ -48,7 +42,7 @@ class FileTableViewCell: UITableViewCell {
 
             fileDateLabel.leadingAnchor.constraint(equalTo: fileNameLabel.leadingAnchor),
             fileDateLabel.topAnchor.constraint(equalTo: fileSizeLabel.bottomAnchor, constant: 4),
-            fileDateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
+            fileDateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
         ])
 
         fileIconImageView.contentMode = .scaleAspectFit
@@ -120,58 +114,58 @@ class File: Equatable {
     /// - Parameter url: URL of the file
     init(url: URL) {
         self.url = url
-        self.name = url.lastPathComponent
+        name = url.lastPathComponent
 
         // Get file attributes once to avoid repeated filesystem access
         let fileManager = FileManager.default
 
         // Load file attributes
         if let attributes = try? fileManager.attributesOfItem(atPath: url.path) {
-            self.size = attributes[.size] as? UInt64 ?? 0
-            self.date = attributes[.modificationDate] as? Date ?? Date.distantPast
-            self.isDirectory = (attributes[.type] as? String) == "NSFileTypeDirectory"
+            size = attributes[.size] as? UInt64 ?? 0
+            date = attributes[.modificationDate] as? Date ?? Date.distantPast
+            isDirectory = (attributes[.type] as? String) == "NSFileTypeDirectory"
         } else {
             // Default values if attributes can't be read
-            self.size = 0
-            self.date = Date.distantPast
-            self.isDirectory = false
+            size = 0
+            date = Date.distantPast
+            isDirectory = false
             Debug.shared.log(message: "Failed to get attributes for file: \(url.path)", type: .warning)
         }
 
         // Determine icon based on extension
         let extensionString = url.pathExtension.lowercased()
         if isDirectory {
-            self.iconName = "folder"
+            iconName = "folder"
         } else {
             switch extensionString {
-                case "txt", "md", "strings":
-                    self.iconName = "iconText"
-                case "plist", "entitlements":
-                    self.iconName = "iconPlist"
-                case "ipa":
-                    self.iconName = "iconIPA"
-                case "zip", "gz", "tar", "7z":
-                    self.iconName = "iconZip"
-                case "pdf":
-                    self.iconName = "iconPDF"
-                case "png", "jpg", "jpeg", "gif", "heic", "webp":
-                    self.iconName = "iconImage"
-                case "mp3", "m4a", "wav", "aac":
-                    self.iconName = "iconAudio"
-                case "mp4", "mov", "m4v", "3gp", "avi", "flv", "mpg", "wmv", "mkv":
-                    self.iconName = "iconVideo"
-                case "swift", "h", "m", "c", "cpp", "js", "html", "css", "py", "java", "xml", "json":
-                    self.iconName = "iconCode"
-                case "doc", "docx":
-                    self.iconName = "doc.text"
-                case "xls", "xlsx", "numbers":
-                    self.iconName = "doc.text.fill"
-                case "ppt", "pptx", "key":
-                    self.iconName = "chart.bar.doc.horizontal"
-                case "pages":
-                    self.iconName = "doc"
-                default:
-                    self.iconName = "iconGeneric"
+            case "txt", "md", "strings":
+                iconName = "iconText"
+            case "plist", "entitlements":
+                iconName = "iconPlist"
+            case "ipa":
+                iconName = "iconIPA"
+            case "zip", "gz", "tar", "7z":
+                iconName = "iconZip"
+            case "pdf":
+                iconName = "iconPDF"
+            case "png", "jpg", "jpeg", "gif", "heic", "webp":
+                iconName = "iconImage"
+            case "mp3", "m4a", "wav", "aac":
+                iconName = "iconAudio"
+            case "mp4", "mov", "m4v", "3gp", "avi", "flv", "mpg", "wmv", "mkv":
+                iconName = "iconVideo"
+            case "swift", "h", "m", "c", "cpp", "js", "html", "css", "py", "java", "xml", "json":
+                iconName = "iconCode"
+            case "doc", "docx":
+                iconName = "doc.text"
+            case "xls", "xlsx", "numbers":
+                iconName = "doc.text.fill"
+            case "ppt", "pptx", "key":
+                iconName = "chart.bar.doc.horizontal"
+            case "pages":
+                iconName = "doc"
+            default:
+                iconName = "iconGeneric"
             }
         }
     }

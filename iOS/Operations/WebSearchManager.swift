@@ -1,12 +1,6 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
-import UIKit
 import NaturalLanguage
+import UIKit
 
 // MARK: - Data Structures
 
@@ -22,9 +16,9 @@ enum SourceType {
 
 /// Search depth levels for different search intensities
 enum SearchDepth: Int {
-    case standard = 0    // Basic search
-    case enhanced = 1    // Follow top links
-    case deep = 2        // Follow multiple links with recursive crawling
+    case standard = 0 // Basic search
+    case enhanced = 1 // Follow top links
+    case deep = 2 // Follow multiple links with recursive crawling
     case specialized = 3 // Domain-specific searches (academic, news, etc.)
 }
 
@@ -54,13 +48,13 @@ struct DeepSearchResult {
 
     // Convert from basic search result
     init(from basicResult: WebSearchResult) {
-        self.title = basicResult.title
-        self.description = basicResult.description
-        self.url = basicResult.url
-        self.sourceType = basicResult.sourceType
+        title = basicResult.title
+        description = basicResult.description
+        url = basicResult.url
+        sourceType = basicResult.sourceType
 
         // Default confidence based on having minimal information
-        self.confidence = 0.4
+        confidence = 0.4
     }
 
     // Empty initializer
@@ -175,7 +169,7 @@ class WebSearchManager {
         request.timeoutInterval = requestTimeout
 
         // Create and configure the search task
-        let task = URLSession.shared.dataTask(with: request) { [weak self] (data, response, error) in
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             // Clean up session
             self?.sessionQueue.sync {
                 self?.activeSessions[sessionID] = nil
@@ -195,7 +189,11 @@ class WebSearchManager {
                     return
                 }
                 if httpResponse.statusCode >= 400 {
-                    completion(.failure(SearchError.networkError(NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: nil))))
+                    completion(.failure(SearchError.networkError(NSError(
+                        domain: "HTTPError",
+                        code: httpResponse.statusCode,
+                        userInfo: nil
+                    ))))
                     return
                 }
             }
@@ -254,7 +252,7 @@ class WebSearchManager {
             guard let self = self else { return }
 
             switch result {
-            case .success(let initialResults):
+            case let .success(initialResults):
                 // Process initial results
                 var deepResults: [DeepSearchResult] = initialResults.map { DeepSearchResult(from: $0) }
 
@@ -277,7 +275,7 @@ class WebSearchManager {
                 let resultsToProcess: Int
                 switch depth {
                 case .standard:
-                    resultsToProcess = 0  // Already handled above
+                    resultsToProcess = 0 // Already handled above
                 case .enhanced:
                     resultsToProcess = min(3, initialResults.count)
                 case .deep:
@@ -287,7 +285,7 @@ class WebSearchManager {
                 }
 
                 // Process selected results more deeply
-                for index in 0..<resultsToProcess {
+                for index in 0 ..< resultsToProcess {
                     guard index < deepResults.count, let url = deepResults[index].url else { continue }
 
                     group.enter()
@@ -370,7 +368,7 @@ class WebSearchManager {
                     completion(.success(deepResults))
                 }
 
-            case .failure(let error):
+            case let .failure(error):
                 completion(.failure(error))
             }
         }
@@ -461,12 +459,16 @@ class WebSearchManager {
     // MARK: - Private Methods - Search Processing
 
     /// Process standard search results from raw data
-    private func processSearchResults(data: Data, query: String, completion: @escaping (Result<[WebSearchResult], Error>) -> Void) {
+    private func processSearchResults(
+        data: Data,
+        query: String,
+        completion: @escaping (Result<[WebSearchResult], Error>) -> Void
+    ) {
         do {
             // Try to parse the JSON response
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let results = extractSearchResults(from: json) {
-
+               let results = extractSearchResults(from: json)
+            {
                 // Log the success and number of results
                 Debug.shared.log(message: "Found \(results.count) search results for query: \(query)", type: .info)
 
@@ -497,8 +499,8 @@ class WebSearchManager {
         if let abstractText = json["AbstractText"] as? String,
            !abstractText.isEmpty,
            let abstractURL = json["AbstractURL"] as? String,
-           let url = URL(string: abstractURL) {
-
+           let url = URL(string: abstractURL)
+        {
             let abstractSource = json["AbstractSource"] as? String ?? "Source"
             let result = WebSearchResult(
                 title: abstractSource,
@@ -513,9 +515,10 @@ class WebSearchManager {
         if let relatedTopics = json["RelatedTopics"] as? [[String: Any]] {
             for topic in relatedTopics {
                 if let text = topic["Text"] as? String,
-                   let urlString = (topic["FirstURL"] as? String) ?? ((topic["Results"] as? [[String: Any]])?.first?["FirstURL"] as? String),
-                   let url = URL(string: urlString) {
-
+                   let urlString = (topic["FirstURL"] as? String) ??
+                   ((topic["Results"] as? [[String: Any]])?.first?["FirstURL"] as? String),
+                   let url = URL(string: urlString)
+                {
                     // Split text into title and description if possible
                     var title = text
                     var description = ""
@@ -540,49 +543,53 @@ class WebSearchManager {
     }
 
     /// Detect the source type based on URL and title
-    private func detectSourceType(url: URL, title: String) -> SourceType {
+    private func detectSourceType(url: URL, title _: String) -> SourceType {
         let domain = url.host?.lowercased() ?? ""
         let path = url.path.lowercased()
 
         // Academic sources
         if domain.contains("scholar.google") ||
-           domain.contains("sciencedirect") ||
-           domain.contains("researchgate") ||
-           domain.contains("academia.edu") ||
-           domain.contains("ieee.org") ||
-           domain.contains("ncbi.nlm.nih.gov") ||
-           domain.contains("arxiv.org") {
+            domain.contains("sciencedirect") ||
+            domain.contains("researchgate") ||
+            domain.contains("academia.edu") ||
+            domain.contains("ieee.org") ||
+            domain.contains("ncbi.nlm.nih.gov") ||
+            domain.contains("arxiv.org")
+        {
             return .academic
         }
 
         // News sources
         if domain.contains("news") ||
-           domain.contains("nytimes") ||
-           domain.contains("reuters") ||
-           domain.contains("bbc") ||
-           domain.contains("cnn") ||
-           domain.contains("washingtonpost") ||
-           domain.contains("theguardian") ||
-           path.contains("/news/") {
+            domain.contains("nytimes") ||
+            domain.contains("reuters") ||
+            domain.contains("bbc") ||
+            domain.contains("cnn") ||
+            domain.contains("washingtonpost") ||
+            domain.contains("theguardian") ||
+            path.contains("/news/")
+        {
             return .news
         }
 
         // Social media
         if domain.contains("twitter") ||
-           domain.contains("facebook") ||
-           domain.contains("linkedin") ||
-           domain.contains("instagram") ||
-           domain.contains("reddit") ||
-           domain.contains("medium.com") {
+            domain.contains("facebook") ||
+            domain.contains("linkedin") ||
+            domain.contains("instagram") ||
+            domain.contains("reddit") ||
+            domain.contains("medium.com")
+        {
             return .social
         }
 
         // Database sources
         if domain.contains("database") ||
-           domain.contains("data.gov") ||
-           domain.contains("census.gov") ||
-           domain.contains("statista") ||
-           domain.contains("kaggle") {
+            domain.contains("data.gov") ||
+            domain.contains("census.gov") ||
+            domain.contains("statista") ||
+            domain.contains("kaggle")
+        {
             return .database
         }
 
@@ -614,7 +621,10 @@ class WebSearchManager {
 
             // Handle errors
             guard let data = data, error == nil else {
-                Debug.shared.log(message: "Error crawling page: \(error?.localizedDescription ?? "unknown error")", type: .error)
+                Debug.shared.log(
+                    message: "Error crawling page: \(error?.localizedDescription ?? "unknown error")",
+                    type: .error
+                )
                 completion(nil)
                 return
             }
@@ -637,7 +647,10 @@ class WebSearchManager {
                     content: extractedText,
                     keywords: keywords,
                     sentiment: sentiment,
-                    entities: entities.reduce(into: [String: String]()) { dict, entity in dict[String(describing: entity)] = "entity" },
+                    entities: entities
+                        .reduce(into: [String: String]()) { dict, entity in
+                            dict[String(describing: entity)] = "entity"
+                        },
                     links: links,
                     imageURLs: imageURLs,
                     extractedDate: date
@@ -676,7 +689,11 @@ class WebSearchManager {
     }
 
     /// Perform specialized search using specific APIs based on source type
-    private func performSpecializedSearch(query: String, sourceTypes: [SourceType], completion: @escaping ([DeepSearchResult]) -> Void) {
+    private func performSpecializedSearch(
+        query: String,
+        sourceTypes: [SourceType],
+        completion: @escaping ([DeepSearchResult]) -> Void
+    ) {
         let group = DispatchGroup()
         var specializedResults: [DeepSearchResult] = []
         let resultsLock = NSLock()
@@ -720,7 +737,8 @@ class WebSearchManager {
         }
 
         // Placeholder academic search
-        let searchURL = URL(string: "https://api.semanticscholar.org/graph/v1/paper/search?query=\(encodedQuery)&limit=3")!
+        let searchURL =
+            URL(string: "https://api.semanticscholar.org/graph/v1/paper/search?query=\(encodedQuery)&limit=3")!
 
         URLSession.shared.dataTask(with: searchURL) { data, _, _ in
             var results: [DeepSearchResult] = []
@@ -729,14 +747,14 @@ class WebSearchManager {
             // This is a placeholder for demonstration
 
             if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let papers = json["data"] as? [[String: Any]] {
-
+               let papers = json["data"] as? [[String: Any]]
+            {
                 for paper in papers {
                     if let title = paper["title"] as? String,
                        let year = paper["year"] as? Int,
                        let url = paper["url"] as? String,
-                       let url = URL(string: url) {
-
+                       let url = URL(string: url)
+                    {
                         var result = DeepSearchResult()
                         result.title = title
                         result.url = url
@@ -774,7 +792,8 @@ class WebSearchManager {
         }
 
         // Placeholder news search
-        let searchURL = URL(string: "https://newsapi.org/v2/everything?q=\(encodedQuery)&apiKey=\(newsAPIKey)&pageSize=5")!
+        let searchURL =
+            URL(string: "https://newsapi.org/v2/everything?q=\(encodedQuery)&apiKey=\(newsAPIKey)&pageSize=5")!
 
         URLSession.shared.dataTask(with: searchURL) { data, _, _ in
             var results: [DeepSearchResult] = []
@@ -783,14 +802,14 @@ class WebSearchManager {
             // This is a placeholder for demonstration
 
             if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let articles = json["articles"] as? [[String: Any]] {
-
+               let articles = json["articles"] as? [[String: Any]]
+            {
                 for article in articles {
                     if let title = article["title"] as? String,
                        let description = article["description"] as? String,
                        let urlString = article["url"] as? String,
-                       let url = URL(string: urlString) {
-
+                       let url = URL(string: urlString)
+                    {
                         var result = DeepSearchResult()
                         result.title = title
                         result.description = description
@@ -802,7 +821,9 @@ class WebSearchManager {
                             result.extractedDate = dateFormatter.date(from: publishedAt)
                         }
 
-                        if let source = article["source"] as? [String: Any], let sourceName = source["name"] as? String {
+                        if let source = article["source"] as? [String: Any],
+                           let sourceName = source["name"] as? String
+                        {
                             result.entities["source"] = sourceName
                         }
 
@@ -835,7 +856,10 @@ class WebSearchManager {
             mainContent = String(cleanedHtml[articleRange])
         } else if let mainRange = cleanedHtml.range(of: "<main[^>]*>(.*?)</main>", options: .regularExpression) {
             mainContent = String(cleanedHtml[mainRange])
-        } else if let contentRange = cleanedHtml.range(of: "class=[\"']content[\"'][^>]*>(.*?)</div>", options: .regularExpression) {
+        } else if let contentRange = cleanedHtml.range(
+            of: "class=[\"']content[\"'][^>]*>(.*?)</div>",
+            options: .regularExpression
+        ) {
             mainContent = String(cleanedHtml[contentRange])
         } else {
             // Fallback to body
@@ -931,7 +955,7 @@ class WebSearchManager {
             "<meta[^>]+property=[\"']article:published_time[\"'][^>]+content=[\"']([^\"']+)[\"']",
             "<meta[^>]+name=[\"']publication_date[\"'][^>]+content=[\"']([^\"']+)[\"']",
             "<time[^>]+datetime=[\"']([^\"']+)[\"']",
-            "<span[^>]+class=[\"']date[\"'][^>]*>([^<]+)</span>"
+            "<span[^>]+class=[\"']date[\"'][^>]*>([^<]+)</span>",
         ]
 
         for pattern in patterns {
@@ -948,13 +972,14 @@ class WebSearchManager {
                             ISO8601DateFormatter(),
                             DateFormatter().apply { $0.dateFormat = "yyyy-MM-dd" },
                             DateFormatter().apply { $0.dateFormat = "MMMM d, yyyy" },
-                            DateFormatter().apply { $0.dateFormat = "dd/MM/yyyy" }
+                            DateFormatter().apply { $0.dateFormat = "dd/MM/yyyy" },
                         ]
 
                         for formatter in dateFormatters {
                             // Explicitly cast to DateFormatter to access date method
                             if let dateFormatter = formatter as? DateFormatter,
-                               let date = dateFormatter.date(from: dateStr) {
+                               let date = dateFormatter.date(from: dateStr)
+                            {
                                 return date
                             }
                         }
@@ -979,10 +1004,13 @@ class WebSearchManager {
         var keywords: [String] = []
         let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .joinNames]
 
-        tagger.enumerateTags(in: text.startIndex..<text.endIndex, unit: .word, scheme: .lemma, options: options) { tag, tokenRange in
+        tagger
+            .enumerateTags(in: text.startIndex ..< text.endIndex, unit: .word, scheme: .lemma,
+                           options: options)
+        { tag, tokenRange in
             if tag != nil {
                 let word = String(text[tokenRange]).lowercased()
-                if word.count > 3 && !self.isStopWord(word) {
+                if word.count > 3, !self.isStopWord(word) {
                     keywords.append(word)
                 }
             }
@@ -1019,7 +1047,8 @@ class WebSearchManager {
         guard !text.isEmpty else { return "" }
 
         // Simple extractive summarization - take first few sentences
-        let sentences = text.components(separatedBy: ".").filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        let sentences = text.components(separatedBy: ".")
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
         // Determine number of sentences to include based on text length
         var sentencesToInclude = 2
@@ -1040,7 +1069,7 @@ class WebSearchManager {
 
     /// Calculate relevance score for a search result
     private func calculateRelevanceScore(query: String, result: DeepSearchResult, pageData: PageData) -> Double {
-        var score: Double = 0.0
+        var score = 0.0
 
         // Base score from initial result position
         score += max(0.1, result.confidence)
@@ -1059,7 +1088,7 @@ class WebSearchManager {
 
         // Check content match
         let contentMatchCount = queryTerms.reduce(0) { count, term in
-            return count + (pageData.content.lowercased().components(separatedBy: term).count - 1)
+            count + (pageData.content.lowercased().components(separatedBy: term).count - 1)
         }
         score += min(0.3, Double(contentMatchCount) * 0.01)
 
@@ -1084,9 +1113,9 @@ class WebSearchManager {
         // Source type bonus
         switch result.sourceType {
         case .academic:
-            score += 0.15  // Academic sources tend to be more authoritative
+            score += 0.15 // Academic sources tend to be more authoritative
         case .news:
-            score += 0.1   // News can be relevant for current events
+            score += 0.1 // News can be relevant for current events
         default:
             break
         }
@@ -1106,7 +1135,7 @@ class WebSearchManager {
         // Extract potential entities from the query
         let queryEntities = NaturalLanguageHelper.shared.extractEntities(from: query)
 
-        for i in 0..<deepResults.count {
+        for i in 0 ..< deepResults.count {
             // Add query entities
             for entity in queryEntities {
                 // entities is a non-optional field in DeepSearchResult
@@ -1148,7 +1177,8 @@ class WebSearchManager {
 
         cacheQueue.sync {
             if let entry = searchCache[key],
-               Date().timeIntervalSince(entry.timestamp) < (maxCacheAgeMins * 60) {
+               Date().timeIntervalSince(entry.timestamp) < (maxCacheAgeMins * 60)
+            {
                 results = entry.results
             }
         }
@@ -1157,7 +1187,12 @@ class WebSearchManager {
     }
 
     /// Cache deep search results
-    private func cacheDeepSearchResults(_ results: [DeepSearchResult], for key: String, query: String, depth: SearchDepth) {
+    private func cacheDeepSearchResults(
+        _ results: [DeepSearchResult],
+        for key: String,
+        query: String,
+        depth: SearchDepth
+    ) {
         // Only cache if allowed by privacy settings
         guard privacyManager.isSearchCachingEnabled else {
             return
@@ -1207,7 +1242,7 @@ class WebSearchManager {
                 "query": query,
                 "resultCount": "\(results.count)",
                 "depth": "\(depth)",
-                "topKeywords": results.flatMap { $0.keywords }.prefix(5).joined(separator: ",")
+                "topKeywords": results.flatMap { $0.keywords }.prefix(5).joined(separator: ","),
             ]
 
             // Process in AI learning system

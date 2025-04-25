@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import SwiftUI
 
 struct SettingsAltIconView: View {
@@ -14,7 +8,7 @@ struct SettingsAltIconView: View {
 
     init(mainOptions: SigningMainDataWrapper, app: URL) {
         self.mainOptions = mainOptions
-        self.applicationPath = app
+        applicationPath = app
     }
 
     var body: some View {
@@ -29,7 +23,10 @@ struct SettingsAltIconView: View {
                             action: {
                                 mainOptions.mainOptions.iconURL = nil
                                 dismiss()
-                                NotificationCenter.default.post(name: Notification.Name("reloadSigningController"), object: nil)
+                                NotificationCenter.default.post(
+                                    name: Notification.Name("reloadSigningController"),
+                                    object: nil
+                                )
                             }
                         )
                     }
@@ -40,9 +37,14 @@ struct SettingsAltIconView: View {
                             name: name,
                             applicationPath: applicationPath,
                             action: {
-                                mainOptions.mainOptions.iconURL = UIImage(contentsOfFile: applicationPath.appendingPathComponent(path).path)
+                                mainOptions.mainOptions
+                                    .iconURL = UIImage(contentsOfFile: applicationPath.appendingPathComponent(path)
+                                        .path)
                                 dismiss()
-                                NotificationCenter.default.post(name: Notification.Name("reloadSigningController"), object: nil)
+                                NotificationCenter.default.post(
+                                    name: Notification.Name("reloadSigningController"),
+                                    object: nil
+                                )
                             }
                         )
                     }
@@ -85,7 +87,8 @@ extension SettingsAltIconView {
         var icons: [String: String] = [:]
         for (name, details) in alternateIcons {
             if let files = details["CFBundleIconFiles"] as? [String],
-               let iconPath = files.first {
+               let iconPath = files.first
+            {
                 icons[name] = iconPath
             }
         }
@@ -102,7 +105,8 @@ private struct IconButton: View {
     var body: some View {
         Button(action: action) {
             VStack {
-                Image(uiImage: UIImage(contentsOfFile: applicationPath.appendingPathComponent(iconPath).path) ?? UIImage())
+                Image(uiImage: UIImage(contentsOfFile: applicationPath.appendingPathComponent(iconPath).path) ??
+                    UIImage())
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 60, height: 60)

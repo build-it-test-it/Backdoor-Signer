@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import NIOSSL
 import NIOTLS
@@ -26,7 +20,8 @@ func getLocalIPAddress() -> String? {
                     var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
                     if getnameinfo(interface.ifa_addr, socklen_t(interface.ifa_addr.pointee.sa_len),
                                    &hostname, socklen_t(hostname.count),
-                                   nil, socklen_t(0), NI_NUMERICHOST) == 0 {
+                                   nil, socklen_t(0), NI_NUMERICHOST) == 0
+                    {
                         address = String(cString: hostname)
                         Debug.shared.log(message: "Testing (\(name)): \(address!)")
                     }
