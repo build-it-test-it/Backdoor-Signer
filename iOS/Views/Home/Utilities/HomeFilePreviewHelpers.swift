@@ -2,7 +2,7 @@ import QuickLook
 import UIKit
 
 // Important helper functions for file previews
-public extension HomeViewController {
+extension HomeViewController {
     /// Present a preview for a file
     /// - Parameter file: The file to preview
     func presentFilePreview(for file: File) {

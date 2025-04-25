@@ -342,6 +342,7 @@ extension LibraryViewController {
     override func numberOfSections(in _: UITableView) -> Int { 
         return 2 
     }
+}
     
     override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
