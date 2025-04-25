@@ -38,7 +38,7 @@ jobs:
           xcodebuild analyze -project 'backdoor.xcodeproj' -scheme 'backdoor (Debug)' -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO | xcpretty --color --report html
           
       - name: Upload XCPretty Report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: xcpretty-report
           path: build/reports/
