@@ -146,24 +146,67 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          # Install ldid (required for iOS app signing)
           curl -LO https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_x86_64
           sudo install -m755 ldid_macosx_x86_64 /usr/local/bin/ldid
+          
+          # Install other dependencies
           brew install p7zip gnu-sed
+          
+          # Install xcpretty for nicer build output
           gem install xcpretty
+          
+          # Create build directory 
+          mkdir -p build
+          
+          # Verify ldid installation
+          which ldid
+          ldid -v || echo "ldid version check not supported"
 
       - name: Compile
         run: |
+          # Create upload directory
           mkdir -p upload
-          make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile"
-          mv packages/* upload/
+          
+          # Output environment information for debugging
+          echo "Xcode version:"
+          xcodebuild -version
+          
+          echo "Available schemes:"
+          xcodebuild -project backdoor.xcodeproj -list
+          
+          echo "=== Building with Make ==="
+          # Set pipefail to ensure errors are caught even with xcpretty
+          set -o pipefail
+          
+          # Clean any previous builds first
+          make clean || true
+          
+          # Build with appropriate scheme format (using single quotes as in Makefile)
+          # Use tee to capture output for diagnostics while piping to xcpretty
+          make package SCHEME='backdoor (Release)' CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
+          
+          # Check if build was successful
+          if [ ! -d "packages" ] || [ -z "$(ls -A packages 2>/dev/null)" ]; then
+            echo "::error::Build failed - no package files were created"
+            echo "=== Build Log Tail ===" 
+            tail -n 50 build_log.txt
+            exit 1
+          fi
+          
+          # Move packages to upload directory
+          mv packages/* upload/ || { echo "::error::No build output to move"; exit 1; }
 
       # Store artifacts for both PRs and main branch
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ipa-files
-          path: upload/*.ipa
+          path: |
+            upload/*.ipa
+            build_log.txt
           retention-days: 7
+          if-no-files-found: warn
 
       # The following steps only run for main branch pushes (releases)
       - name: Get Version Number
