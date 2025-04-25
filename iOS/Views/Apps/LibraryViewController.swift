@@ -1,18 +1,10 @@
-// Import standard logging
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import Foundation
 import UniformTypeIdentifiers
 
 class LibraryViewController: UITableViewController {
     // MARK: - Properties
-    
+
     var signedApps: [SignedApps]?
     var downloadedApps: [DownloadedApps]?
 
@@ -26,14 +18,14 @@ class LibraryViewController: UITableViewController {
     var loaderAlert: UIAlertController?
 
     // MARK: - Lifecycle
-    
-    init() { 
-        super.init(style: .grouped) 
+
+    init() {
+        super.init(style: .grouped)
     }
-    
+
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { 
-        fatalError("init(coder:) has not been implemented") 
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     override func viewDidLoad() {
@@ -48,30 +40,30 @@ class LibraryViewController: UITableViewController {
         super.viewWillAppear(animated)
         setupNavigation()
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self, name: Notification.Name("lfetch"), object: nil)
         NotificationCenter.default.removeObserver(
-            self, 
-            name: Notification.Name("InstallDownloadedApp"), 
+            self,
+            name: Notification.Name("InstallDownloadedApp"),
             object: nil
         )
     }
-    
+
     // MARK: - Setup
-    
+
     private func setupViews() {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(AppsTableViewCell.self, forCellReuseIdentifier: "RoundedBackgroundCell")
-        
+
         NotificationCenter.default.addObserver(
-            self, 
-            selector: #selector(refreshData), 
-            name: Notification.Name("lfetch"), 
+            self,
+            selector: #selector(refreshData),
+            name: Notification.Name("lfetch"),
             object: nil
         )
-        
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleInstallNotification(_:)),
@@ -79,10 +71,10 @@ class LibraryViewController: UITableViewController {
             object: nil
         )
     }
-    
+
     @objc private func handleInstallNotification(_ notification: Notification) {
-        guard let downloadedApp = notification.userInfo?["downloadedApp"] as? DownloadedApps else { 
-            return 
+        guard let downloadedApp = notification.userInfo?["downloadedApp"] as? DownloadedApps else {
+            return
         }
 
         let signingDataWrapper = SigningDataWrapper(signingOptions: UserDefaults.standard.signingOptions)
@@ -110,13 +102,13 @@ class LibraryViewController: UITableViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         title = String.localized("TAB_LIBRARY")
     }
-    
+
     // MARK: - Data Management
-    
-    @objc func refreshData() { 
-        fetchSources() 
+
+    @objc func refreshData() {
+        fetchSources()
     }
-    
+
     func fetchSources() {
         signedApps = CoreDataManager.shared.getDatedSignedApps()
         downloadedApps = CoreDataManager.shared.getDatedDownloadedApps()
@@ -129,14 +121,17 @@ class LibraryViewController: UITableViewController {
     }
 
     // MARK: - App Update Handling
-    
+
     private func handleAppUpdate(for signedApp: SignedApps) {
         guard let sourceURL = signedApp.originalSourceURL else {
             backdoor.Debug.shared.log(message: "Missing update version or source URL", type: LogType.error)
             return
         }
 
-        backdoor.Debug.shared.log(message: "Fetching update from source: \(sourceURL.absoluteString)", type: LogType.info)
+        backdoor.Debug.shared.log(
+            message: "Fetching update from source: \(sourceURL.absoluteString)",
+            type: LogType.info
+        )
 
         if let loaderAlert = loaderAlert {
             present(loaderAlert, animated: true)
@@ -148,12 +143,12 @@ class LibraryViewController: UITableViewController {
             fetchProductionUpdate(from: sourceURL, for: signedApp)
         }
     }
-    
+
     private func fetchDebugModeUpdate(for signedApp: SignedApps) {
         let mockSource = SourceRefreshOperation()
         mockSource.createMockSource { [weak self] mockSourceData in
             guard let self = self else { return }
-            
+
             if let sourceData = mockSourceData {
                 self.handleSourceData(sourceData, for: signedApp)
             } else {
@@ -164,7 +159,7 @@ class LibraryViewController: UITableViewController {
             }
         }
     }
-    
+
     private func fetchProductionUpdate(from sourceURL: URL, for signedApp: SignedApps) {
         SourceGET().downloadURL(from: sourceURL) { [weak self] result in
             guard let self = self else { return }
@@ -192,7 +187,8 @@ class LibraryViewController: UITableViewController {
         guard let bundleId = signedApp.bundleidentifier,
               let updateVersion = signedApp.updateVersion,
               let app = sourceData.apps.first(where: { $0.bundleIdentifier == bundleId }),
-              let versions = app.versions else {
+              let versions = app.versions
+        else {
             backdoor.Debug.shared.log(message: "Failed to find app in source", type: LogType.error)
             DispatchQueue.main.async {
                 self.loaderAlert?.dismiss(animated: true)
@@ -214,13 +210,13 @@ class LibraryViewController: UITableViewController {
             self.loaderAlert?.dismiss(animated: true)
         }
     }
-    
+
     private func downloadAndProcessUpdate(version: SourceAppVersion, originalApp: SignedApps) {
         let uuid = UUID().uuidString
-        
+
         DispatchQueue.global(qos: .background).async { [weak self] in
             guard let self = self else { return }
-            
+
             do {
                 let tempDirectory = FileManager.default.temporaryDirectory
                 let destinationURL = tempDirectory.appendingPathComponent("\(uuid).ipa")
@@ -246,13 +242,13 @@ class LibraryViewController: UITableViewController {
             }
         }
     }
-    
+
     private func prepareAndSignDownloadedUpdate(uuid: String, originalApp: SignedApps) {
         let downloadedApps = CoreDataManager.shared.getDatedDownloadedApps()
         guard let downloadedApp = downloadedApps.first(where: { $0.uuid == uuid }) else {
             return
         }
-        
+
         let signingDataWrapper = SigningDataWrapper(signingOptions: UserDefaults.standard.signingOptions)
         signingDataWrapper.signingOptions.installAfterSigned = true
 
@@ -264,7 +260,7 @@ class LibraryViewController: UITableViewController {
 
         signingVC.signingCompletionHandler = { [weak self] success in
             guard let self = self else { return }
-            
+
             if success {
                 do {
                     try CoreDataManager.shared.deleteAllSignedAppContentWithThrow(for: originalApp)
@@ -294,24 +290,25 @@ class LibraryViewController: UITableViewController {
         }())
         return isDebug
     }
-    
+
     // MARK: - Helper Methods
-    
-    func getApplicationFilePath(with app: NSManagedObject?, 
-                               row: Int, 
-                               section: Int, 
-                               getuuidonly: Bool = false) -> URL? {
+
+    func getApplicationFilePath(with _: NSManagedObject?,
+                                row: Int,
+                                section: Int,
+                                getuuidonly: Bool = false) -> URL?
+    {
         do {
             if section == 0, let apps = signedApps, row < apps.count {
                 let signedApp = apps[row]
                 return try CoreDataManager.shared.getFilesForSignedApps(
-                    for: signedApp, 
+                    for: signedApp,
                     getuuidonly: getuuidonly
                 )
             } else if let apps = downloadedApps, row < apps.count {
                 let downloadedApp = apps[row]
                 return try CoreDataManager.shared.getFilesForDownloadedApps(
-                    for: downloadedApp, 
+                    for: downloadedApp,
                     getuuidonly: getuuidonly
                 )
             }
@@ -339,307 +336,311 @@ class LibraryViewController: UITableViewController {
 // MARK: - UITableView DataSource & Delegate
 
 extension LibraryViewController {
-    override func numberOfSections(in _: UITableView) -> Int { 
-        return 2 
+    override func numberOfSections(in _: UITableView) -> Int {
+        return 2
     }
 }
-    
-    override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0:
-            return isFiltering ? filteredSignedApps.count : signedApps?.count ?? 0
-        case 1:
-            return isFiltering ? filteredDownloadedApps.count : downloadedApps?.count ?? 0
-        default:
-            return 0
-        }
+
+override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
+    switch section {
+    case 0:
+        return isFiltering ? filteredSignedApps.count : signedApps?.count ?? 0
+    case 1:
+        return isFiltering ? filteredDownloadedApps.count : downloadedApps?.count ?? 0
+    default:
+        return 0
     }
+}
 
-    override func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        switch section {
-        case 0:
-            let headerWithButton = GroupedSectionHeader(
-                title: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_SIGNED_APPS"),
-                subtitle: String.localized(
-                    "LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_SIGNED_APPS_TOTAL", 
-                    arguments: String(signedApps?.count ?? 0)
-                ),
-                buttonTitle: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_BUTTON_IMPORT"),
-                buttonAction: { [weak self] in
-                    self?.startImporting()
-                }
+override func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    switch section {
+    case 0:
+        let headerWithButton = GroupedSectionHeader(
+            title: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_SIGNED_APPS"),
+            subtitle: String.localized(
+                "LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_SIGNED_APPS_TOTAL",
+                arguments: String(signedApps?.count ?? 0)
+            ),
+            buttonTitle: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_BUTTON_IMPORT"),
+            buttonAction: { [weak self] in
+                self?.startImporting()
+            }
+        )
+        return headerWithButton
+
+    case 1:
+        let headerWithButton = GroupedSectionHeader(
+            title: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_DOWNLOADED_APPS"),
+            subtitle: String.localized(
+                "LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_DOWNLOADED_APPS_TOTAL",
+                arguments: String(downloadedApps?.count ?? 0)
             )
-            return headerWithButton
-            
-        case 1:
-            let headerWithButton = GroupedSectionHeader(
-                title: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_DOWNLOADED_APPS"),
-                subtitle: String.localized(
-                    "LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_DOWNLOADED_APPS_TOTAL", 
-                    arguments: String(downloadedApps?.count ?? 0)
-                )
-            )
-            return headerWithButton
-            
-        default:
-            return nil
-        }
+        )
+        return headerWithButton
+
+    default:
+        return nil
     }
+}
 
-    override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = AppsTableViewCell(style: .subtitle, reuseIdentifier: "RoundedBackgroundCell")
-        cell.selectionStyle = .default
-        cell.accessoryType = .disclosureIndicator
-        cell.backgroundColor = .clear
-        
-        guard let source = getApplication(row: indexPath.row, section: indexPath.section),
-              let filePath = getApplicationFilePath(
-                with: source, 
-                row: indexPath.row, 
-                section: indexPath.section
-              ) else {
-            return cell
-        }
+override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = AppsTableViewCell(style: .subtitle, reuseIdentifier: "RoundedBackgroundCell")
+    cell.selectionStyle = .default
+    cell.accessoryType = .disclosureIndicator
+    cell.backgroundColor = .clear
 
-        configureCell(cell, with: source, filePath: filePath)
+    guard let source = getApplication(row: indexPath.row, section: indexPath.section),
+          let filePath = getApplicationFilePath(
+              with: source,
+              row: indexPath.row,
+              section: indexPath.section
+          )
+    else {
         return cell
     }
-    
-    private func configureCell(_ cell: AppsTableViewCell, with app: NSManagedObject, filePath: URL) {
-        if let iconURL = app.value(forKey: "iconURL") as? String {
-            let imagePath = filePath.appendingPathComponent(iconURL)
 
-            if let image = CoreDataManager.shared.loadImage(from: imagePath) {
-                SectionIcons.sectionImage(to: cell, with: image)
-            } else if let defaultImage = UIImage(named: "unknown") {
-                SectionIcons.sectionImage(to: cell, with: defaultImage)
-            }
+    configureCell(cell, with: source, filePath: filePath)
+    return cell
+}
+
+private func configureCell(_ cell: AppsTableViewCell, with app: NSManagedObject, filePath: URL) {
+    if let iconURL = app.value(forKey: "iconURL") as? String {
+        let imagePath = filePath.appendingPathComponent(iconURL)
+
+        if let image = CoreDataManager.shared.loadImage(from: imagePath) {
+            SectionIcons.sectionImage(to: cell, with: image)
         } else if let defaultImage = UIImage(named: "unknown") {
             SectionIcons.sectionImage(to: cell, with: defaultImage)
         }
-
-        cell.configure(with: app, filePath: filePath)
+    } else if let defaultImage = UIImage(named: "unknown") {
+        SectionIcons.sectionImage(to: cell, with: defaultImage)
     }
 
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let app = getApplication(row: indexPath.row, section: indexPath.section),
-              let fullPath = getApplicationFilePath(
-                with: app, 
-                row: indexPath.row, 
-                section: indexPath.section, 
-                getuuidonly: false
-              ) else {
-            tableView.deselectRow(at: indexPath, animated: true)
-            return
-        }
-        
-        let uuidOnlyPath = getApplicationFilePath(
-            with: app, 
-            row: indexPath.row, 
-            section: indexPath.section, 
-            getuuidonly: true
-        )
-        
-        let appName = app.value(forKey: "name") as? String ?? ""
-        
-        if !FileManager.default.fileExists(atPath: fullPath.path) {
-            backdoor.Debug.shared.log(
-                message: "The file has been deleted for this entry, please remove it manually.",
-                type: .critical
-            )
-            tableView.deselectRow(at: indexPath, animated: true)
-            return
-        }
-        
-        popupVC = PopupViewController()
-        popupVC.modalPresentationStyle = .pageSheet
-        
-        switch indexPath.section {
-        case 0:
-            handleSignedAppAction(
-                app: app, 
-                uuidPath: uuidOnlyPath, 
-                fullPath: fullPath, 
-                appName: appName, 
-                indexPath: indexPath
-            )
-        case 1:
-            handleDownloadedAppAction(
-                app: app, 
-                uuidPath: uuidOnlyPath, 
-                appName: appName
-            )
-        default:
-            break
-        }
+    cell.configure(with: app, filePath: filePath)
+}
 
+override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    guard let app = getApplication(row: indexPath.row, section: indexPath.section),
+          let fullPath = getApplicationFilePath(
+              with: app,
+              row: indexPath.row,
+              section: indexPath.section,
+              getuuidonly: false
+          )
+    else {
         tableView.deselectRow(at: indexPath, animated: true)
+        return
     }
-    
-    private func handleSignedAppAction(
-        app: NSManagedObject,
-        uuidPath: URL?,
-        fullPath: URL,
-        appName: String,
-        indexPath: IndexPath
-    ) {
-        let hasUpdate = (app as? SignedApps)?.value(forKey: "hasUpdate") as? Bool ?? false
 
-        if let signedApp = app as? SignedApps, hasUpdate {
-            configureUpdateMenuButtons(for: signedApp, appName: appName, indexPath: indexPath)
-        } else {
-            configureRegularMenuButtons(
-                for: app, 
-                uuidPath: uuidPath, 
-                fullPath: fullPath, 
-                appName: appName, 
-                indexPath: indexPath
-            )
-        }
-        
-        configurePopupDetents(hasUpdate: hasUpdate)
-        present(popupVC, animated: true)
+    let uuidOnlyPath = getApplicationFilePath(
+        with: app,
+        row: indexPath.row,
+        section: indexPath.section,
+        getuuidonly: true
+    )
+
+    let appName = app.value(forKey: "name") as? String ?? ""
+
+    if !FileManager.default.fileExists(atPath: fullPath.path) {
+        backdoor.Debug.shared.log(
+            message: "The file has been deleted for this entry, please remove it manually.",
+            type: .critical
+        )
+        tableView.deselectRow(at: indexPath, animated: true)
+        return
     }
-    
-    private func configureUpdateMenuButtons(
-        for signedApp: SignedApps, 
-        appName: String, 
-        indexPath: IndexPath
-    ) {
-        // Update available menu
-        let updateButton = PopupViewControllerButton(
-            title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_UPDATE", arguments: appName),
-            color: .tintColor.withAlphaComponent(0.9),
-            titleColor: .white
-        )
-        updateButton.onTap = { [weak self] in
-            guard let self = self else { return }
-            self.popupVC.dismiss(animated: true) {
-                self.handleAppUpdate(for: signedApp)
-            }
-        }
 
-        let clearButton = PopupViewControllerButton(
-            title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_CLEAR_UPDATE"),
-            color: .quaternarySystemFill,
-            titleColor: .tintColor
-        )
-        clearButton.onTap = { [weak self] in
-            guard let self = self else { return }
-            self.popupVC.dismiss(animated: true)
-            do {
-                try CoreDataManager.shared.clearUpdateStateCompat(for: signedApp)
-                self.tableView.reloadRows(at: [indexPath], with: .none)
-            } catch {
-                backdoor.Debug.shared.log(message: "Error clearing update state: \(error)", type: LogType.error)
-            }
-        }
+    popupVC = PopupViewController()
+    popupVC.modalPresentationStyle = .pageSheet
 
-        popupVC.configureButtons([updateButton, clearButton])
+    switch indexPath.section {
+    case 0:
+        handleSignedAppAction(
+            app: app,
+            uuidPath: uuidOnlyPath,
+            fullPath: fullPath,
+            appName: appName,
+            indexPath: indexPath
+        )
+    case 1:
+        handleDownloadedAppAction(
+            app: app,
+            uuidPath: uuidOnlyPath,
+            appName: appName
+        )
+    default:
+        break
     }
-    
-    private func configureRegularMenuButtons(
-        for app: NSManagedObject,
-        uuidPath: URL?,
-        fullPath: URL,
-        appName: String,
-        indexPath: IndexPath
-    ) {
-        // Install button
-        let installButton = PopupViewControllerButton(
-            title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_INSTALL", arguments: appName),
-            color: .tintColor.withAlphaComponent(0.9)
-        )
-        installButton.onTap = { [weak self] in
-            guard let self = self else { return }
-            self.popupVC.dismiss(animated: true)
-            self.startInstallProcess(app: app, filePath: uuidPath?.path ?? "")
-        }
 
-        // Open button
-        let openButton = PopupViewControllerButton(
-            title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_OPEN", arguments: appName),
-            color: .quaternarySystemFill,
-            titleColor: .tintColor
-        )
-        openButton.onTap = { [weak self] in
-            guard let self = self else { return }
-            self.popupVC.dismiss(animated: true)
-            
-            if let workspace = LSApplicationWorkspace.default(),
-               let bundleID = app.value(forKey: "bundleidentifier") as? String {
-                let success = workspace.openApplication(withBundleID: bundleID)
-                if !success {
-                    backdoor.Debug.shared.log(
-                        message: "Unable to open, do you have the app installed?", 
-                        type: LogType.warning
-                    )
-                }
-            }
-        }
+    tableView.deselectRow(at: indexPath, animated: true)
+}
 
-        // Resign button
-        let resignButton = PopupViewControllerButton(
-            title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_RESIGN", arguments: appName),
-            color: .quaternarySystemFill,
-            titleColor: .tintColor
-        )
-        resignButton.onTap = { [weak self] in
-            guard let self = self else { return }
-            self.popupVC.dismiss(animated: true) {
-                self.handleResignApp(app: app, fullPath: fullPath, indexPath: indexPath)
-            }
-        }
+private func handleSignedAppAction(
+    app: NSManagedObject,
+    uuidPath: URL?,
+    fullPath: URL,
+    appName: String,
+    indexPath: IndexPath
+) {
+    let hasUpdate = (app as? SignedApps)?.value(forKey: "hasUpdate") as? Bool ?? false
 
-        // Share button
-        let shareButton = PopupViewControllerButton(
-            title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_SHARE", arguments: appName),
-            color: .quaternarySystemFill,
-            titleColor: .tintColor
+    if let signedApp = app as? SignedApps, hasUpdate {
+        configureUpdateMenuButtons(for: signedApp, appName: appName, indexPath: indexPath)
+    } else {
+        configureRegularMenuButtons(
+            for: app,
+            uuidPath: uuidPath,
+            fullPath: fullPath,
+            appName: appName,
+            indexPath: indexPath
         )
-        shareButton.onTap = { [weak self] in
-            guard let self = self else { return }
-            self.popupVC.dismiss(animated: true)
-            self.shareFile(app: app, filePath: uuidPath?.path ?? "")
-        }
-
-        popupVC.configureButtons([installButton, openButton, resignButton, shareButton])
     }
-    
-    private func handleResignApp(app: NSManagedObject, fullPath: URL, indexPath: IndexPath) {
-        guard let signedApp = app as? SignedApps else { return }
-        
-        if let cert = CoreDataManager.shared.getCurrentCertificate() {
-            if let loaderAlert = self.loaderAlert {
-                present(loaderAlert, animated: true)
-            }
 
-            resignApp(certificate: cert, appPath: fullPath) { [weak self] success in
-                guard let self = self, success else { return }
-                
-                if let expirationDate = cert.certData?.expirationDate,
-                   let teamName = cert.certData?.name {
-                    
-                    // Use the explicit error completion version with full type qualification
-                    let updateSignedApp: (SignedApps, Date, String, @escaping (Error?) -> Void) -> Void = CoreDataManager.shared.updateSignedApp
-                    updateSignedApp(
-                        signedApp,
-                        expirationDate,
-                        teamName,
-                        { error in
-                            DispatchQueue.main.async {
-                                self.loaderAlert?.dismiss(animated: true)
-                                backdoor.Debug.shared.log(message: "Resign completed")
-                                self.tableView.reloadRows(at: [indexPath], with: .left)
-                            }
+    configurePopupDetents(hasUpdate: hasUpdate)
+    present(popupVC, animated: true)
+}
+
+private func configureUpdateMenuButtons(
+    for signedApp: SignedApps,
+    appName: String,
+    indexPath: IndexPath
+) {
+    // Update available menu
+    let updateButton = PopupViewControllerButton(
+        title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_UPDATE", arguments: appName),
+        color: .tintColor.withAlphaComponent(0.9),
+        titleColor: .white
+    )
+    updateButton.onTap = { [weak self] in
+        guard let self = self else { return }
+        self.popupVC.dismiss(animated: true) {
+            self.handleAppUpdate(for: signedApp)
+        }
+    }
+
+    let clearButton = PopupViewControllerButton(
+        title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_CLEAR_UPDATE"),
+        color: .quaternarySystemFill,
+        titleColor: .tintColor
+    )
+    clearButton.onTap = { [weak self] in
+        guard let self = self else { return }
+        self.popupVC.dismiss(animated: true)
+        do {
+            try CoreDataManager.shared.clearUpdateStateCompat(for: signedApp)
+            self.tableView.reloadRows(at: [indexPath], with: .none)
+        } catch {
+            backdoor.Debug.shared.log(message: "Error clearing update state: \(error)", type: LogType.error)
+        }
+    }
+
+    popupVC.configureButtons([updateButton, clearButton])
+}
+
+private func configureRegularMenuButtons(
+    for app: NSManagedObject,
+    uuidPath: URL?,
+    fullPath: URL,
+    appName: String,
+    indexPath: IndexPath
+) {
+    // Install button
+    let installButton = PopupViewControllerButton(
+        title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_INSTALL", arguments: appName),
+        color: .tintColor.withAlphaComponent(0.9)
+    )
+    installButton.onTap = { [weak self] in
+        guard let self = self else { return }
+        self.popupVC.dismiss(animated: true)
+        self.startInstallProcess(app: app, filePath: uuidPath?.path ?? "")
+    }
+
+    // Open button
+    let openButton = PopupViewControllerButton(
+        title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_OPEN", arguments: appName),
+        color: .quaternarySystemFill,
+        titleColor: .tintColor
+    )
+    openButton.onTap = { [weak self] in
+        guard let self = self else { return }
+        self.popupVC.dismiss(animated: true)
+
+        if let workspace = LSApplicationWorkspace.default(),
+           let bundleID = app.value(forKey: "bundleidentifier") as? String
+        {
+            let success = workspace.openApplication(withBundleID: bundleID)
+            if !success {
+                backdoor.Debug.shared.log(
+                    message: "Unable to open, do you have the app installed?",
+                    type: LogType.warning
+                )
+            }
+        }
+    }
+
+    // Resign button
+    let resignButton = PopupViewControllerButton(
+        title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_RESIGN", arguments: appName),
+        color: .quaternarySystemFill,
+        titleColor: .tintColor
+    )
+    resignButton.onTap = { [weak self] in
+        guard let self = self else { return }
+        self.popupVC.dismiss(animated: true) {
+            self.handleResignApp(app: app, fullPath: fullPath, indexPath: indexPath)
+        }
+    }
+
+    // Share button
+    let shareButton = PopupViewControllerButton(
+        title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_SHARE", arguments: appName),
+        color: .quaternarySystemFill,
+        titleColor: .tintColor
+    )
+    shareButton.onTap = { [weak self] in
+        guard let self = self else { return }
+        self.popupVC.dismiss(animated: true)
+        self.shareFile(app: app, filePath: uuidPath?.path ?? "")
+    }
+
+    popupVC.configureButtons([installButton, openButton, resignButton, shareButton])
+}
+
+private func handleResignApp(app: NSManagedObject, fullPath: URL, indexPath: IndexPath) {
+    guard let signedApp = app as? SignedApps else { return }
+
+    if let cert = CoreDataManager.shared.getCurrentCertificate() {
+        if let loaderAlert = loaderAlert {
+            present(loaderAlert, animated: true)
+        }
+
+        resignApp(certificate: cert, appPath: fullPath) { [weak self] success in
+            guard let self = self, success else { return }
+
+            if let expirationDate = cert.certData?.expirationDate,
+               let teamName = cert.certData?.name
+            {
+                // Use the explicit error completion version with full type qualification
+                let updateSignedApp: (SignedApps, Date, String, @escaping (Error?) -> Void) -> Void = CoreDataManager
+                    .shared.updateSignedApp
+                updateSignedApp(
+                    signedApp,
+                    expirationDate,
+                    teamName,
+                    { _ in
+                        DispatchQueue.main.async {
+                            self.loaderAlert?.dismiss(animated: true)
+                            backdoor.Debug.shared.log(message: "Resign completed")
+                            self.tableView.reloadRows(at: [indexPath], with: .left)
                         }
-                    )
+                    }
+                )
             }
         } else {
             showNoCertificatesAlert()
         }
     }
-    
+
     private func showNoCertificatesAlert() {
         let alert = UIAlertController(
             title: String.localized("APP_SIGNING_VIEW_CONTROLLER_NO_CERTS_ALERT_TITLE"),
@@ -649,14 +650,14 @@ extension LibraryViewController {
         alert.addAction(UIAlertAction(title: String.localized("LAME"), style: .default))
         present(alert, animated: true)
     }
-    
+
     private func handleDownloadedAppAction(
         app: NSManagedObject,
         uuidPath: URL?,
         appName: String
     ) {
         let signingDataWrapper = SigningDataWrapper(signingOptions: UserDefaults.standard.signingOptions)
-        
+
         // Sign button
         let signButton = PopupViewControllerButton(
             title: signingDataWrapper.signingOptions.installAfterSigned
@@ -687,7 +688,7 @@ extension LibraryViewController {
         configurePopupDetents(hasUpdate: false)
         present(popupVC, animated: true)
     }
-    
+
     private func showInstallConfirmationAlert(app: NSManagedObject, filePath: String) {
         let alertController = UIAlertController(
             title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_INSTALL_CONFIRM"),
@@ -696,14 +697,14 @@ extension LibraryViewController {
         )
 
         let confirmAction = UIAlertAction(
-            title: String.localized("INSTALL"), 
+            title: String.localized("INSTALL"),
             style: .default
         ) { [weak self] _ in
             self?.startInstallProcess(app: app, filePath: filePath)
         }
 
         let cancelAction = UIAlertAction(
-            title: String.localized("CANCEL"), 
+            title: String.localized("CANCEL"),
             style: .cancel
         )
 
@@ -711,14 +712,14 @@ extension LibraryViewController {
         alertController.addAction(cancelAction)
         present(alertController, animated: true)
     }
-    
+
     private func configurePopupDetents(hasUpdate: Bool) {
         let detentHeight = hasUpdate ? 150.0 : 270.0
         let detent: UISheetPresentationController.Detent = ._detent(
             withIdentifier: "PopupDetent",
             constant: detentHeight
         )
-        
+
         if let presentationController = popupVC.presentationController as? UISheetPresentationController {
             presentationController.detents = [detent, .medium()]
             presentationController.prefersGrabberVisible = true
@@ -726,9 +727,9 @@ extension LibraryViewController {
     }
 
     // Implementation moved to LibraryViewController+Types extension
-    
+
     // MARK: - Legacy method for backward compatibility
-    
+
     // This method is kept for compatibility with existing code
     @available(*, deprecated, message: "Use startSigning(app:) instead")
     func startSigning(meow: NSManagedObject) {
@@ -746,14 +747,14 @@ extension LibraryViewController {
         }
 
         let deleteAction = UIContextualAction(
-            style: .destructive, 
+            style: .destructive,
             title: String.localized("DELETE")
         ) { [weak self] _, _, completionHandler in
             guard let self = self else {
                 completionHandler(false)
                 return
             }
-            
+
             do {
                 switch indexPath.section {
                 case 0:
@@ -796,10 +797,11 @@ extension LibraryViewController {
         // Access methods directly without self, ensuring scope is correct
         guard let app = getApplication(row: indexPath.row, section: indexPath.section),
               let filePath = getApplicationFilePath(
-                with: app, 
-                row: indexPath.row, 
-                section: indexPath.section
-              ) else {
+                  with: app,
+                  row: indexPath.row,
+                  section: indexPath.section
+              )
+        else {
             return nil
         }
 
@@ -807,23 +809,25 @@ extension LibraryViewController {
             identifier: nil,
             actionProvider: { [weak self] _ in
                 guard let self = self else { return UIMenu() }
-                
+
                 var actions: [UIAction] = []
-                
+
                 // View details action
                 let infoAction = UIAction(
                     title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_VIEW_DATEILS"),
                     image: UIImage(systemName: "info.circle")
                 ) { [weak self] _ in
                     guard let self = self else { return }
-                    
+
                     let viewController = AppsInformationViewController()
                     viewController.source = app
                     viewController.filePath = filePath
                     let navigationController = UINavigationController(rootViewController: viewController)
 
                     if #available(iOS 15.0, *) {
-                        if let presentationController = navigationController.presentationController as? UISheetPresentationController {
+                        if let presentationController = navigationController
+                            .presentationController as? UISheetPresentationController
+                        {
                             presentationController.detents = [.medium(), .large()]
                         }
                     }
@@ -831,7 +835,7 @@ extension LibraryViewController {
                     self.present(navigationController, animated: true)
                 }
                 actions.append(infoAction)
-                
+
                 // Open in Files action
                 let filesAction = UIAction(
                     title: String.localized("LIBRARY_VIEW_CONTROLLER_SIGN_ACTION_OPEN_LN_FILES"),
@@ -842,7 +846,7 @@ extension LibraryViewController {
                         of: "file://",
                         with: "shareddocuments://"
                     )
-                    
+
                     if let url = URL(string: documentURL) {
                         UIApplication.shared.open(url, options: [:]) { success in
                             if success {
@@ -856,7 +860,7 @@ extension LibraryViewController {
                     }
                 }
                 actions.append(filesAction)
-                
+
                 return UIMenu(title: "", children: actions)
             }
         )
@@ -864,8 +868,9 @@ extension LibraryViewController {
 }
 
 // MARK: - Fetch Data Extension
+
 extension LibraryViewController {
-    @objc func afetch() { self.fetchSources() }
+    @objc func afetch() { fetchSources() }
 }
 
 extension LibraryViewController: UISearchResultsUpdating {
