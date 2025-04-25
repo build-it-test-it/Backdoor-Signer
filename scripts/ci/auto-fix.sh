@@ -11,31 +11,32 @@ find . -name "*.swift" -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Ca
     echo "⚠️ SwiftLint autocorrect encountered issues, but continuing..."
 }
 
-# Create a simplified swiftformat config to avoid compatibility problems
-echo "Creating compatible SwiftFormat config..."
+# Create a minimal swiftformat config with only the most basic options
+echo "Creating minimal SwiftFormat config..."
 TEMP_SWIFTFORMAT="./.temp-swiftformat-config"
 cat > $TEMP_SWIFTFORMAT << EOF
 --indent 4
---indentcase true
 --trimwhitespace always
---importgrouping alphabetized
 --semicolons never
 --header strip
---disable redundantSelf
 --linebreaks lf
 --maxwidth 120
---wraparguments beforeFirst
---wrapparameters beforeFirst
---closureparameters sameLine
---trailingclosures always
---allman true
---spacearoundoperators true
 EOF
 
-# Auto-fix SwiftFormat issues with compatibility mode
-echo "Automatically fixing SwiftFormat issues..."
+# First try with the minimal config
+echo "Automatically fixing SwiftFormat issues with minimal config..."
 swiftformat . --config $TEMP_SWIFTFORMAT || {
-    echo "⚠️ SwiftFormat encountered issues, but continuing..."
+    echo "⚠️ SwiftFormat encountered issues with minimal config, trying individual rules..."
+    
+    # If the config approach fails, try applying individual rules one by one
+    echo "Applying individual formatting rules..."
+    swiftformat . --indent 4 || true
+    swiftformat . --trimwhitespace always || true
+    swiftformat . --semicolons never || true
+    swiftformat . --linebreaks lf || true
+    swiftformat . --maxwidth 120 || true
+    
+    echo "Basic formatting applied despite configuration issues."
 }
 
 # Auto-fix Clang-Format issues
