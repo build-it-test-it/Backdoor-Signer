@@ -184,12 +184,43 @@ jobs:
           # Clean any previous builds first
           make clean || true
           
-          # Build with appropriate scheme format - with properly escaped parentheses
-          # The scheme name needs special handling due to parentheses
-          SCHEME_NAME="backdoor (Release)"
+          # We need to handle the scheme name specially to deal with spaces and parentheses
+          # This approach avoids shell syntax errors by escaping in multiple ways
           
-          # Use tee to capture output for diagnostics while piping to xcpretty
-          make package "SCHEME=${SCHEME_NAME}" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
+          # Create a safe scheme name with escaped parentheses for the make command
+          echo "Using direct compilation approach to avoid scheme name issues..."
+          
+          # Skip using the make command and use xcodebuild directly
+          mkdir -p packages
+          set -o pipefail && xcodebuild \
+            -jobs $(sysctl -n hw.ncpu) \
+            -project 'backdoor.xcodeproj' \
+            -scheme 'backdoor (Release)' \
+            -configuration Release \
+            -arch arm64 -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO \
+            CFLAGS="-Onone" \
+            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
+            SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
+            
+          # Create IPA directly
+          echo "Creating IPA package..."
+          mkdir -p Payload
+          cp -r $(find ~/Library/Developer/Xcode/DerivedData -name "backdoor.app" -type d | head -n 1) Payload/ || echo "No app found, using alternative method"
+          
+          # If app wasn't found, try Build directory
+          if [ ! -d "Payload/backdoor.app" ]; then
+            find . -name "backdoor.app" -type d | head -n 1 | xargs -I{} cp -r {} Payload/ || echo "Warning: Could not find app bundle"
+          fi
+          
+          # Package only if app exists
+          if [ -d "Payload/backdoor.app" ]; then
+            zip -r9 packages/backdoor.ipa Payload
+            echo "Package created successfully"
+          else
+            echo "::error::Failed to create IPA - app bundle not found"
+            exit 1
+          fi
           
           # Check if build was successful
           if [ ! -d "packages" ] || [ -z "$(ls -A packages 2>/dev/null)" ]; then
