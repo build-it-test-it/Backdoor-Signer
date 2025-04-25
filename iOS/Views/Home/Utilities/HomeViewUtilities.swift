@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 enum FileAppError: Error {
@@ -42,14 +36,14 @@ class HomeViewUtilities {
     func handleError(in viewController: UIViewController, error: Error, withTitle title: String) {
         var message: String
         switch error {
-            case let fileError as FileAppError:
-                message = formatFileAppError(fileError)
-            case let nsError as NSError:
-                message = nsError.localizedDescription
-                Debug.shared.log(message: "NSError: \(nsError.localizedDescription)", type: .error)
-            default:
-                message = error.localizedDescription
-                Debug.shared.log(message: "Unknown error: \(error.localizedDescription)", type: .error)
+        case let fileError as FileAppError:
+            message = formatFileAppError(fileError)
+        case let nsError as NSError:
+            message = nsError.localizedDescription
+            Debug.shared.log(message: "NSError: \(nsError.localizedDescription)", type: .error)
+        default:
+            message = error.localizedDescription
+            Debug.shared.log(message: "Unknown error: \(error.localizedDescription)", type: .error)
         }
 
         DispatchQueue.main.async {
@@ -61,17 +55,17 @@ class HomeViewUtilities {
 
     private func formatFileAppError(_ error: FileAppError) -> String {
         switch error {
-            case let .fileNotFound(fileName):
-                Debug.shared.log(message: "File not found: \(fileName)", type: .info)
-                return "File not found: \(fileName). Please check the file name."
-            case let .fileAlreadyExists(fileName):
-                Debug.shared.log(message: "File already exists: \(fileName)", type: .info)
-                return "A file named \(fileName) already exists. Choose a different name."
-            case let .unknown(underlyingError):
-                Debug.shared.log(message: "Unknown error: \(underlyingError.localizedDescription)", type: .error)
-                return "An unknown error occurred: \(underlyingError.localizedDescription)"
-            default:
-                return error.localizedDescription
+        case let .fileNotFound(fileName):
+            Debug.shared.log(message: "File not found: \(fileName)", type: .info)
+            return "File not found: \(fileName). Please check the file name."
+        case let .fileAlreadyExists(fileName):
+            Debug.shared.log(message: "File already exists: \(fileName)", type: .info)
+            return "A file named \(fileName) already exists. Choose a different name."
+        case let .unknown(underlyingError):
+            Debug.shared.log(message: "Unknown error: \(underlyingError.localizedDescription)", type: .error)
+            return "An unknown error occurred: \(underlyingError.localizedDescription)"
+        default:
+            return error.localizedDescription
         }
     }
 }

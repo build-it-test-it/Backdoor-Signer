@@ -1,35 +1,29 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 class IconsListViewController: UITableViewController {
-    public class func altImage(_ name: String) -> UIImage {
+    class func altImage(_ name: String) -> UIImage {
         // Try multiple locations for the icon image (root first for backward compatibility)
         let possiblePaths: [URL] = [
             // Check root of bundle (original implementation)
             Bundle.main.bundleURL.appendingPathComponent(name + "@2x.png"),
-            
+
             // Check Main folder for Main icons
             Bundle.main.bundleURL.appendingPathComponent("Icons/Main/\(name)@2x.png"),
-            
+
             // Check Wing folder for Wing icon
             Bundle.main.bundleURL.appendingPathComponent("Icons/Wing/\(name)@2x.png"),
-            
+
             // Check Resources folder paths
             Bundle.main.resourceURL?.appendingPathComponent("Icons/Main/\(name)@2x.png") ?? URL(fileURLWithPath: ""),
             Bundle.main.resourceURL?.appendingPathComponent("Icons/Wing/\(name)@2x.png") ?? URL(fileURLWithPath: ""),
-            
+
             // Check path relative to bundle resources
             Bundle.main.url(forResource: name, withExtension: "png") ?? URL(fileURLWithPath: ""),
             Bundle.main.url(forResource: name + "@2x", withExtension: "png") ?? URL(fileURLWithPath: ""),
             Bundle.main.url(forResource: "Icons/Main/\(name)@2x", withExtension: "png") ?? URL(fileURLWithPath: ""),
-            Bundle.main.url(forResource: "Icons/Wing/\(name)@2x", withExtension: "png") ?? URL(fileURLWithPath: "")
+            Bundle.main.url(forResource: "Icons/Wing/\(name)@2x", withExtension: "png") ?? URL(fileURLWithPath: ""),
         ]
-        
+
         // Try each path until we find a valid image
         for path in possiblePaths {
             if let image = UIImage(contentsOfFile: path.path), !image.isEmpty {
@@ -37,7 +31,7 @@ class IconsListViewController: UITableViewController {
                 return image
             }
         }
-        
+
         // Fallback to system icon if none found
         Debug.shared.log(message: "Failed to load icon: \(name)", type: .warning)
         return UIImage(systemName: "app.dashed") ?? UIImage()
@@ -66,14 +60,14 @@ class IconsListViewController: UITableViewController {
     }
 
     fileprivate func setupViews() {
-        self.tableView.delegate = self
-        self.tableView.dataSource = self
-        self.tableView.rowHeight = 75
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.rowHeight = 75
     }
 
     fileprivate func setupNavigation() {
-        self.title = String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON")
-        self.navigationItem.largeTitleDisplayMode = .never
+        title = String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON")
+        navigationItem.largeTitleDisplayMode = .never
     }
 
     private func sectionTitles() -> [String] {
@@ -88,13 +82,13 @@ class IconsListViewController: UITableViewController {
 
 extension IconsListViewController {
     override func numberOfSections(in _: UITableView) -> Int { return sectionTitles().count }
-    override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int { return icons(forSection: section).count }
+    override func tableView(_: UITableView,
+                            numberOfRowsInSection section: Int) -> Int { return icons(forSection: section).count }
     override func tableView(_: UITableView, heightForHeaderInSection _: Int) -> CGFloat { return 40 }
 
     override func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let title = sectionTitles()[section]
-        let headerView = InsetGroupedSectionHeader(title: title)
-        return headerView
+        return InsetGroupedSectionHeader(title: title)
     }
 
     override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

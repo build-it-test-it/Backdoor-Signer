@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 import ZIPFoundation
 
@@ -43,9 +37,9 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
     /// - Parameter fileURL: The URL of the IPA file to examine
     init(fileURL: URL) {
         self.fileURL = fileURL
-        self.tableView = UITableView()
-        self.toolbar = UIToolbar()
-        self.activityIndicator = UIActivityIndicatorView(style: .large)
+        tableView = UITableView()
+        toolbar = UIToolbar()
+        activityIndicator = UIActivityIndicatorView(style: .large)
         super.init(nibName: nil, bundle: nil)
         title = fileURL.lastPathComponent
     }
@@ -167,14 +161,18 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
 
         // Create a unique temporary directory
         let newTempDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        self.tempDirectory = newTempDirectory
+        tempDirectory = newTempDirectory
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
 
             do {
                 // Create temp directory
-                try self.fileManager.createDirectory(at: newTempDirectory, withIntermediateDirectories: true, attributes: nil)
+                try self.fileManager.createDirectory(
+                    at: newTempDirectory,
+                    withIntermediateDirectories: true,
+                    attributes: nil
+                )
 
                 // Unzip IPA to temp directory
                 try self.fileManager.unzipItem(at: self.fileURL, to: newTempDirectory)
@@ -263,7 +261,10 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
 
                     self.activityIndicator.stopAnimating()
                     Debug.shared.log(message: "Directory navigation error: \(error.localizedDescription)", type: .error)
-                    self.presentAlert(title: "Error", message: "Failed to read directory: \(error.localizedDescription)")
+                    self.presentAlert(
+                        title: "Error",
+                        message: "Failed to read directory: \(error.localizedDescription)"
+                    )
                 }
             }
         }
@@ -313,7 +314,10 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
 
                     self.activityIndicator.stopAnimating()
                     Debug.shared.log(message: "Directory reload error: \(error.localizedDescription)", type: .error)
-                    self.presentAlert(title: "Error", message: "Failed to reload directory: \(error.localizedDescription)")
+                    self.presentAlert(
+                        title: "Error",
+                        message: "Failed to reload directory: \(error.localizedDescription)"
+                    )
                 }
             }
         }
@@ -330,7 +334,10 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
                 try fileManager.removeItem(at: tempDir)
                 Debug.shared.log(message: "Cleaned up IPA temp directory: \(tempDir.path)", type: .info)
             } catch {
-                Debug.shared.log(message: "Failed to clean up temp directory: \(error.localizedDescription)", type: .error)
+                Debug.shared.log(
+                    message: "Failed to clean up temp directory: \(error.localizedDescription)",
+                    type: .error
+                )
             }
         }
     }
@@ -351,7 +358,11 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
                 if let infoPlistURL = infoPlistURL {
                     // Parse Info.plist if found
                     let infoPlistData = try Data(contentsOf: infoPlistURL)
-                    if let plistDict = try PropertyListSerialization.propertyList(from: infoPlistData, options: [], format: nil) as? [String: Any] {
+                    if let plistDict = try PropertyListSerialization.propertyList(
+                        from: infoPlistData,
+                        options: [],
+                        format: nil
+                    ) as? [String: Any] {
                         appInfo = plistDict
                     }
                 }
@@ -398,7 +409,10 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
                     // Special case for Payload directory which is standard in IPAs
                     let payloadDir = tempDir.appendingPathComponent("Payload")
                     if fileManager.fileExists(atPath: payloadDir.path) {
-                        appDirs = (try? fileManager.contentsOfDirectory(at: payloadDir, includingPropertiesForKeys: nil)) ?? []
+                        appDirs = (try? fileManager.contentsOfDirectory(
+                            at: payloadDir,
+                            includingPropertiesForKeys: nil
+                        )) ?? []
                     }
                 } else {
                     // Search for directories matching the pattern
@@ -478,48 +492,48 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
         let fileExtension = fileURL.pathExtension.lowercased()
 
         switch fileExtension {
-            case "plist":
-                let editor = PlistEditorViewController(fileURL: fileURL)
-                navigationController?.pushViewController(editor, animated: true)
+        case "plist":
+            let editor = PlistEditorViewController(fileURL: fileURL)
+            navigationController?.pushViewController(editor, animated: true)
 
-            case "txt", "strings", "h", "m", "swift", "c", "cpp", "md", "json", "xml", "html", "css", "js":
-                let editor = TextEditorViewController(fileURL: fileURL)
-                navigationController?.pushViewController(editor, animated: true)
+        case "txt", "strings", "h", "m", "swift", "c", "cpp", "md", "json", "xml", "html", "css", "js":
+            let editor = TextEditorViewController(fileURL: fileURL)
+            navigationController?.pushViewController(editor, animated: true)
 
-            default:
-                // For binary or unknown files, use hex editor
-                let isDirectory = (try? fileURL.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+        default:
+            // For binary or unknown files, use hex editor
+            let isDirectory = (try? fileURL.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
 
-                if isDirectory {
-                    navigateToDirectory(fileURL)
-                } else {
-                    // Ask user which editor to use
-                    let alert = UIAlertController(
-                        title: "Open File",
-                        message: "How would you like to open this file?",
-                        preferredStyle: .actionSheet
-                    )
+            if isDirectory {
+                navigateToDirectory(fileURL)
+            } else {
+                // Ask user which editor to use
+                let alert = UIAlertController(
+                    title: "Open File",
+                    message: "How would you like to open this file?",
+                    preferredStyle: .actionSheet
+                )
 
-                    let hexEditorAction = UIAlertAction(title: "Hex Editor", style: .default) { [weak self] _ in
-                        guard let self = self else { return }
-                        let editor = HexEditorViewController(fileURL: fileURL)
-                        self.navigationController?.pushViewController(editor, animated: true)
-                    }
-
-                    let textEditorAction = UIAlertAction(title: "Text Editor", style: .default) { [weak self] _ in
-                        guard let self = self else { return }
-                        let editor = TextEditorViewController(fileURL: fileURL)
-                        self.navigationController?.pushViewController(editor, animated: true)
-                    }
-
-                    let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
-
-                    alert.addAction(hexEditorAction)
-                    alert.addAction(textEditorAction)
-                    alert.addAction(cancelAction)
-
-                    present(alert, animated: true, completion: nil)
+                let hexEditorAction = UIAlertAction(title: "Hex Editor", style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+                    let editor = HexEditorViewController(fileURL: fileURL)
+                    self.navigationController?.pushViewController(editor, animated: true)
                 }
+
+                let textEditorAction = UIAlertAction(title: "Text Editor", style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+                    let editor = TextEditorViewController(fileURL: fileURL)
+                    self.navigationController?.pushViewController(editor, animated: true)
+                }
+
+                let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+
+                alert.addAction(hexEditorAction)
+                alert.addAction(textEditorAction)
+                alert.addAction(cancelAction)
+
+                present(alert, animated: true, completion: nil)
+            }
         }
     }
 
@@ -562,14 +576,14 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
             // Set icon based on file type
             let fileExtension = fileURL.pathExtension.lowercased()
             switch fileExtension {
-                case "plist":
-                    cell.imageView?.image = UIImage(systemName: "doc.text")
-                case "txt", "strings", "h", "m", "swift", "c", "cpp":
-                    cell.imageView?.image = UIImage(systemName: "doc.plaintext")
-                case "png", "jpg", "jpeg", "gif":
-                    cell.imageView?.image = UIImage(systemName: "photo")
-                default:
-                    cell.imageView?.image = UIImage(systemName: "doc")
+            case "plist":
+                cell.imageView?.image = UIImage(systemName: "doc.text")
+            case "txt", "strings", "h", "m", "swift", "c", "cpp":
+                cell.imageView?.image = UIImage(systemName: "doc.plaintext")
+            case "png", "jpg", "jpeg", "gif":
+                cell.imageView?.image = UIImage(systemName: "photo")
+            default:
+                cell.imageView?.image = UIImage(systemName: "doc")
             }
             cell.accessoryType = .detailDisclosureButton
         }

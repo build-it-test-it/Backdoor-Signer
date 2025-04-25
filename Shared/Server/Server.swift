@@ -1,19 +1,12 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import Foundation
 import NIOSSL
 import NIOTLS
 import Vapor
 
 struct AppData {
-    public var id: String
-    public var version: Int
-    public var name: String
+    var id: String
+    var version: Int
+    var name: String
 }
 
 class Installer: Identifiable, ObservableObject {
@@ -39,16 +32,16 @@ class Installer: Identifiable, ObservableObject {
         let id: UUID = .init()
         self.id = id
         self.metadata = metadata
-        self.package = packagePath ?? URL(fileURLWithPath: "")
+        package = packagePath ?? URL(fileURLWithPath: "")
         app = try Self.setupApp(port: port)
 
         configureRoutes()
-        
+
         try app.server.start()
         needsShutdown = true
         Debug.shared.log(message: "Server started: Port \(port) for \(Self.sni)")
     }
-    
+
     // Configure app routes
     private func configureRoutes() {
         app.get("*") { [weak self] req in
@@ -61,7 +54,7 @@ class Installer: Identifiable, ObservableObject {
             return self.generateInstallResponse()
         }
     }
-    
+
     // Handle request based on path
     private func handleRequest(_ req: Request) -> Response {
         switch req.url.path {
@@ -108,7 +101,7 @@ class Installer: Identifiable, ObservableObject {
             DispatchQueue.main.async { [weak self] in
                 self?.status = .sendingPayload
             }
-            return req.fileio.streamFile(at: self.package.path) { [weak self] result in
+            return req.fileio.streamFile(at: package.path) { [weak self] result in
                 DispatchQueue.main.async {
                     self?.status = .completed(result)
                 }
@@ -117,7 +110,7 @@ class Installer: Identifiable, ObservableObject {
             return Response(status: .notFound)
         }
     }
-    
+
     // Generate install response for the "i" endpoint
     private func generateInstallResponse() -> Response {
         let baseUrl = Preferences.onlinePath ?? Preferences.defaultInstallPath
@@ -125,12 +118,12 @@ class Installer: Identifiable, ObservableObject {
             "bundleid=\(metadata.id)",
             "name=\(metadata.name)",
             "version=\(metadata.version)",
-            "fetchurl=\(payloadEndpoint.absoluteString)"
+            "fetchurl=\(payloadEndpoint.absoluteString)",
         ].joined(separator: "&")
-        
+
         let encodedParams = urlParams.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
         let testUrl = "itms-services://?action=download-manifest&url=\(baseUrl)/genPlist?\(encodedParams)"
-        
+
         let html = """
         <script type="text/javascript">window.location="\(testUrl)"</script>
         """
@@ -182,9 +175,9 @@ extension Installer {
                 throw error
             }
         }
-        
+
         app.http.server.configuration.hostname = Self.sni
-        Debug.shared.log(message: self.sni)
+        Debug.shared.log(message: sni)
         app.http.server.configuration.tcpNoDelay = true
 
         app.http.server.configuration.address = .hostname("0.0.0.0", port: port)

@@ -10,51 +10,271 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  code_quality_check:
+    name: Code Quality Check
     runs-on: macos-15
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Git LFS
         run: |
           git lfs install
           git lfs pull
 
-      - name: Install dependencies (packages)
+      - name: Install Dependencies
         run: |
+          gem install xcpretty xcpretty-json-formatter
+          brew install swiftlint swiftformat clang-format jq
+          mkdir -p build/reports
+
+      - name: Run Code Quality Checks
+        run: |
+          chmod +x scripts/ci/*.sh
+          ./scripts/ci/run-all-checks.sh
+
+      - name: Upload Code Analysis Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-reports
+          path: build/reports/
+
+  auto_fix:
+    name: Auto-Fix Code Issues
+    needs: code_quality_check
+    runs-on: macos-15
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+          git lfs pull
+
+      - name: Install Dependencies
+        run: |
+          brew install swiftlint swiftformat clang-format
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+      - name: Auto-Fix Code Issues
+        id: auto_fix
+        run: |
+          chmod +x scripts/ci/*.sh
+          # Run with error checking
+          set +e
+          ./scripts/ci/auto-fix.sh
+          RESULT=$?
+          set -e
+          
+          if [ $RESULT -ne 0 ]; then
+            echo "::error::Auto-fix script failed with error code $RESULT"
+            echo "fix_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "fix_status=success" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for Changes and Commit
+        id: check_changes
+        if: steps.auto_fix.outputs.fix_status != 'failed'
+        run: |
+          if git status --porcelain | grep .; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "Detected changes after auto-fixing code issues"
+            
+            git add -A
+            git commit -m "Auto-fix code quality issues [skip ci]" -m "Automatically fixed code quality issues using SwiftLint, SwiftFormat, and Clang-Format."
+            git push
+            echo "✅ Successfully fixed code issues and pushed changes"
+          else
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "No changes detected after auto-fixing code issues"
+          fi
+          
+      - name: Report Auto-Fix Failure
+        if: steps.auto_fix.outputs.fix_status == 'failed'
+        run: |
+          echo "::error::The auto-fix process encountered critical errors. Please check the logs for details."
+          exit 1
+
+      - name: Create Fix Summary
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        run: |
+          echo "# 🛠️ Auto-Fixed Code Issues" > fix_summary.md
+          echo "" >> fix_summary.md
+          echo "The workflow automatically fixed code quality issues:" >> fix_summary.md
+          echo "" >> fix_summary.md
+          echo "## Changed Files" >> fix_summary.md
+          git diff --name-only HEAD^ HEAD >> fix_summary.md
+          
+          echo "## Summary of Fixes" >> fix_summary.md
+          echo "* Applied SwiftLint autocorrect with your custom rules" >> fix_summary.md
+          echo "* Applied SwiftFormat with your custom configuration" >> fix_summary.md
+          echo "* Applied Clang-Format to Objective-C/C++ files" >> fix_summary.md
+          
+          cat fix_summary.md
+
+  build:
+    name: Build and Package
+    needs: auto_fix
+    runs-on: macos-15
+    # Run for both PRs and main branch pushes
+    if: |
+      always() && (
+        (github.event_name == 'pull_request') || 
+        (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      )
+    outputs:
+      build_has_errors: ${{ steps.set_status.outputs.build_has_errors }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # For PRs, use the PR head ref; for pushes, use the default
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || '' }}
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+          git lfs pull
+
+      - name: Install Dependencies
+        run: |
+          # Install ldid (required for iOS app signing)
           curl -LO https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_x86_64
           sudo install -m755 ldid_macosx_x86_64 /usr/local/bin/ldid
-          brew install 7zip gnu-sed
+          
+          # Install other dependencies
+          brew install p7zip gnu-sed
+          
+          # Install xcpretty for nicer build output
+          gem install xcpretty
+          
+          # Create build directory 
+          mkdir -p build
+          
+          # Verify ldid installation
+          which ldid
+          ldid -v || echo "ldid version check not supported"
 
       - name: Compile
-        run: | 
-          mkdir upload
-          # Use optimization level -Onone to enable previews and avoid Swift compilation blocking issues
-          make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile"
-          mv packages/* upload/
+        run: |
+          # Create upload directory
+          mkdir -p upload
+          
+          # Output environment information for debugging
+          echo "Xcode version:"
+          xcodebuild -version
+          
+          echo "Available schemes:"
+          xcodebuild -project backdoor.xcodeproj -list
+          
+          echo "=== Building with Make ==="
+          # Set pipefail to ensure errors are caught even with xcpretty
+          set -o pipefail
+          
+          # Clean any previous builds first
+          make clean || true
+          
+          # We need to handle the scheme name specially to deal with spaces and parentheses
+          # This approach avoids shell syntax errors by escaping in multiple ways
+          
+          # Create a safe scheme name with escaped parentheses for the make command
+          echo "Using direct compilation approach to avoid scheme name issues..."
+          
+          # Skip using the make command and use xcodebuild directly
+          mkdir -p packages
+          set -o pipefail && xcodebuild \
+            -jobs $(sysctl -n hw.ncpu) \
+            -project 'backdoor.xcodeproj' \
+            -scheme 'backdoor (Release)' \
+            -configuration Release \
+            -arch arm64 -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO \
+            CFLAGS="-Onone" \
+            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
+            SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
+            
+          # Create IPA directly
+          echo "Creating IPA package..."
+          mkdir -p Payload
+          cp -r $(find ~/Library/Developer/Xcode/DerivedData -name "backdoor.app" -type d | head -n 1) Payload/ || echo "No app found, using alternative method"
+          
+          # If app wasn't found, try Build directory
+          if [ ! -d "Payload/backdoor.app" ]; then
+            find . -name "backdoor.app" -type d | head -n 1 | xargs -I{} cp -r {} Payload/ || echo "Warning: Could not find app bundle"
+          fi
+          
+          # Package only if app exists
+          if [ -d "Payload/backdoor.app" ]; then
+            zip -r9 packages/backdoor.ipa Payload
+            echo "Package created successfully"
+          else
+            echo "::error::Failed to create IPA - app bundle not found"
+            exit 1
+          fi
+          
+          # Check if build was successful
+          if [ ! -d "packages" ] || [ -z "$(ls -A packages 2>/dev/null)" ]; then
+            echo "::error::Build failed - no package files were created"
+            echo "=== Build Log Tail ===" 
+            tail -n 50 build_log.txt
+            exit 1
+          fi
+          
+          # Move packages to upload directory
+          mv packages/* upload/ || { echo "::error::No build output to move"; exit 1; }
+          
+      - name: Set Build Status
+        id: set_status
+        run: |
+          if [ -f "build_log.txt" ] && grep -q "error:" build_log.txt; then
+            echo "build_has_errors=true" >> $GITHUB_OUTPUT
+          else
+            echo "build_has_errors=false" >> $GITHUB_OUTPUT
+          fi
 
+      # Store artifacts for both PRs and main branch
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipa-files
+          path: |
+            upload/*.ipa
+            build_log.txt
+          retention-days: 7
+          if-no-files-found: warn
+
+      # The following steps only run for main branch pushes (releases)
       - name: Get Version Number
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: get_version
         run: |
-          VERSION=$( /usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Payload/backdoor.app/Info.plist )
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Payload/backdoor.app/Info.plist)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Setup
+      - name: Setup Release Assets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          mv upload/backdoor.ipa upload/backdoor_v${VERSION}.ipa
-          cp upload/backdoor_v${VERSION}.ipa upload/backdoor_v${VERSION}.tipa
+          mv upload/backdoor.ipa upload/backdoor_v${{ env.VERSION }}.ipa
+          cp upload/backdoor_v${{ env.VERSION }}.ipa upload/backdoor_v${{ env.VERSION }}.tipa
 
       - name: Create GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           name: backdoor v${{ env.VERSION }}
           tag_name: v${{ env.VERSION }}
-          files: |
-            upload/*ipa
+          files: upload/*.ipa
           generate_release_notes: true
           fail_on_unmatched_files: true
         env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 struct iTunesLookupResult: Codable {
@@ -33,7 +27,11 @@ class iTunesLookup {
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200
         else {
-            throw NSError(domain: "iTunesLookup", code: -2, userInfo: [NSLocalizedDescriptionKey: "Invalid response from iTunes API"])
+            throw NSError(
+                domain: "iTunesLookup",
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid response from iTunes API"]
+            )
         }
 
         let result = try JSONDecoder().decode(iTunesLookupResult.self, from: data)

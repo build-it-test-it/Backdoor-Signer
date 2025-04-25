@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import SwiftUI
 import UIKit
@@ -22,7 +16,7 @@ final class AppContextManager {
     var currentState: AppContext? // Refers to AppContext from AppContext.swift
     private var commandHandlers: [String: (String, @escaping (String) -> Void) -> Void] = [:]
     private let commandQueue = DispatchQueue(label: "com.app.commandQueue")
-    
+
     // Command history for AI prediction
     var commandHistory: [(command: String, parameter: String, timestamp: Date)] = []
 
@@ -41,8 +35,13 @@ final class AppContextManager {
 
         // Populate additional data with formatted information
         additionalData["sources"] = sources.map { $0.name ?? "Unnamed" }
-        additionalData["downloadedApps"] = downloadedApps.map { AppInfo(name: $0.name ?? "Unnamed", version: $0.version ?? "Unknown").description }
-        additionalData["signedApps"] = signedApps.map { SignedAppInfo(name: $0.name ?? "Unnamed", bundleIdentifier: $0.bundleidentifier ?? "Unknown", teamName: $0.teamName ?? "N/A").description }
+        additionalData["downloadedApps"] = downloadedApps
+            .map { AppInfo(name: $0.name ?? "Unnamed", version: $0.version ?? "Unknown").description }
+        additionalData["signedApps"] = signedApps
+            .map {
+                SignedAppInfo(name: $0.name ?? "Unnamed", bundleIdentifier: $0.bundleidentifier ?? "Unknown",
+                              teamName: $0.teamName ?? "N/A").description
+            }
         additionalData["certificates"] = certificates.map { $0.certData?.name ?? "Unnamed" }
         additionalData["currentCertificate"] = currentCertificate?.certData?.name ?? "None"
         additionalData["signingOptions"] = Preferences.signingOptions.description
@@ -52,32 +51,32 @@ final class AppContextManager {
             additionalData["currentScreen"] = identifiable.screenName
         } else {
             switch viewController {
-                case _ as UIHostingController<TabbarView>:
-                    let selectedTab = UserDefaults.standard.string(forKey: "selectedTab") ?? "home"
-                    additionalData["currentTab"] = selectedTab
-                    switch selectedTab {
-                        case "home": additionalData["currentScreen"] = "Home"
-                        case "sources": additionalData["currentScreen"] = "Sources"
-                        case "library": additionalData["currentScreen"] = "Library"
-                        case "settings": additionalData["currentScreen"] = "Settings"
-                        case "bdgHub": additionalData["currentScreen"] = "BDG Hub"
-                        default: additionalData["currentScreen"] = "Unknown"
-                    }
-                default:
-                    let screenName = String(describing: type(of: viewController))
-                    if screenName.contains("Home") {
-                        additionalData["currentScreen"] = "Home"
-                    } else if screenName.contains("Sources") {
-                        additionalData["currentScreen"] = "Sources"
-                    } else if screenName.contains("Library") {
-                        additionalData["currentScreen"] = "Library"
-                    } else if screenName.contains("Settings") {
-                        additionalData["currentScreen"] = "Settings"
-                    } else if screenName.contains("WebView") || screenName.contains("BDGHub") {
-                        additionalData["currentScreen"] = "BDG Hub"
-                    } else {
-                        additionalData["currentScreen"] = "Unknown"
-                    }
+            case _ as UIHostingController<TabbarView>:
+                let selectedTab = UserDefaults.standard.string(forKey: "selectedTab") ?? "home"
+                additionalData["currentTab"] = selectedTab
+                switch selectedTab {
+                case "home": additionalData["currentScreen"] = "Home"
+                case "sources": additionalData["currentScreen"] = "Sources"
+                case "library": additionalData["currentScreen"] = "Library"
+                case "settings": additionalData["currentScreen"] = "Settings"
+                case "bdgHub": additionalData["currentScreen"] = "BDG Hub"
+                default: additionalData["currentScreen"] = "Unknown"
+                }
+            default:
+                let screenName = String(describing: type(of: viewController))
+                if screenName.contains("Home") {
+                    additionalData["currentScreen"] = "Home"
+                } else if screenName.contains("Sources") {
+                    additionalData["currentScreen"] = "Sources"
+                } else if screenName.contains("Library") {
+                    additionalData["currentScreen"] = "Library"
+                } else if screenName.contains("Settings") {
+                    additionalData["currentScreen"] = "Settings"
+                } else if screenName.contains("WebView") || screenName.contains("BDGHub") {
+                    additionalData["currentScreen"] = "BDG Hub"
+                } else {
+                    additionalData["currentScreen"] = "Unknown"
+                }
             }
         }
 

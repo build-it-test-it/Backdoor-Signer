@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -56,25 +50,25 @@ class CustomCommandProcessor {
             // Handle special commands not registered with AppContextManager
 
             switch command.lowercased() {
-                case "sign":
-                    // Handle app signing request
-                    signApp(named: parameter, completion: completion)
+            case "sign":
+                // Handle app signing request
+                signApp(named: parameter, completion: completion)
 
-                case "install":
-                    // Handle app installation request
-                    installApp(named: parameter, completion: completion)
+            case "install":
+                // Handle app installation request
+                installApp(named: parameter, completion: completion)
 
-                case "open":
-                    // Handle app opening request
-                    openApp(named: parameter, completion: completion)
+            case "open":
+                // Handle app opening request
+                openApp(named: parameter, completion: completion)
 
-                case "help":
-                    // Show help information
-                    showHelp(topic: parameter, completion: completion)
+            case "help":
+                // Show help information
+                showHelp(topic: parameter, completion: completion)
 
-                default:
-                    // Command not recognized
-                    completion(.unknownCommand(command))
+            default:
+                // Command not recognized
+                completion(.unknownCommand(command))
             }
         }
     }
@@ -94,12 +88,20 @@ class CustomCommandProcessor {
         }
 
         // For now, just return a confirmation that would normally lead to signing screen
-        completion(.successWithResult("Found app '\(matchingApps[0].name ?? appName)'. In a real implementation, this would navigate to the signing screen."))
+        completion(
+            .successWithResult(
+                "Found app '\(matchingApps[0].name ?? appName)'. In a real implementation, this would navigate to the signing screen."
+            )
+        )
     }
 
     private func installApp(named appName: String, completion: @escaping (CommandResult) -> Void) {
         // Simulate app installation
-        completion(.successWithResult("Installation command received for '\(appName)'. In a real implementation, this would begin the installation process."))
+        completion(
+            .successWithResult(
+                "Installation command received for '\(appName)'. In a real implementation, this would begin the installation process."
+            )
+        )
     }
 
     private func openApp(named appName: String, completion: @escaping (CommandResult) -> Void) {
@@ -115,7 +117,11 @@ class CustomCommandProcessor {
         }
 
         // Simulate app opening
-        completion(.successWithResult("Opening app '\(matchingApps[0].name ?? appName)'. In a real implementation, this would launch the app."))
+        completion(
+            .successWithResult(
+                "Opening app '\(matchingApps[0].name ?? appName)'. In a real implementation, this would launch the app."
+            )
+        )
     }
 
     private func showHelp(topic: String, completion: @escaping (CommandResult) -> Void) {

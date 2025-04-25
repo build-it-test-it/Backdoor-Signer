@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 // MARK: - Sources
@@ -19,7 +13,7 @@ public struct SourcesData: Codable, Hashable {
     public var news: [NewsData]?
     public var apps: [StoreAppsData]
 
-    public static func == (lhs: SourcesData, rhs: SourcesData) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         return lhs.identifier == rhs.identifier
     }
 
@@ -80,9 +74,9 @@ public struct StoreAppsData: Codable {
 
         // Handle mixed types for `screenshots`
         if let urls = try? container.decode([String].self, forKey: .screenshots) {
-            self.screenshots = urls.compactMap { URL(string: $0) }.map { Screenshot(imageURL: $0) }
+            screenshots = urls.compactMap { URL(string: $0) }.map { Screenshot(imageURL: $0) }
         } else {
-            self.screenshots = try? container.decode([Screenshot].self, forKey: .screenshots)
+            screenshots = try? container.decode([Screenshot].self, forKey: .screenshots)
         }
 
         version = try? container.decode(String.self, forKey: .version)

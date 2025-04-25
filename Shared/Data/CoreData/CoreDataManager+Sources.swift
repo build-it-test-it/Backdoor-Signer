@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 
 extension CoreDataManager {
@@ -56,17 +50,17 @@ extension CoreDataManager {
             guard let self = self else { return }
 
             switch result {
-                case let .success((data, _)):
-                    switch repoManager.parse(data: data) {
-                        case let .success(source):
-                            self.saveSource(source, url: urlString, completion: completion)
-                        case let .failure(error):
-                            Debug.shared.log(message: "Error parsing data: \(error)")
-                            completion(error)
-                    }
+            case let .success((data, _)):
+                switch repoManager.parse(data: data) {
+                case let .success(source):
+                    self.saveSource(source, url: urlString, completion: completion)
                 case let .failure(error):
-                    Debug.shared.log(message: "Error downloading data: \(error)")
+                    Debug.shared.log(message: "Error parsing data: \(error)")
                     completion(error)
+                }
+            case let .failure(error):
+                Debug.shared.log(message: "Error downloading data: \(error)")
+                completion(error)
             }
         }
     }
@@ -125,13 +119,18 @@ extension CoreDataManager {
     /// Save SourcesData in Core Data
     private func saveSource(_ source: SourcesData, url: String, completion: @escaping (Error?) -> Void) {
         do {
-            let ctx = try self.context
+            let ctx = try context
 
             ctx.perform {
                 do {
                     if !self.sourceExists(withIdentifier: source.identifier, context: ctx) {
                         if !source.apps.isEmpty {
-                            _ = self.createNewSourceEntity(from: source, url: url, iconURL: source.apps[0].iconURL, context: ctx)
+                            _ = self.createNewSourceEntity(
+                                from: source,
+                                url: url,
+                                iconURL: source.apps[0].iconURL,
+                                context: ctx
+                            )
                         } else {
                             _ = self.createNewSourceEntity(from: source, url: url, iconURL: nil, context: ctx)
                         }
@@ -151,9 +150,15 @@ extension CoreDataManager {
     }
 
     /// Save source data in Core Data
-    public func saveSource(name: String, id: String, iconURL: URL? = nil, url: String, completion: @escaping (Error?) -> Void) {
+    public func saveSource(
+        name: String,
+        id: String,
+        iconURL: URL? = nil,
+        url: String,
+        completion: @escaping (Error?) -> Void
+    ) {
         do {
-            let ctx = try self.context
+            let ctx = try context
 
             ctx.perform {
                 do {
@@ -176,10 +181,10 @@ extension CoreDataManager {
 
     /// Save source data in Core Data with proper error handling
     public func saveSourceWithThrow(name: String, id: String, iconURL: URL? = nil, url: String) throws {
-        let ctx = try self.context
+        let ctx = try context
 
-        if !self.sourceExists(withIdentifier: id, context: ctx) {
-            _ = self.createNewSourceEntity(name: name, id: id, url: url, iconURL: iconURL, context: ctx)
+        if !sourceExists(withIdentifier: id, context: ctx) {
+            _ = createNewSourceEntity(name: name, id: id, url: url, iconURL: iconURL, context: ctx)
         }
 
         try ctx.save()

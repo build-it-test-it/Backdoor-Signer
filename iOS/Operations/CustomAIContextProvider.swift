@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -122,7 +116,7 @@ class CustomAIContextProvider {
         if let certificates = context["certificates"] as? [String: Any],
            let count = certificates["count"] as? Int
         {
-            if count > 0 {
+            if !isEmpty {
                 summary += " You have \(count) certificate(s) available."
                 if let currentCert = certificates["currentCertificate"] as? String, currentCert != "None" {
                     summary += " Currently using '\(currentCert)'."
@@ -144,7 +138,8 @@ class CustomAIContextProvider {
 
         // Add current screen
         if let currentScreen = context["currentScreen"] as? String {
-            summary += " You're currently on the \(currentScreen.replacingOccurrences(of: "ViewController", with: "")) screen."
+            summary +=
+                " You're currently on the \(currentScreen.replacingOccurrences(of: "ViewController", with: "")) screen."
         }
 
         return summary

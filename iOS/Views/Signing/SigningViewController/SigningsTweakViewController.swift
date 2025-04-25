@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 import UniformTypeIdentifiers
@@ -35,11 +29,19 @@ class SigningsTweakViewController: UICollectionViewController, UICollectionViewD
         super.viewDidLoad()
         title = String.localized("APP_SIGNING_TWEAK_VIEW_CONTROLLER_TITLE")
         navigationItem.largeTitleDisplayMode = .never
-        collectionView.register(ProductCollectionViewCell.self, forCellWithReuseIdentifier: ProductCollectionViewCell.reuseIdentifier)
+        collectionView.register(
+            ProductCollectionViewCell.self,
+            forCellWithReuseIdentifier: ProductCollectionViewCell.reuseIdentifier
+        )
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "plus"), style: .plain, target: self, action: #selector(openDocuments))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "plus"),
+            style: .plain,
+            target: self,
+            action: #selector(openDocuments)
+        )
         collectionView.backgroundColor = .systemBackground
-        self.tweaksToInject = self.signingDataWrapper.signingOptions.toInject
+        tweaksToInject = signingDataWrapper.signingOptions.toInject
     }
 
     @objc func openDocuments() {
@@ -58,10 +60,14 @@ extension SigningsTweakViewController {
     }
 
     override func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
-        return self.tweaksToInject.count
+        return tweaksToInject.count
     }
 
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt _: IndexPath) -> CGSize {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        sizeForItemAt _: IndexPath
+    ) -> CGSize {
         let layout = collectionViewLayout as! UICollectionViewFlowLayout
 
         let numberOfColumns: CGFloat = 2
@@ -75,17 +81,30 @@ extension SigningsTweakViewController {
         return CGSize(width: cellWidth, height: cellWidth)
     }
 
-    override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProductCollectionViewCell.reuseIdentifier, for: indexPath) as! ProductCollectionViewCell
+    override func collectionView(_ collectionView: UICollectionView,
+                                 cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
+    {
+        let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: ProductCollectionViewCell.reuseIdentifier,
+            for: indexPath
+        ) as! ProductCollectionViewCell
         let tweak = tweaksToInject[indexPath.item]
         cell.titleLabel.text = "\(URL(string: tweak)!.lastPathComponent)"
 
         return cell
     }
 
-    override func collectionView(_: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point _: CGPoint) -> UIContextMenuConfiguration? {
+    override func collectionView(
+        _: UICollectionView,
+        contextMenuConfigurationForItemAt indexPath: IndexPath,
+        point _: CGPoint
+    ) -> UIContextMenuConfiguration? {
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            let deleteAction = UIAction(title: String.localized("DELETE"), image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
+            let deleteAction = UIAction(
+                title: String.localized("DELETE"),
+                image: UIImage(systemName: "trash"),
+                attributes: .destructive
+            ) { _ in
                 self.tweaksToInject.remove(at: indexPath.item)
             }
             return UIMenu(title: "", children: [deleteAction])
@@ -95,7 +114,7 @@ extension SigningsTweakViewController {
 
 extension SigningsTweakViewController: UIDocumentPickerDelegate {
     func importFile() {
-        self.presentDocumentPicker(fileExtension: [
+        presentDocumentPicker(fileExtension: [
             UTType(filenameExtension: "deb")!,
             UTType(filenameExtension: "dylib")!,
         ])

@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import Foundation
 import UIKit
@@ -12,7 +6,12 @@ import ZIPFoundation
 class AppDownload: NSObject {
     let progress = Progress(totalUnitCount: 100)
     var dldelegate: DownloadDelegate?
-    var downloads = [URLSessionDownloadTask: (uuid: String, appuuid: String, destinationUrl: URL, completion: (String?, String?, Error?) -> Void)]()
+    var downloads = [URLSessionDownloadTask: (
+        uuid: String,
+        appuuid: String,
+        destinationUrl: URL,
+        completion: (String?, String?, Error?) -> Void
+    )]()
     var DirectoryUUID: String?
     var AppUUID: String?
     private var downloadTask: URLSessionDownloadTask?
@@ -20,10 +19,14 @@ class AppDownload: NSObject {
 
     func downloadFile(url: URL, appuuid: String, completion: @escaping (String?, String?, Error?) -> Void) {
         let uuid = UUID().uuidString
-        self.DirectoryUUID = uuid
-        self.AppUUID = appuuid
+        DirectoryUUID = uuid
+        AppUUID = appuuid
         guard let folderUrl = createUuidDirectory(uuid: uuid) else {
-            completion(nil, nil, NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create directory"]))
+            completion(
+                nil,
+                nil,
+                NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create directory"])
+            )
             return
         }
 
@@ -32,13 +35,21 @@ class AppDownload: NSObject {
         session = URLSession(configuration: sessionConfig, delegate: self, delegateQueue: nil)
         downloadTask = session?.downloadTask(with: url)
 
-        downloads[downloadTask!] = (uuid: uuid, appuuid: appuuid, destinationUrl: destinationUrl, completion: completion)
+        downloads[downloadTask!] = (
+            uuid: uuid,
+            appuuid: appuuid,
+            destinationUrl: destinationUrl,
+            completion: completion
+        )
         downloadTask!.resume()
     }
 
     func importFile(url: URL, uuid: String, completion: @escaping (URL?, Error?) -> Void) {
         guard let folderUrl = createUuidDirectory(uuid: uuid) else {
-            completion(nil, NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create directory"]))
+            completion(
+                nil,
+                NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create directory"])
+            )
             return
         }
 
@@ -93,14 +104,21 @@ class AppDownload: NSObject {
                     try? fileManager.removeItem(at: destinationURL)
                 }
                 cancelDownload()
-                completion(nil, NSError(domain: "", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unzip operation was cancelled"]))
+                completion(
+                    nil,
+                    NSError(domain: "", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unzip operation was cancelled"])
+                )
                 return
             }
 
             try fileManager.removeItem(at: fileURL)
 
             let payloadURL = destinationURL.appendingPathComponent("Payload")
-            let contents = try fileManager.contentsOfDirectory(at: payloadURL, includingPropertiesForKeys: nil, options: [])
+            let contents = try fileManager.contentsOfDirectory(
+                at: payloadURL,
+                includingPropertiesForKeys: nil,
+                options: []
+            )
 
             if let appDirectory = contents.first(where: { $0.pathExtension == "app" }) {
                 let sourceURL = appDirectory
@@ -116,9 +134,15 @@ class AppDownload: NSObject {
 
                 completion(targetURL.path, nil)
             } else {
-                completion(nil, NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No .app directory found in Payload"]))
+                completion(
+                    nil,
+                    NSError(
+                        domain: "",
+                        code: 0,
+                        userInfo: [NSLocalizedDescriptionKey: "No .app directory found in Payload"]
+                    )
+                )
             }
-
         } catch {
             Debug.shared.log(message: "\(error)")
             if fileManager.fileExists(atPath: destinationURL.path) {
@@ -129,9 +153,18 @@ class AppDownload: NSObject {
         }
     }
 
-    func addToApps(bundlePath: String, uuid: String, sourceLocation: String? = nil, completion: @escaping (Error?) -> Void) {
+    func addToApps(
+        bundlePath: String,
+        uuid: String,
+        sourceLocation: String? = nil,
+        completion: @escaping (Error?) -> Void
+    ) {
         guard let bundle = Bundle(path: bundlePath) else {
-            let error = NSError(domain: "Backdoor", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to load bundle at \(bundlePath)"])
+            let error = NSError(
+                domain: "Backdoor",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to load bundle at \(bundlePath)"]
+            )
             completion(error)
             return
         }
@@ -160,7 +193,11 @@ class AppDownload: NSObject {
 
             completion(nil)
         } else {
-            let error = NSError(domain: "Backdoor", code: 3, userInfo: [NSLocalizedDescriptionKey: "Info.plist not found in bundle at \(bundlePath)"])
+            let error = NSError(
+                domain: "Backdoor",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "Info.plist not found in bundle at \(bundlePath)"]
+            )
             completion(error)
         }
     }
@@ -191,7 +228,13 @@ extension AppDownload: URLSessionDownloadDelegate {
         downloads.removeValue(forKey: task as! URLSessionDownloadTask)
     }
 
-    func urlSession(_: URLSession, downloadTask: URLSessionDownloadTask, didWriteData _: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+    func urlSession(
+        _: URLSession,
+        downloadTask: URLSessionDownloadTask,
+        didWriteData _: Int64,
+        totalBytesWritten: Int64,
+        totalBytesExpectedToWrite: Int64
+    ) {
         let progress = CGFloat(totalBytesWritten) / CGFloat(totalBytesExpectedToWrite)
         if let uuid = downloads[downloadTask]?.appuuid {
             dldelegate?.updateDownloadProgress(progress: progress, uuid: uuid)

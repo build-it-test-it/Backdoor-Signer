@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <stdint.h>  // For uint32_t, uint64_t, etc.
-#include <sys/types.h>  // For additional type definitions
+#include <stdint.h>    // For uint32_t, uint64_t, etc.
+#include <sys/types.h> // For additional type definitions
 
 #ifndef cpu_type_t
 typedef int cpu_type_t;
@@ -312,12 +312,14 @@ typedef int vm_prot_t;
 
 #pragma pack(push, 1)
 
-struct fat_header {
+struct fat_header
+{
     uint32_t magic;     /* FAT_MAGIC */
     uint32_t nfat_arch; /* number of structs that follow */
 };
 
-struct fat_arch {
+struct fat_arch
+{
     cpu_type_t cputype;       /* cpu specifier (int) */
     cpu_subtype_t cpusubtype; /* machine specifier (int) */
     uint32_t offset;          /* file offset to this object file */
@@ -325,7 +327,8 @@ struct fat_arch {
     uint32_t align;           /* alignment as a power of 2 */
 };
 
-struct mach_header {
+struct mach_header
+{
     uint32_t magic;           /* mach magic number identifier */
     cpu_type_t cputype;       /* cpu specifier */
     cpu_subtype_t cpusubtype; /* machine specifier */
@@ -335,7 +338,8 @@ struct mach_header {
     uint32_t flags;           /* flags */
 };
 
-struct mach_header_64 {
+struct mach_header_64
+{
     uint32_t magic;           /* mach magic number identifier */
     cpu_type_t cputype;       /* cpu specifier */
     cpu_subtype_t cpusubtype; /* machine specifier */
@@ -346,32 +350,37 @@ struct mach_header_64 {
     uint32_t reserved;        /* reserved */
 };
 
-struct load_command {
+struct load_command
+{
     uint32_t cmd;     /* type of load command */
     uint32_t cmdsize; /* total size of command in bytes */
 };
 
-struct uuid_command {
+struct uuid_command
+{
     uint32_t cmd;
     uint32_t cmdsize;
     uint8_t uuid[16];
 };
 
-struct entry_point_command {
+struct entry_point_command
+{
     uint32_t cmd;
     uint32_t cmdsize;
     uint64_t entryoff;
     uint64_t stacksize;
 };
 
-struct codesignature_command {
+struct codesignature_command
+{
     uint32_t cmd;
     uint32_t cmdsize;
     uint32_t dataoff;
     uint32_t datasize;
 };
 
-struct encryption_info_command {
+struct encryption_info_command
+{
     uint32_t cmd;
     uint32_t cmdsize;
     uint32_t cryptoff;
@@ -379,7 +388,8 @@ struct encryption_info_command {
     uint32_t cryptid;
 };
 
-struct encryption_info_command_64 {
+struct encryption_info_command_64
+{
     uint32_t cmd;
     uint32_t cmdsize;
     uint32_t cryptoff;
@@ -388,35 +398,38 @@ struct encryption_info_command_64 {
     uint32_t pad;
 };
 
-struct segment_command { /* for 32-bit architectures */
-    uint32_t cmd;        /* LC_SEGMENT */
-    uint32_t cmdsize;    /* includes sizeof section structs */
-    char segname[16];    /* segment name */
-    uint32_t vmaddr;     /* memory address of this segment */
-    uint32_t vmsize;     /* memory size of this segment */
-    uint32_t fileoff;    /* file offset of this segment */
-    uint32_t filesize;   /* amount to map from the file */
-    vm_prot_t maxprot;   /* maximum VM protection */
-    vm_prot_t initprot;  /* initial VM protection */
-    uint32_t nsects;     /* number of sections in segment */
-    uint32_t flags;      /* flags */
+struct segment_command
+{                       /* for 32-bit architectures */
+    uint32_t cmd;       /* LC_SEGMENT */
+    uint32_t cmdsize;   /* includes sizeof section structs */
+    char segname[16];   /* segment name */
+    uint32_t vmaddr;    /* memory address of this segment */
+    uint32_t vmsize;    /* memory size of this segment */
+    uint32_t fileoff;   /* file offset of this segment */
+    uint32_t filesize;  /* amount to map from the file */
+    vm_prot_t maxprot;  /* maximum VM protection */
+    vm_prot_t initprot; /* initial VM protection */
+    uint32_t nsects;    /* number of sections in segment */
+    uint32_t flags;     /* flags */
 };
 
-struct segment_command_64 { /* for 64-bit architectures */
-    uint32_t cmd;           /* LC_SEGMENT_64 */
-    uint32_t cmdsize;       /* includes sizeof section_64 structs */
-    char segname[16];       /* segment name */
-    uint64_t vmaddr;        /* memory address of this segment */
-    uint64_t vmsize;        /* memory size of this segment */
-    uint64_t fileoff;       /* file offset of this segment */
-    uint64_t filesize;      /* amount to map from the file */
-    vm_prot_t maxprot;      /* maximum VM protection */
-    vm_prot_t initprot;     /* initial VM protection */
-    uint32_t nsects;        /* number of sections in segment */
-    uint32_t flags;         /* flags */
+struct segment_command_64
+{                       /* for 64-bit architectures */
+    uint32_t cmd;       /* LC_SEGMENT_64 */
+    uint32_t cmdsize;   /* includes sizeof section_64 structs */
+    char segname[16];   /* segment name */
+    uint64_t vmaddr;    /* memory address of this segment */
+    uint64_t vmsize;    /* memory size of this segment */
+    uint64_t fileoff;   /* file offset of this segment */
+    uint64_t filesize;  /* amount to map from the file */
+    vm_prot_t maxprot;  /* maximum VM protection */
+    vm_prot_t initprot; /* initial VM protection */
+    uint32_t nsects;    /* number of sections in segment */
+    uint32_t flags;     /* flags */
 };
 
-struct section {        /* for 32-bit architectures */
+struct section
+{                       /* for 32-bit architectures */
     char sectname[16];  /* name of this section */
     char segname[16];   /* segment this section goes in */
     uint32_t addr;      /* memory address of this section */
@@ -430,7 +443,8 @@ struct section {        /* for 32-bit architectures */
     uint32_t reserved2; /* reserved */
 };
 
-struct section_64 {     /* for 64-bit architectures */
+struct section_64
+{                       /* for 64-bit architectures */
     char sectname[16];  /* name of this section */
     char segname[16];   /* segment this section goes in */
     uint64_t addr;      /* memory address of this section */
@@ -445,18 +459,21 @@ struct section_64 {     /* for 64-bit architectures */
     uint32_t reserved3; /* reserved */
 };
 
-union lc_str {
+union lc_str
+{
     uint32_t offset; /* offset to the string */
 };
 
-struct dylib {
+struct dylib
+{
     union lc_str name;              /* library's path name */
     uint32_t timestamp;             /* library's build time stamp */
     uint32_t current_version;       /* library's current version number */
     uint32_t compatibility_version; /* library's compatibility vers number*/
 };
 
-struct dylib_command {
+struct dylib_command
+{
     uint32_t cmd;       /* LC_ID_DYLIB, LC_LOAD_{,WEAK_}DYLIB,LC_REEXPORT_DYLIB */
     uint32_t cmdsize;   /* includes pathname string */
     struct dylib dylib; /* the library identification */
@@ -466,7 +483,8 @@ struct dylib_command {
 
 //////CodeSignature
 
-enum {
+enum
+{
     CSMAGIC_REQUIREMENT = 0xfade0c00,               /* single Requirement blob */
     CSMAGIC_REQUIREMENTS = 0xfade0c01,              /* Requirements vector (internal requirements) */
     CSMAGIC_CODEDIRECTORY = 0xfade0c02,             /* CodeDirectory blob */
@@ -522,12 +540,14 @@ enum {
 /*
  * Structure of an embedded-signature SuperBlob
  */
-struct CS_BlobIndex {
+struct CS_BlobIndex
+{
     uint32_t type;   /* type of entry */
     uint32_t offset; /* offset of entry */
 };
 
-struct CS_SuperBlob {
+struct CS_SuperBlob
+{
     uint32_t magic;  /* magic number */
     uint32_t length; /* total length of SuperBlob */
     uint32_t count;  /* number of index entries following */
@@ -538,7 +558,8 @@ struct CS_SuperBlob {
 /*
  * C form of a CodeDirectory.
  */
-struct CS_CodeDirectory {
+struct CS_CodeDirectory
+{
     uint32_t magic;         /* magic number (CSMAGIC_CODEDIRECTORY) */
     uint32_t length;        /* total length of CodeDirectory blob */
     uint32_t version;       /* compatibility version */
@@ -577,17 +598,20 @@ struct CS_CodeDirectory {
     /* followed by dynamic content as located by offset fields above */
 };
 
-struct CS_Entitlement {
+struct CS_Entitlement
+{
     uint32_t magic;
     uint32_t length;
 };
 
-struct CS_GenericBlob {
+struct CS_GenericBlob
+{
     uint32_t magic;  /* magic number */
     uint32_t length; /* total length of blob */
 };
 
-struct CS_Scatter {
+struct CS_Scatter
+{
     uint32_t count;        // number of pages; zero for sentinel (only)
     uint32_t base;         // first page number
     uint64_t targetOffset; // offset in target

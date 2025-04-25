@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import UIKit
 
@@ -15,10 +9,10 @@ enum DownloadState {
 
     var progress: CGFloat? {
         switch self {
-            case let .inProgress(progress):
-                return progress
-            default:
-                return nil
+        case let .inProgress(progress):
+            return progress
+        default:
+            return nil
         }
     }
 }
@@ -40,7 +34,11 @@ class DownloadTask {
     func updateProgress(to progress: CGFloat) {
         state = .inProgress(progress: progress)
         progressHandler?(progress)
-        NotificationCenter.default.post(name: .downloadProgressUpdated, object: self, userInfo: ["uuid": uuid, "progress": progress])
+        NotificationCenter.default.post(
+            name: .downloadProgressUpdated,
+            object: self,
+            userInfo: ["uuid": uuid, "progress": progress]
+        )
     }
 }
 
@@ -50,14 +48,24 @@ extension Notification.Name {
 
 class DownloadTaskManager {
     static let shared = DownloadTaskManager()
-    public var downloadTasks: [String: DownloadTask] = [:]
+    var downloadTasks: [String: DownloadTask] = [:]
     private let taskQueue = DispatchQueue(label: "com.backdoor.DownloadTaskManager", attributes: .concurrent)
-    
+
     private init() {
-        NotificationCenter.default.addObserver(self, selector: #selector(appWillTerminate), name: UIApplication.willTerminateNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleMemoryWarning), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillTerminate),
+            name: UIApplication.willTerminateNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleMemoryWarning),
+            name: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil
+        )
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -72,20 +80,20 @@ class DownloadTaskManager {
     func updateTask(uuid: String, state: DownloadState) {
         taskQueue.async { [weak self] in
             guard let self = self, let task = self.downloadTasks[uuid] else { return }
-            
+
             task.state = state
             self.persistTaskState(task)
-            
+
             DispatchQueue.main.async {
                 switch state {
-                    case let .inProgress(progress):
-                        task.cell?.updateProgress(to: progress)
-                    case .completed, .failed:
-                        task.cell?.stopDownload()
-                        self.removeTask(uuid: uuid)
-                        self.removePersistedTaskState(for: uuid)
-                    default:
-                        break
+                case let .inProgress(progress):
+                    task.cell?.updateProgress(to: progress)
+                case .completed, .failed:
+                    task.cell?.stopDownload()
+                    self.removeTask(uuid: uuid)
+                    self.removePersistedTaskState(for: uuid)
+                default:
+                    break
                 }
             }
         }
@@ -94,13 +102,13 @@ class DownloadTaskManager {
     func cancelDownload(for uuid: String) {
         taskQueue.async { [weak self] in
             guard let self = self, let task = self.downloadTasks[uuid] else { return }
-            
+
             task.dl.cancelDownload()
-            
+
             DispatchQueue.main.async {
                 task.cell?.cancelDownload()
             }
-            
+
             self.removeTask(uuid: uuid)
         }
     }
@@ -140,10 +148,15 @@ class DownloadTaskManager {
     func restoreTaskState(for uuid: String, cell: AppTableViewCell) {
         taskQueue.async { [weak self] in
             guard let self = self, let task = self.downloadTasks[uuid] else { return }
-            
+
             let defaults = UserDefaults.standard
             if let progress = defaults.value(forKey: "\(uuid)_progress") as? CGFloat {
-                let updatedTask = DownloadTask(uuid: uuid, cell: cell, state: .inProgress(progress: progress), dl: task.dl)
+                let updatedTask = DownloadTask(
+                    uuid: uuid,
+                    cell: cell,
+                    state: .inProgress(progress: progress),
+                    dl: task.dl
+                )
                 self.downloadTasks[uuid] = updatedTask
             }
         }
@@ -152,12 +165,12 @@ class DownloadTaskManager {
     @objc private func appWillTerminate() {
         clearAllTasks()
     }
-    
+
     @objc private func handleMemoryWarning() {
         // Clean up any completed or failed tasks that might still be in memory
         taskQueue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            
+
             // Filter out tasks with nil cells (recycled cells)
             let tasksToRemove = self.downloadTasks.filter { $0.value.cell == nil }
             for (uuid, _) in tasksToRemove {
@@ -170,7 +183,7 @@ class DownloadTaskManager {
     private func clearAllTasks() {
         taskQueue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            
+
             let defaults = UserDefaults.standard
             for uuid in self.downloadTasks.keys {
                 defaults.removeObject(forKey: "\(uuid)_progress")

@@ -1,19 +1,12 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import SwiftUI
 
 // MARK: - NewsCardView
 
 struct NewsCardView: View {
     // MARK: - Properties
-    
+
     var news: NewsData
-    
+
     private enum Constants {
         static let cardWidth: CGFloat = 250
         static let cardHeight: CGFloat = 150
@@ -29,7 +22,7 @@ struct NewsCardView: View {
     }
 
     // MARK: - Body
-    
+
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             renderBackgroundImage()
@@ -60,9 +53,9 @@ struct NewsCardView: View {
             )
         )
     }
-    
+
     // MARK: - View Components
-    
+
     @ViewBuilder
     private func renderBackgroundImage() -> some View {
         if news.imageURL != nil {
@@ -85,13 +78,13 @@ struct NewsCardView: View {
                             .tint(.white)
                     )
             }
-            
+
             // Gradient overlay
             LinearGradient(
                 gradient: Gradient(
                     colors: [
                         .clear,
-                        .black.opacity(Constants.gradientOpacity)
+                        .black.opacity(Constants.gradientOpacity),
                     ]
                 ),
                 startPoint: .top,
@@ -99,7 +92,7 @@ struct NewsCardView: View {
             )
         }
     }
-    
+
     private func renderBlurOverlay() -> some View {
         VariableBlurView()
             .opacity(Constants.blurOpacity)
@@ -107,7 +100,7 @@ struct NewsCardView: View {
             .rotationEffect(.degrees(180))
             .padding(.top, Constants.topPadding)
     }
-    
+
     private func renderTitleContent() -> some View {
         VStack {
             Spacer()

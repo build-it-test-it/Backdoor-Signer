@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 // Extension to add extra methods needed by the HomeViewController
@@ -15,7 +9,11 @@ extension HomeViewController {
     func createNewFile(in directory: File) {
         guard directory.isDirectory else { return }
 
-        let alert = UIAlertController(title: "Create New File", message: "Enter a name for the new file", preferredStyle: .alert)
+        let alert = UIAlertController(
+            title: "Create New File",
+            message: "Enter a name for the new file",
+            preferredStyle: .alert
+        )
         alert.addTextField { textField in
             textField.placeholder = "File Name"
             textField.autocapitalizationType = .none
@@ -31,11 +29,11 @@ extension HomeViewController {
             // Create empty file
             self.fileHandlers.createNewFile(viewController: self, fileName: fileURL.path) { result in
                 switch result {
-                    case .success:
-                        self.loadFiles()
-                        HapticFeedbackGenerator.generateNotificationFeedback(type: .success)
-                    case let .failure(error):
-                        self.utilities.handleError(in: self, error: error, withTitle: "File Creation Error")
+                case .success:
+                    self.loadFiles()
+                    HapticFeedbackGenerator.generateNotificationFeedback(type: .success)
+                case let .failure(error):
+                    self.utilities.handleError(in: self, error: error, withTitle: "File Creation Error")
                 }
             }
         }
@@ -53,7 +51,11 @@ extension HomeViewController {
     func createNewFolder(in directory: File) {
         guard directory.isDirectory else { return }
 
-        let alert = UIAlertController(title: "Create New Folder", message: "Enter a name for the new folder", preferredStyle: .alert)
+        let alert = UIAlertController(
+            title: "Create New Folder",
+            message: "Enter a name for the new folder",
+            preferredStyle: .alert
+        )
         alert.addTextField { textField in
             textField.placeholder = "Folder Name"
             textField.autocapitalizationType = .none
@@ -68,11 +70,11 @@ extension HomeViewController {
 
             self.fileHandlers.createNewFolder(viewController: self, folderName: folderURL.path) { result in
                 switch result {
-                    case .success:
-                        self.loadFiles()
-                        HapticFeedbackGenerator.generateNotificationFeedback(type: .success)
-                    case let .failure(error):
-                        self.utilities.handleError(in: self, error: error, withTitle: "Folder Creation Error")
+                case .success:
+                    self.loadFiles()
+                    HapticFeedbackGenerator.generateNotificationFeedback(type: .success)
+                case let .failure(error):
+                    self.utilities.handleError(in: self, error: error, withTitle: "Folder Creation Error")
                 }
             }
         }
@@ -87,8 +89,8 @@ extension HomeViewController {
 }
 
 // Extension to add layer effects
-extension CALayer {
-    @objc public func applyFuturisticShadow() {
+public extension CALayer {
+    @objc func applyFuturisticShadow() {
         shadowColor = UIColor.black.cgColor
         shadowOffset = CGSize(width: 0, height: 2)
         shadowOpacity = 0.2

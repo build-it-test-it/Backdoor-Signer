@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import SafariServices
 import SwiftUI
 import UIKit
@@ -11,11 +5,11 @@ import UIKit
 struct TransferPreview: View {
     @Environment(\.presentationMode) var presentationMode
 
-    @StateObject var installer: Installer
+    @StateObject private var installer: Installer
 
-    @State var appPath: String
-    @State var appName: String
-    @State var isSharing: Bool = false
+    @State private var appPath: String
+    @State private var appName: String
+    @State private var isSharing: Bool = false
 
     @State private var packaging: Bool = true
     @State private var showShareSheet = false
@@ -26,19 +20,19 @@ struct TransferPreview: View {
             return "archivebox.fill"
         } else if !isSharing {
             switch installer.status {
-                case .ready:
-                    return "app.gift"
-                case .sendingManifest, .sendingPayload:
-                    return "paperplane.fill"
-                case let .completed(result):
-                    switch result {
-                        case .success:
-                            return "app.badge.checkmark"
-                        case .failure:
-                            return "exclamationmark.triangle.fill"
-                    }
-                case .broken:
+            case .ready:
+                return "app.gift"
+            case .sendingManifest, .sendingPayload:
+                return "paperplane.fill"
+            case let .completed(result):
+                switch result {
+                case .success:
+                    return "app.badge.checkmark"
+                case .failure:
                     return "exclamationmark.triangle.fill"
+                }
+            case .broken:
+                return "exclamationmark.triangle.fill"
             }
         } else {
             return "checkmark.circle"
@@ -50,21 +44,21 @@ struct TransferPreview: View {
             return String.localized("TRANSFER_PREVIEW_PACKAGING")
         } else if !isSharing {
             switch installer.status {
-                case .ready:
-                    return String.localized("TRANSFER_PREVIEW_READY")
-                case .sendingManifest:
-                    return String.localized("TRANSFER_PREVIEW_SENDING_MANIFEST")
-                case .sendingPayload:
-                    return String.localized("TRANSFER_PREVIEW_SENDING_PAYLOAD")
-                case let .completed(result):
-                    switch result {
-                        case .success:
-                            return String.localized("TRANSFER_PREVIEW_DONE")
-                        case let .failure(failure):
-                            return failure.localizedDescription
-                    }
-                case let .broken(error):
-                    return error.localizedDescription
+            case .ready:
+                return String.localized("TRANSFER_PREVIEW_READY")
+            case .sendingManifest:
+                return String.localized("TRANSFER_PREVIEW_SENDING_MANIFEST")
+            case .sendingPayload:
+                return String.localized("TRANSFER_PREVIEW_SENDING_PAYLOAD")
+            case let .completed(result):
+                switch result {
+                case .success:
+                    return String.localized("TRANSFER_PREVIEW_DONE")
+                case let .failure(failure):
+                    return failure.localizedDescription
+                }
+            case let .broken(error):
+                return error.localizedDescription
             }
         } else {
             return String.localized("TRANSFER_PREVIEW_COMPLETED")
@@ -145,7 +139,8 @@ struct TransferPreview: View {
             let uuid = UUID().uuidString
             let tempDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(uuid)
             let payloadPath = tempDirectory.appendingPathComponent("Payload")
-            let sanitizedFileName = fileName.replacingOccurrences(of: "/", with: "_").trimmingCharacters(in: .whitespacesAndNewlines)
+            let sanitizedFileName = fileName.replacingOccurrences(of: "/", with: "_")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             let ipaPath = tempDirectory.appendingPathComponent("\(sanitizedFileName).ipa")
 
             do {
@@ -169,13 +164,13 @@ struct TransferPreview: View {
 
 struct ActivityViewController: UIViewControllerRepresentable {
     var activityItems: [Any]
-    var applicationActivities: [UIActivity]? = nil
+    var applicationActivities: [UIActivity]?
 
-    func makeUIViewController(context _: UIViewControllerRepresentableContext<ActivityViewController>) -> UIActivityViewController {
+    func makeUIViewController(context _: UIViewControllerRepresentableContext<Self>) -> UIActivityViewController {
         return UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
     }
 
-    func updateUIViewController(_: UIActivityViewController, context _: UIViewControllerRepresentableContext<ActivityViewController>) {}
+    func updateUIViewController(_: UIActivityViewController, context _: UIViewControllerRepresentableContext<Self>) {}
 }
 
 struct SafariWebView: UIViewControllerRepresentable {

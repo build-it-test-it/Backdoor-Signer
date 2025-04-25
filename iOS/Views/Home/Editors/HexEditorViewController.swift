@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// Editor for binary files in hexadecimal format
@@ -55,7 +49,11 @@ class HexEditorViewController: BaseEditorViewController {
         do {
             let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
             guard let fileSize = fileAttributes[FileAttributeKey.size] as? UInt64 else {
-                throw NSError(domain: "FileAttributeError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not determine file size"])
+                throw NSError(
+                    domain: "FileAttributeError",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "Could not determine file size"]
+                )
             }
 
             if fileSize > maxDisplaySize {
@@ -67,7 +65,6 @@ class HexEditorViewController: BaseEditorViewController {
 
             // Load the file using our specialized hex loading method
             loadHexContent(maxSize: maxDisplaySize)
-
         } catch {
             presentAlert(title: "Error", message: "Could not access file: \(error.localizedDescription)")
             Debug.shared.log(message: "File access error: \(error.localizedDescription)", type: .error)
@@ -87,7 +84,8 @@ class HexEditorViewController: BaseEditorViewController {
 
             do {
                 // Parse hex content
-                let hexValues = text.components(separatedBy: CharacterSet.whitespaces).compactMap { UInt8($0, radix: 16) }
+                let hexValues = text.components(separatedBy: CharacterSet.whitespaces)
+                    .compactMap { UInt8($0, radix: 16) }
                 let data = Data(hexValues)
 
                 // Write to file
@@ -192,14 +190,15 @@ class HexEditorViewController: BaseEditorViewController {
             textView.text = hexString
         } else {
             // Convert hex to ASCII
-            let hexValues = hexText.components(separatedBy: CharacterSet.whitespaces).compactMap { UInt8($0, radix: 16) }
+            let hexValues = hexText.components(separatedBy: CharacterSet.whitespaces)
+                .compactMap { UInt8($0, radix: 16) }
             let data = Data(hexValues)
             let asciiText = String(data: data, encoding: String.Encoding.ascii) ?? ""
             textView.text = asciiText
         }
 
         // Provide feedback about mode change
-        self.presentAlert(
+        presentAlert(
             title: inHexMode ? "Hex Mode" : "ASCII Mode",
             message: "Switched to \(inHexMode ? "hexadecimal" : "ASCII") view."
         )
@@ -238,14 +237,14 @@ class HexEditorViewController: BaseEditorViewController {
 
             // Get some info about the hex content
             if let text = textView.text {
-                let hexValues = text.components(separatedBy: CharacterSet.whitespaces).compactMap { UInt8($0, radix: 16) }
+                let hexValues = text.components(separatedBy: CharacterSet.whitespaces)
+                    .compactMap { UInt8($0, radix: 16) }
                 infoText += "Bytes in editor: \(hexValues.count)"
             }
 
-            self.presentAlert(title: "File Information", message: infoText)
-
+            presentAlert(title: "File Information", message: infoText)
         } catch {
-            self.presentAlert(title: "Error", message: "Could not retrieve file information: \(error.localizedDescription)")
+            presentAlert(title: "Error", message: "Could not retrieve file information: \(error.localizedDescription)")
         }
     }
 
@@ -255,11 +254,17 @@ class HexEditorViewController: BaseEditorViewController {
 
         if inHexMode {
             // In hex mode, ensure both strings are valid hex
-            let findHexValues = findText.components(separatedBy: CharacterSet.whitespaces).compactMap { UInt8($0, radix: 16) }
-            let replaceHexValues = replaceText.components(separatedBy: CharacterSet.whitespaces).compactMap { UInt8($0, radix: 16) }
+            let findHexValues = findText.components(separatedBy: CharacterSet.whitespaces).compactMap { UInt8(
+                $0,
+                radix: 16
+            ) }
+            let replaceHexValues = replaceText.components(separatedBy: CharacterSet.whitespaces).compactMap { UInt8(
+                $0,
+                radix: 16
+            ) }
 
             if findHexValues.isEmpty || replaceHexValues.isEmpty {
-                self.presentAlert(title: "Invalid Hex", message: "Please enter valid hexadecimal values.")
+                presentAlert(title: "Invalid Hex", message: "Please enter valid hexadecimal values.")
                 return
             }
 
@@ -267,7 +272,11 @@ class HexEditorViewController: BaseEditorViewController {
             let formattedFindText = findHexValues.map { String(format: "%02x", $0) }.joined(separator: " ")
             let formattedReplaceText = replaceHexValues.map { String(format: "%02x", $0) }.joined(separator: " ")
 
-            textView.text = text.replacingOccurrences(of: formattedFindText, with: formattedReplaceText, options: .caseInsensitive)
+            textView.text = text.replacingOccurrences(
+                of: formattedFindText,
+                with: formattedReplaceText,
+                options: .caseInsensitive
+            )
         } else {
             // In ASCII mode, perform normal text replacement
             textView.text = text.replacingOccurrences(of: findText, with: replaceText, options: .caseInsensitive)

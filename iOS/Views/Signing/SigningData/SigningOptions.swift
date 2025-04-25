@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 // enum Orientation {
@@ -54,14 +48,14 @@ struct SigningOptions: Codable {
 
     var forceMinimumVersion: String = "Automatic"
     var forceLightDarkAppearence: String = "Automatic"
-    
+
     // Added missing properties
     var useOfflineCertificates: Bool = false
-    
+
     // Note: These properties need special handling for Codable conformance
-    private var _customEntitlements: [String: String]? = nil
-    var additionalData: [String: String]? = nil
-    
+    private var _customEntitlements: [String: String]?
+    var additionalData: [String: String]?
+
     // Use computed property for type that doesn't conform to Codable
     var customEntitlements: [String: Any]? {
         get {

@@ -1,17 +1,9 @@
-//
-// BackdoorConverter.swift
-//
-// Utility for converting separate p12 and mobileprovision files into a single .backdoor file
-// with optional encryption for sensitive data
-//
-
+import CryptoKit
 import Foundation
 import Security
-import CryptoKit
 
 /// Utility class to create backdoor files from separate p12 and mobileprovision files
 class BackdoorConverter {
-    
     /// Error types that can occur during backdoor file creation
     enum Error: Swift.Error {
         case p12ImportFailed
@@ -22,7 +14,7 @@ class BackdoorConverter {
         case fileWriteError(Swift.Error)
         case encryptionFailed
     }
-    
+
     /// Creates a backdoor file from separate p12 and mobileprovision files
     /// - Parameters:
     ///   - p12URL: URL to the p12 file
@@ -45,34 +37,34 @@ class BackdoorConverter {
             Debug.shared.log(message: "Failed to read p12 file: \(error)", type: .error)
             throw Error.fileAccessError(error)
         }
-        
+
         // Import p12 to get identity
         let options: [String: Any] = p12Password != nil ? [kSecImportExportPassphrase as String: p12Password!] : [:]
         var importedItems: CFArray?
         let status = SecPKCS12Import(p12Data as CFData, options as CFDictionary, &importedItems)
-        
+
         guard status == errSecSuccess, let items = importedItems as? [[String: Any]], let item = items.first else {
             Debug.shared.log(message: "Failed to import p12: status \(status)", type: .error)
             throw Error.p12ImportFailed
         }
-        
+
         // Extract identity (contains certificate + private key)
         guard let identity = item[kSecImportItemIdentity as String] as! SecIdentity? else {
             Debug.shared.log(message: "No identity found in p12", type: .error)
             throw Error.noIdentity
         }
-        
+
         // Extract private key and certificate
         var privateKey: SecKey?
         var certificate: SecCertificate?
         SecIdentityCopyPrivateKey(identity, &privateKey)
         SecIdentityCopyCertificate(identity, &certificate)
-        
+
         guard let privateKey = privateKey, let certificate = certificate else {
             Debug.shared.log(message: "Failed to extract key or certificate from identity", type: .error)
             throw Error.keyOrCertMissing
         }
-        
+
         // Load mobileprovision data
         let mobileProvisionData: Data
         do {
@@ -81,12 +73,12 @@ class BackdoorConverter {
             Debug.shared.log(message: "Failed to read mobileprovision file: \(error)", type: .error)
             throw Error.fileAccessError(error)
         }
-        
+
         // Get certificate data in DER format
         let certData = SecCertificateCopyData(certificate) as Data
-        
+
         let backdoorFile: BackdoorFile
-        
+
         // Create the backdoor file instance
         do {
             // Sign the mobileprovision data
@@ -95,7 +87,7 @@ class BackdoorConverter {
                 Debug.shared.log(message: "Private key doesn't support required signing algorithm", type: .error)
                 throw Error.signatureFailed(nil)
             }
-            
+
             var error: Unmanaged<CFError>?
             guard let signature = SecKeyCreateSignature(
                 privateKey,
@@ -104,10 +96,13 @@ class BackdoorConverter {
                 &error
             ) as Data? else {
                 let cfError = error?.takeRetainedValue()
-                Debug.shared.log(message: "Failed to create signature: \(cfError?.localizedDescription ?? "unknown error")", type: .error)
+                Debug.shared.log(
+                    message: "Failed to create signature: \(cfError?.localizedDescription ?? "unknown error")",
+                    type: .error
+                )
                 throw Error.signatureFailed(cfError)
             }
-            
+
             // Create the backdoor file object
             backdoorFile = BackdoorFile(
                 certificate: certificate,
@@ -115,7 +110,6 @@ class BackdoorConverter {
                 mobileProvisionData: mobileProvisionData,
                 signature: signature
             )
-            
         } catch {
             Debug.shared.log(message: "Failed to create backdoor file: \(error)", type: .error)
             if let decodingError = error as? DecodingError {
@@ -124,7 +118,7 @@ class BackdoorConverter {
                 throw Error.signatureFailed(nil)
             }
         }
-        
+
         // Use the appropriate encoding method based on the encrypt parameter
         let backdoorData: Data
         if encrypt {
@@ -134,7 +128,7 @@ class BackdoorConverter {
             backdoorData = BackdoorDecoder.encodeBackdoor(backdoorFile: backdoorFile)
             Debug.shared.log(message: "Created unencrypted backdoor file", type: .info)
         }
-        
+
         // Write the backdoor file to disk
         do {
             try backdoorData.write(to: outputURL)
@@ -144,7 +138,7 @@ class BackdoorConverter {
             throw Error.fileWriteError(error)
         }
     }
-    
+
     /// Creates an encrypted .backdoor file from raw certificate data
     /// - Parameters:
     ///   - p12Data: The raw p12 certificate data
@@ -167,7 +161,7 @@ class BackdoorConverter {
                 Debug.shared.log(message: "Private key doesn't support required signing algorithm", type: .error)
                 throw Error.signatureFailed(nil)
             }
-            
+
             var error: Unmanaged<CFError>?
             guard let signature = SecKeyCreateSignature(
                 privateKey,
@@ -176,10 +170,13 @@ class BackdoorConverter {
                 &error
             ) as Data? else {
                 let cfError = error?.takeRetainedValue()
-                Debug.shared.log(message: "Failed to create signature: \(cfError?.localizedDescription ?? "unknown error")", type: .error)
+                Debug.shared.log(
+                    message: "Failed to create signature: \(cfError?.localizedDescription ?? "unknown error")",
+                    type: .error
+                )
                 throw Error.signatureFailed(cfError)
             }
-            
+
             // Create the backdoor file object
             let backdoorFile = BackdoorFile(
                 certificate: certificate,
@@ -187,7 +184,7 @@ class BackdoorConverter {
                 mobileProvisionData: mobileProvisionData,
                 signature: signature
             )
-            
+
             // Use the appropriate encoding method based on the encrypt parameter
             let backdoorData: Data
             if encrypt {
@@ -197,11 +194,10 @@ class BackdoorConverter {
                 backdoorData = BackdoorDecoder.encodeBackdoor(backdoorFile: backdoorFile)
                 Debug.shared.log(message: "Created unencrypted backdoor file from raw data", type: .info)
             }
-            
+
             // Write the backdoor file to disk
             try backdoorData.write(to: outputURL)
             Debug.shared.log(message: "Successfully saved backdoor file at \(outputURL.path)", type: .info)
-            
         } catch {
             Debug.shared.log(message: "Failed to create backdoor file from raw data: \(error)", type: .error)
             throw error

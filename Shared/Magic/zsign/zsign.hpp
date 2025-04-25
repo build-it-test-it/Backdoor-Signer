@@ -17,18 +17,19 @@
 #include <stdio.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-bool InjectDyLib(NSString *filePath, NSString *dylibPath, bool weakInject, bool bCreate);
+    bool InjectDyLib(NSString *filePath, NSString *dylibPath, bool weakInject, bool bCreate);
 
-bool ChangeDylibPath(NSString *filePath, NSString *oldPath, NSString *newPath);
+    bool ChangeDylibPath(NSString *filePath, NSString *oldPath, NSString *newPath);
 
-bool ListDylibs(NSString *filePath, NSMutableArray *dylibPathsArray);
-bool UninstallDylibs(NSString *filePath, NSArray<NSString *> *dylibPathsArray);
+    bool ListDylibs(NSString *filePath, NSMutableArray *dylibPathsArray);
+    bool UninstallDylibs(NSString *filePath, NSArray<NSString *> *dylibPathsArray);
 
-int zsign(NSString *app, NSString *prov, NSString *key, NSString *pass, NSString *bundleid, NSString *displayname,
-          NSString *bundleversion, bool dontGenerateEmbeddedMobileProvision);
+    int zsign(NSString *app, NSString *prov, NSString *key, NSString *pass, NSString *bundleid, NSString *displayname,
+              NSString *bundleversion, bool dontGenerateEmbeddedMobileProvision);
 
 #ifdef __cplusplus
 }

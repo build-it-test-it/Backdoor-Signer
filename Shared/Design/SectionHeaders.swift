@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// Constants used by section header components
@@ -18,6 +11,7 @@ private enum SectionHeaderConstants {
         /// Button font size
         static let buttonSize: CGFloat = 14
     }
+
     /// Spacing and margin constants
     enum Spacing {
         /// Default top margin
@@ -35,6 +29,7 @@ private enum SectionHeaderConstants {
         /// Large spacing
         static let largeSpacing: CGFloat = 8
     }
+
     /// View dimensions
     enum Dimensions {
         /// Button corner radius
@@ -44,6 +39,7 @@ private enum SectionHeaderConstants {
         /// Icon dimension
         static let iconSize: CGFloat = 24
     }
+
     /// Appearance settings
     enum Appearance {
         /// Border color for image views
@@ -82,7 +78,7 @@ class InsetGroupedSectionHeader: UIView {
     /// - Parameter coder: The NSCoder instance
     required init?(coder: NSCoder) {
         // Support storyboard initialization
-        self.topAnchorConstant = SectionHeaderConstants.Spacing.defaultTopMargin
+        topAnchorConstant = SectionHeaderConstants.Spacing.defaultTopMargin
         super.init(coder: coder)
         setupUI()
     }
@@ -92,18 +88,18 @@ class InsetGroupedSectionHeader: UIView {
         get { return titleLabel.text ?? "" }
         set { titleLabel.text = newValue }
     }
-    
+
     /// Sets up the UI components and constraints
     private func setupUI() {
         addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(
-                equalTo: leadingAnchor, 
+                equalTo: leadingAnchor,
                 constant: SectionHeaderConstants.Spacing.smallSpacing
             ),
             titleLabel.trailingAnchor.constraint(
-                equalTo: trailingAnchor, 
+                equalTo: trailingAnchor,
                 constant: -SectionHeaderConstants.Spacing.mediumSpacing
             ),
             titleLabel.topAnchor.constraint(
@@ -114,10 +110,10 @@ class InsetGroupedSectionHeader: UIView {
             titleLabel.bottomAnchor.constraint(
                 equalTo: bottomAnchor,
                 constant: -SectionHeaderConstants.Spacing.smallSpacing
-            )
+            ),
         ])
     }
-    
+
     /// Returns the intrinsic content size for this view
     override var intrinsicContentSize: CGSize {
         let titleHeight = titleLabel.intrinsicContentSize.height
@@ -163,13 +159,13 @@ class SearchAppSectionHeader: UIView {
         super.init(frame: .zero)
         setupUI()
         self.title = title
-        self.iconImageView.image = icon
+        iconImageView.image = icon
     }
 
     /// Required initializer for interface builder/storyboard support
     /// - Parameter coder: The NSCoder instance
     required init?(coder: NSCoder) {
-        self.topAnchorConstant = SectionHeaderConstants.Spacing.defaultTopMargin
+        topAnchorConstant = SectionHeaderConstants.Spacing.defaultTopMargin
         super.init(coder: coder)
         setupUI()
     }
@@ -223,10 +219,10 @@ class SearchAppSectionHeader: UIView {
             titleLabel.bottomAnchor.constraint(
                 equalTo: bottomAnchor,
                 constant: -topAnchorConstant
-            )
+            ),
         ])
     }
-    
+
     /// Returns the intrinsic content size for this view
     override var intrinsicContentSize: CGSize {
         let titleHeight = titleLabel.intrinsicContentSize.height
@@ -315,7 +311,7 @@ class GroupedSectionHeader: UIView {
         super.init(frame: .zero)
         setupUI()
         self.title = title
-        
+
         if let title = buttonTitle {
             setupButton(title: title)
         }
@@ -328,9 +324,9 @@ class GroupedSectionHeader: UIView {
     /// Required initializer for interface builder/storyboard support
     /// - Parameter coder: The NSCoder instance
     required init?(coder: NSCoder) {
-        self.topAnchorConstant = SectionHeaderConstants.Spacing.contentInset
-        self.buttonTitle = nil
-        self.buttonAction = nil
+        topAnchorConstant = SectionHeaderConstants.Spacing.contentInset
+        buttonTitle = nil
+        buttonAction = nil
         super.init(coder: coder)
         setupUI()
     }
@@ -366,7 +362,7 @@ class GroupedSectionHeader: UIView {
             titleLabel.trailingAnchor.constraint(
                 equalTo: trailingAnchor,
                 constant: -SectionHeaderConstants.Spacing.trailingPadding
-            )
+            ),
         ])
 
         if subtitleLabel.text != "" {
@@ -386,14 +382,14 @@ class GroupedSectionHeader: UIView {
                 subtitleLabel.bottomAnchor.constraint(
                     equalTo: bottomAnchor,
                     constant: -topAnchorConstant
-                )
+                ),
             ])
         } else {
             NSLayoutConstraint.activate([
                 titleLabel.bottomAnchor.constraint(
                     equalTo: bottomAnchor,
                     constant: -topAnchorConstant
-                )
+                ),
             ])
         }
 
@@ -405,7 +401,7 @@ class GroupedSectionHeader: UIView {
                 ),
                 actionButton.centerYAnchor.constraint(
                     equalTo: titleLabel.centerYAnchor
-                )
+                ),
             ])
         }
     }
@@ -427,9 +423,9 @@ class GroupedSectionHeader: UIView {
         let height: CGFloat
         if subtitleLabel.text != "" {
             height = titleLabel.intrinsicContentSize.height
-                    + subtitleLabel.intrinsicContentSize.height
-                    + topAnchorConstant * 2
-                    + SectionHeaderConstants.Spacing.smallSpacing
+                + subtitleLabel.intrinsicContentSize.height
+                + topAnchorConstant * 2
+                + SectionHeaderConstants.Spacing.smallSpacing
         } else {
             height = titleLabel.intrinsicContentSize.height + topAnchorConstant * 2
         }
@@ -443,19 +439,19 @@ class InlineButton: UIButton {
     /// - Parameter frame: The frame rectangle for the view
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         // Configure the symbol with multi-color palette
         let symbolConfig = UIImage.SymbolConfiguration(paletteColors: [.tintColor, .secondarySystemBackground])
             .applying(UIImage.SymbolConfiguration(pointSize: 23, weight: .unspecified))
-        
+
         // Create the image with the configuration
         let image = UIImage(systemName: "gearshape.circle.fill")?
             .withRenderingMode(.alwaysTemplate)
             .applyingSymbolConfiguration(symbolConfig)
-        
+
         // Set the image as the button's content
         setImage(image, for: .normal)
-        
+
         // Configure the insets based on iOS version
         if #available(iOS 15.0, *) {
             var buttonConfig = configuration ?? UIButton.Configuration.plain()
@@ -480,19 +476,19 @@ class InlineButton: UIButton {
     /// - Parameter coder: The NSCoder instance
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        
+
         // Configure the symbol with multi-color palette
         let symbolConfig = UIImage.SymbolConfiguration(paletteColors: [.tintColor, .secondarySystemBackground])
             .applying(UIImage.SymbolConfiguration(pointSize: 23, weight: .unspecified))
-        
+
         // Create the image with the configuration
         let image = UIImage(systemName: "gearshape.circle.fill")?
             .withRenderingMode(.alwaysTemplate)
             .applyingSymbolConfiguration(symbolConfig)
-        
+
         // Set the image as the button's content
         setImage(image, for: .normal)
-        
+
         // Configure the insets based on iOS version
         if #available(iOS 15.0, *) {
             var buttonConfig = configuration ?? UIButton.Configuration.plain()

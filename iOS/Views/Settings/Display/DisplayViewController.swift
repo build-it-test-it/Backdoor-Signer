@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 class DisplayViewController: FRSTableViewController {
@@ -28,7 +22,7 @@ class DisplayViewController: FRSTableViewController {
             String.localized("CERTIFICATES_VIEW_CONTROLLER_TITLE"),
         ]
 
-        self.tableView.register(CollectionTableViewCell.self, forCellReuseIdentifier: "CollectionCell")
+        tableView.register(CollectionTableViewCell.self, forCellReuseIdentifier: "CollectionCell")
     }
 
     private func updateAppearance(with style: UIUserInterfaceStyle) {
@@ -54,17 +48,20 @@ extension DisplayViewController {
         if indexPath.section == 2 {
             cell = UITableViewCell(style: .subtitle, reuseIdentifier: reuseIdentifier)
             switch indexPath.row {
-                case 0:
-                    cell.textLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_DEFAULT_SUBTITLE")
-                    cell.detailTextLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_DEFAULT_SUBTITLE_DESCRIPTION")
-                case 1:
-                    cell.textLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_LOCALIZED_SUBTITLE")
-                    cell.detailTextLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_LOCALIZED_SUBTITLE_DESCRIPTION")
-                case 2:
-                    cell.textLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_BIG_DESCRIPTION")
-                    cell.detailTextLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_BIG_DESCRIPTION_DESCRIPTION")
-                default:
-                    break
+            case 0:
+                cell.textLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_DEFAULT_SUBTITLE")
+                cell.detailTextLabel?.text = String
+                    .localized("DISPLAY_VIEW_CONTROLLER_CELL_DEFAULT_SUBTITLE_DESCRIPTION")
+            case 1:
+                cell.textLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_LOCALIZED_SUBTITLE")
+                cell.detailTextLabel?.text = String
+                    .localized("DISPLAY_VIEW_CONTROLLER_CELL_LOCALIZED_SUBTITLE_DESCRIPTION")
+            case 2:
+                cell.textLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_BIG_DESCRIPTION")
+                cell.detailTextLabel?.text = String
+                    .localized("DISPLAY_VIEW_CONTROLLER_CELL_BIG_DESCRIPTION_DESCRIPTION")
+            default:
+                break
             }
             cell.textLabel?.font = UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)
             cell.detailTextLabel?.textColor = .secondaryLabel
@@ -81,26 +78,34 @@ extension DisplayViewController {
 
         let cellText = tableData[indexPath.section][indexPath.row]
         switch cellText {
-            case String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE"):
-                cell.textLabel?.text = String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE")
-                let segmentedControl = UISegmentedControl(items: UIUserInterfaceStyle.allCases.map { $0.description })
-                segmentedControl.selectedSegmentIndex = UIUserInterfaceStyle.allCases.firstIndex { $0.rawValue == Preferences.preferredInterfaceStyle } ?? 0
-                segmentedControl.addTarget(self, action: #selector(appearanceSegmentedControlChanged(_:)), for: .valueChanged)
-                cell.accessoryView = segmentedControl
-            case "Collection View":
-                let cell = tableView.dequeueReusableCell(withIdentifier: "CollectionCell", for: indexPath) as! CollectionTableViewCell
-                cell.setData(collectionData: collectionData, colors: collectionDataColors)
-                cell.backgroundColor = .clear
-                return cell
-            case "Certificate Name":
-                let useTeamName = SwitchViewCell()
-                useTeamName.textLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_TEAM_NAME")
-                useTeamName.switchControl.addTarget(self, action: #selector(certificateNameToggle(_:)), for: .valueChanged)
-                useTeamName.switchControl.isOn = Preferences.certificateTitleAppIDtoTeamID
-                useTeamName.selectionStyle = .none
-                return useTeamName
-            default:
-                break
+        case String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE"):
+            cell.textLabel?.text = String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE")
+            let segmentedControl = UISegmentedControl(items: UIUserInterfaceStyle.allCases.map { $0.description })
+            segmentedControl.selectedSegmentIndex = UIUserInterfaceStyle.allCases
+                .firstIndex { $0.rawValue == Preferences.preferredInterfaceStyle } ?? 0
+            segmentedControl.addTarget(
+                self,
+                action: #selector(appearanceSegmentedControlChanged(_:)),
+                for: .valueChanged
+            )
+            cell.accessoryView = segmentedControl
+        case "Collection View":
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: "CollectionCell",
+                for: indexPath
+            ) as! CollectionTableViewCell
+            cell.setData(collectionData: collectionData, colors: collectionDataColors)
+            cell.backgroundColor = .clear
+            return cell
+        case "Certificate Name":
+            let useTeamName = SwitchViewCell()
+            useTeamName.textLabel?.text = String.localized("DISPLAY_VIEW_CONTROLLER_CELL_TEAM_NAME")
+            useTeamName.switchControl.addTarget(self, action: #selector(certificateNameToggle(_:)), for: .valueChanged)
+            useTeamName.switchControl.isOn = Preferences.certificateTitleAppIDtoTeamID
+            useTeamName.selectionStyle = .none
+            return useTeamName
+        default:
+            break
         }
 
         return cell
@@ -118,10 +123,10 @@ extension DisplayViewController {
 
     override func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         switch section {
-            case 3:
-                return String.localized("DISPLAY_VIEW_CONTROLLER_CELL_TEAM_NAME_DESCRIPTION")
-            default:
-                return nil
+        case 3:
+            return String.localized("DISPLAY_VIEW_CONTROLLER_CELL_TEAM_NAME_DESCRIPTION")
+        default:
+            return nil
         }
     }
 

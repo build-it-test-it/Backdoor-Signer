@@ -13,12 +13,14 @@
 #include "Utils.hpp"
 #import <Foundation/Foundation.h>
 
-extern "C" {
+extern "C"
+{
 
-const char *getDocumentsDirectory() {
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentsDirectory = [paths firstObject];
-    const char *documentsPath = [documentsDirectory UTF8String];
-    return documentsPath;
-}
+    const char *getDocumentsDirectory()
+    {
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsDirectory = [paths firstObject];
+        const char *documentsPath = [documentsDirectory UTF8String];
+        return documentsPath;
+    }
 }

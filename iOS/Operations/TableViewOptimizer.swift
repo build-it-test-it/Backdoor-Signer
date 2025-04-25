@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import UIKit
 
@@ -306,14 +300,14 @@ extension TableViewOptimizer: NSFetchedResultsControllerDelegate {
                     for type: NSFetchedResultsChangeType)
     {
         switch type {
-            case .insert:
-                tableView?.insertSections(IndexSet(integer: sectionIndex), with: .fade)
-            case .delete:
-                tableView?.deleteSections(IndexSet(integer: sectionIndex), with: .fade)
-            case .move, .update:
-                tableView?.reloadSections(IndexSet(integer: sectionIndex), with: .fade)
-            @unknown default:
-                tableView?.reloadSections(IndexSet(integer: sectionIndex), with: .fade)
+        case .insert:
+            tableView?.insertSections(IndexSet(integer: sectionIndex), with: .fade)
+        case .delete:
+            tableView?.deleteSections(IndexSet(integer: sectionIndex), with: .fade)
+        case .move, .update:
+            tableView?.reloadSections(IndexSet(integer: sectionIndex), with: .fade)
+        @unknown default:
+            tableView?.reloadSections(IndexSet(integer: sectionIndex), with: .fade)
         }
     }
 
@@ -324,26 +318,26 @@ extension TableViewOptimizer: NSFetchedResultsControllerDelegate {
                     newIndexPath: IndexPath?)
     {
         switch type {
-            case .insert:
-                if let newIndexPath = newIndexPath {
-                    tableView?.insertRows(at: [newIndexPath], with: .fade)
-                }
-            case .delete:
-                if let indexPath = indexPath {
-                    tableView?.deleteRows(at: [indexPath], with: .fade)
-                }
-            case .update:
-                if let indexPath = indexPath {
-                    tableView?.reloadRows(at: [indexPath], with: .fade)
-                }
-            case .move:
-                if let indexPath = indexPath, let newIndexPath = newIndexPath {
-                    tableView?.moveRow(at: indexPath, to: newIndexPath)
-                }
-            @unknown default:
-                if let indexPath = indexPath {
-                    tableView?.reloadRows(at: [indexPath], with: .fade)
-                }
+        case .insert:
+            if let newIndexPath = newIndexPath {
+                tableView?.insertRows(at: [newIndexPath], with: .fade)
+            }
+        case .delete:
+            if let indexPath = indexPath {
+                tableView?.deleteRows(at: [indexPath], with: .fade)
+            }
+        case .update:
+            if let indexPath = indexPath {
+                tableView?.reloadRows(at: [indexPath], with: .fade)
+            }
+        case .move:
+            if let indexPath = indexPath, let newIndexPath = newIndexPath {
+                tableView?.moveRow(at: indexPath, to: newIndexPath)
+            }
+        @unknown default:
+            if let indexPath = indexPath {
+                tableView?.reloadRows(at: [indexPath], with: .fade)
+            }
         }
     }
 
@@ -493,10 +487,10 @@ class SkeletonLoadingCell: UITableViewCell {
         // Update gradient layer frames
         for (index, layer) in animationLayers.enumerated() {
             switch index {
-                case 0: layer.frame = iconView.bounds
-                case 1: layer.frame = titleView.bounds
-                case 2: layer.frame = subtitleView.bounds
-                default: break
+            case 0: layer.frame = iconView.bounds
+            case 1: layer.frame = titleView.bounds
+            case 2: layer.frame = subtitleView.bounds
+            default: break
             }
         }
     }

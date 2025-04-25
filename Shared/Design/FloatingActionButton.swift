@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// Constants used by the FloatingActionButton
@@ -22,13 +15,13 @@ private enum FloatingActionButtonConstants {
         /// Default shadow radius
         static let shadowRadius: CGFloat = 11.0
         /// Default shadow offset
-        static let shadowOffset = CGSize(width: 0, height: 0)
+        static let shadowOffset = CGSize.zero
         /// Default corner radius
         static let cornerRadius: CGFloat = 22.5
         /// Default corner curve
         static let cornerCurve: CALayerCornerCurve = .circular
     }
-    
+
     /// Fallback colors
     enum Colors {
         /// Fallback background color if named color isn't found
@@ -64,7 +57,7 @@ func createFloatingActionButton(
 ) -> UIButton {
     // Create the button
     let button = UIButton(type: .system)
-    
+
     // Configure content based on whether we have a title or image
     if let title = title {
         button.setTitle(title, for: .normal)
@@ -78,7 +71,7 @@ func createFloatingActionButton(
         button.setImage(UIImage(systemName: FloatingActionButtonConstants.Defaults.systemImageName), for: .normal)
         button.tintColor = titleColor
     }
-    
+
     // Set the background color safely
     let buttonBackground: UIColor
     if let providedColor = backgroundColor {
@@ -89,7 +82,7 @@ func createFloatingActionButton(
         buttonBackground = FloatingActionButtonConstants.Colors.fallbackBackground
     }
     button.backgroundColor = buttonBackground
-    
+
     // Configure appearance
     button.layer.shadowOpacity = shadowOpacity
     button.layer.shadowRadius = shadowRadius

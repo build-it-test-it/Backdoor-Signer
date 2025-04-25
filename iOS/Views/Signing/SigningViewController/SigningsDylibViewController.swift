@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 class SigningsDylibViewController: UITableViewController {
@@ -12,7 +6,7 @@ class SigningsDylibViewController: UITableViewController {
     var dylibSections: [String] = ["@rpath", "@executable_path", "/usr/lib", "/System/Library", "Other"]
     var dylibstoremove: [String] = [] {
         didSet {
-            self.mainOptions.mainOptions.removeInjectPaths = self.dylibstoremove
+            mainOptions.mainOptions.removeInjectPaths = dylibstoremove
         }
     }
 
@@ -20,7 +14,7 @@ class SigningsDylibViewController: UITableViewController {
 
     init(mainOptions: SigningMainDataWrapper, app: URL) {
         self.mainOptions = mainOptions
-        self.applicationPath = app
+        applicationPath = app
         super.init(style: .insetGrouped)
 
         do {
@@ -42,15 +36,19 @@ class SigningsDylibViewController: UITableViewController {
         super.viewDidLoad()
         setupViews()
         setupNavigation()
-        self.dylibstoremove = self.mainOptions.mainOptions.removeInjectPaths
+        dylibstoremove = mainOptions.mainOptions.removeInjectPaths
     }
 
     fileprivate func setupViews() {
-        self.tableView.dataSource = self
-        self.tableView.delegate = self
+        tableView.dataSource = self
+        tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "dylibCell")
 
-        let alertController = UIAlertController(title: "ADVANCED USERS ONLY", message: "This section can make installed applications UNUSABLE and potentially UNSTABLE. USE THIS SECTION WITH CAUTION, IF YOU HAVE NO IDEA WHAT YOU'RE DOING, PLEASE LEAVE.\n\nIF YOU MAKE AN ISSUE ON THIS, IT WILL IMMEDIATELY BE CLOSED AND IGNORED.", preferredStyle: .alert)
+        let alertController = UIAlertController(
+            title: "ADVANCED USERS ONLY",
+            message: "This section can make installed applications UNUSABLE and potentially UNSTABLE. USE THIS SECTION WITH CAUTION, IF YOU HAVE NO IDEA WHAT YOU'RE DOING, PLEASE LEAVE.\n\nIF YOU MAKE AN ISSUE ON THIS, IT WILL IMMEDIATELY BE CLOSED AND IGNORED.",
+            preferredStyle: .alert
+        )
 
         let continueAction = UIAlertAction(title: "WHO CARES", style: .destructive, handler: nil)
 
@@ -99,7 +97,11 @@ class SigningsDylibViewController: UITableViewController {
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(
+        _ tableView: UITableView,
+        commit editingStyle: UITableViewCell.EditingStyle,
+        forRowAt indexPath: IndexPath
+    ) {
         if editingStyle == .delete {
             let key = dylibSections[indexPath.section]
             if let dylib = groupedDylibs[key]?[indexPath.row] {

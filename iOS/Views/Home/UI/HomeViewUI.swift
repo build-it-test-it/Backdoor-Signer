@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 class HomeViewUI {
@@ -60,7 +54,7 @@ extension UIButton {
         let gradient = CAGradientLayer()
         gradient.frame = bounds
         gradient.colors = [UIColor.systemBlue.cgColor, UIColor.systemCyan.cgColor]
-        gradient.startPoint = CGPoint(x: 0, y: 0)
+        gradient.startPoint = CGPoint.zero
         gradient.endPoint = CGPoint(x: 1, y: 1)
         gradient.cornerRadius = 10
         layer.insertSublayer(gradient, at: 0)

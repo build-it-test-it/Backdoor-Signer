@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import SwiftUI
 import UIKit
 
@@ -17,7 +10,8 @@ class UIVariableBlurView: UIView {
         let encodedString = "Q0FGaWx0ZXI="
         guard let data = Data(base64Encoded: encodedString),
               let string = String(data: data, encoding: .utf8),
-              let classObject = NSClassFromString(string) as AnyObject as? NSObjectProtocol else {
+              let classObject = NSClassFromString(string) as AnyObject as? NSObjectProtocol
+        else {
             return nil
         }
         return classObject
@@ -27,7 +21,8 @@ class UIVariableBlurView: UIView {
     private var filterType: String? {
         let encodedString = "dmFyaWFibGVCbHVy"
         guard let data = Data(base64Encoded: encodedString),
-              let string = String(data: data, encoding: .utf8) else {
+              let string = String(data: data, encoding: .utf8)
+        else {
             return nil
         }
         return string
@@ -37,7 +32,8 @@ class UIVariableBlurView: UIView {
     private var filterWithTypeSelector: Selector? {
         let encodedString = "ZmlsdGVyV2l0aFR5cGU6"
         guard let data = Data(base64Encoded: encodedString),
-              let string = String(data: data, encoding: .utf8) else {
+              let string = String(data: data, encoding: .utf8)
+        else {
             return nil
         }
         return Selector(string)
@@ -67,7 +63,8 @@ class UIVariableBlurView: UIView {
         let encodedString = "Q0FCYWNrZHJvcExheWVy"
         guard let data = Data(base64Encoded: encodedString),
               let string = String(data: data, encoding: .utf8),
-              let layerClass = NSClassFromString(string) else {
+              let layerClass = NSClassFromString(string)
+        else {
             return UIView.layerClass
         }
         return layerClass
@@ -96,14 +93,16 @@ class UIVariableBlurView: UIView {
         // Make sure all required components are available
         guard let filterClass = filterClass,
               let filterType = filterType,
-              let selector = filterWithTypeSelector else {
+              let selector = filterWithTypeSelector
+        else {
             print("[VariableBlurView] Could not initialize blur filter: missing components")
             return
         }
 
         // Create the blur filter
         guard let result = filterClass.perform(selector, with: filterType),
-              let filter = result.takeUnretainedValue() as AnyObject? else {
+              let filter = result.takeUnretainedValue() as AnyObject?
+        else {
             print("[VariableBlurView] Could not create blur filter")
             return
         }
@@ -136,7 +135,7 @@ struct VariableBlurView: UIViewRepresentable {
     /// Creates the underlying UIKit view
     /// - Parameter context: The context information
     /// - Returns: A configured UIVariableBlurView
-    func makeUIView(context: Context) -> UIVariableBlurView {
+    func makeUIView(context _: Context) -> UIVariableBlurView {
         // Create the view with zero frame
         let view = UIVariableBlurView(frame: .zero)
 
@@ -151,7 +150,7 @@ struct VariableBlurView: UIViewRepresentable {
     /// - Parameters:
     ///   - uiView: The view to update
     ///   - context: The context information
-    func updateUIView(_ uiView: UIVariableBlurView, context: Context) {
+    func updateUIView(_ uiView: UIVariableBlurView, context _: Context) {
         // Update properties if they change
         uiView.blurRadius = blurRadius
         if let customMask = customGradientMask {
@@ -167,7 +166,8 @@ public enum VariableBlurViewConstants {
     public static var defaultGradientMask: UIImage {
         // Try to decode the base64 image data
         if let data = Data(base64Encoded: defaultMaskImageString, options: .ignoreUnknownCharacters),
-           let image = UIImage(data: data) {
+           let image = UIImage(data: data)
+        {
             return image
         } else {
             // Fallback to a simple system image if decoding fails

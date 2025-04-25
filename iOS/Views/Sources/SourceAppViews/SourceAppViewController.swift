@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import AlertKit
 import CoreData
 import Nuke
@@ -23,13 +16,13 @@ enum SortOption: String, Codable {
 
 class SourceAppViewController: UITableViewController {
     // MARK: - Properties
-    
+
     var newsData: [NewsData] = []
     var apps: [StoreAppsData] = []
     var oApps: [StoreAppsData] = []
     var filteredApps: [StoreAppsData] = []
 
-    var name: String? { didSet { self.title = name } }
+    var name: String? { didSet { title = name } }
     var uri: [URL]!
 
     var highlightAppName: String?
@@ -42,7 +35,7 @@ class SourceAppViewController: UITableViewController {
 
     private let sourceGET = SourceGET()
 
-    public var searchController: UISearchController!
+    var searchController: UISearchController!
 
     private let activityIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .medium)
@@ -51,14 +44,14 @@ class SourceAppViewController: UITableViewController {
     }()
 
     // MARK: - Initialization
-    
+
     init() { super.init(style: .plain) }
-    
+
     @available(*, unavailable)
     required init?(coder _: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     // MARK: - Lifecycle
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigation()
@@ -68,19 +61,19 @@ class SourceAppViewController: UITableViewController {
     }
 
     // MARK: - Setup Methods
-    
+
     fileprivate func setupViews() {
-        self.tableView.dataSource = self
-        self.tableView.delegate = self
-        self.tableView.tableHeaderView = UIView()
-        self.tableView.register(AppTableViewCell.self, forCellReuseIdentifier: "AppTableViewCell")
-        self.navigationItem.titleView = activityIndicator
-        self.activityIndicator.startAnimating()
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.tableHeaderView = UIView()
+        tableView.register(AppTableViewCell.self, forCellReuseIdentifier: "AppTableViewCell")
+        navigationItem.titleView = activityIndicator
+        activityIndicator.startAnimating()
     }
 
     private func setupHeader() {
         guard uri.count == 1, !newsData.isEmpty else { return }
-        
+
         let headerView = UIHostingController(rootView: NewsCardsScrollView(newsData: newsData))
         headerView.view.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 170)
         tableView.tableHeaderView = headerView.view
@@ -88,13 +81,13 @@ class SourceAppViewController: UITableViewController {
         addChild(headerView)
         headerView.didMove(toParent: self)
     }
-    
+
     fileprivate func setupNavigation() {
-        self.navigationItem.largeTitleDisplayMode = .never
+        navigationItem.largeTitleDisplayMode = .never
     }
 
     // MARK: - Filter Menu
-    
+
     private func updateFilterMenu() {
         let filterMenu = UIMenu(
             title: String.localized("SOURCES_CELLS_ACTIONS_FILTER_TITLE"),
@@ -105,7 +98,7 @@ class SourceAppViewController: UITableViewController {
             menu: filterMenu
         )
 
-        self.navigationItem.rightBarButtonItem = filterButton
+        navigationItem.rightBarButtonItem = filterButton
     }
 
     private func createSubSortMenu() -> [UIMenuElement] {
@@ -144,7 +137,7 @@ class SourceAppViewController: UITableViewController {
             }
         )
     }
-    
+
     private func handleSortOptionSelected(_ sortOption: SortOption) {
         if Preferences.currentSortOption == sortOption {
             Preferences.currentSortOptionAscending.toggle()
@@ -176,7 +169,7 @@ class SourceAppViewController: UITableViewController {
     }
 
     // MARK: - Filtering & Sorting
-    
+
     func applyFilter() {
         let sortOption = Preferences.currentSortOption
         let ascending = Preferences.currentSortOptionAscending
@@ -193,7 +186,7 @@ class SourceAppViewController: UITableViewController {
         reloadTableWithAnimation()
         updateFilterMenu()
     }
-    
+
     private func sortAppsByDate(ascending: Bool) -> [StoreAppsData] {
         return apps.sorted { app1, app2 in
             let date1 = app1.versions?.first?.date ?? app1.versionDate
@@ -208,23 +201,24 @@ class SourceAppViewController: UITableViewController {
             return ascending ? date1 > date2 : date1 < date2
         }
     }
-    
+
     private func reloadTableWithAnimation() {
         UIView.transition(
             with: tableView,
-            duration: 0.3, 
+            duration: 0.3,
             options: .transitionCrossDissolve,
             animations: { self.tableView.reloadData() }
         )
     }
 
     // MARK: - App Filtering
-    
+
     private func shouldFilter() -> StoreAppsData? {
         guard let name = highlightAppName,
               let id = highlightBundleID,
               let version = highlightVersion,
-              let desc = highlightDescription else {
+              let desc = highlightDescription
+        else {
             return nil
         }
 
@@ -248,18 +242,18 @@ class SourceAppViewController: UITableViewController {
     ) -> [StoreAppsData] {
         return apps.filter { app in
             app.name == name &&
-            app.bundleIdentifier == id &&
-            app.version == version &&
-            app.localizedDescription == desc &&
-            (devname == nil || app.developerName == devname)
+                app.bundleIdentifier == id &&
+                app.version == version &&
+                app.localizedDescription == desc &&
+                (devname == nil || app.developerName == devname)
         }
     }
 
     // MARK: - Data Loading
-    
+
     private func loadAppsData() {
         guard let urls = uri else { return }
-        
+
         let dispatchGroup = DispatchGroup()
         var allApps: [StoreAppsData] = []
         var newsData: [NewsData] = []
@@ -294,7 +288,7 @@ class SourceAppViewController: UITableViewController {
             )
         }
     }
-    
+
     private func fetchDataFromURL(
         _ uri: URL,
         completion: @escaping ([StoreAppsData], [NewsData], String, String) -> Void
@@ -305,11 +299,12 @@ class SourceAppViewController: UITableViewController {
             var news: [NewsData] = []
             var website = ""
             var tintColor = ""
-            
+
             switch result {
             case let .success((data, _)):
                 if let parseResult = self?.sourceGET.parse(data: data),
-                   case let .success(sourceData) = parseResult {
+                   case let .success(sourceData) = parseResult
+                {
                     apps = sourceData.apps
                     news = sourceData.news ?? []
                     tintColor = sourceData.tintColor ?? ""
@@ -318,12 +313,12 @@ class SourceAppViewController: UITableViewController {
             case let .failure(error):
                 Debug.shared.log(message: "Error fetching data from \(uri): \(error.localizedDescription)")
             }
-            
+
             // Return the fetched data through the completion handler
             completion(apps, news, website, tintColor)
         }
     }
-    
+
     private func processLoadedAppData(
         allApps: [StoreAppsData],
         newsData: [NewsData],
@@ -331,8 +326,8 @@ class SourceAppViewController: UITableViewController {
         tintColor: String
     ) {
         // Store the loaded data
-        self.apps = allApps
-        self.oApps = allApps
+        apps = allApps
+        oApps = allApps
         self.newsData = newsData
 
         // Setup the UI with loaded data
@@ -342,30 +337,30 @@ class SourceAppViewController: UITableViewController {
         setupWebsiteTitleMenu(website: website)
         finishLoading()
     }
-    
+
     private func applyTintColor(_ tintColor: String) {
         if !tintColor.isEmpty {
-            self.view.tintColor = UIColor(hex: tintColor)
+            view.tintColor = UIColor(hex: tintColor)
         }
     }
-    
+
     private func filterAppsIfNeeded() {
         if let filteredApp = shouldFilter() {
-            self.apps = [filteredApp]
+            apps = [filteredApp]
         } else {
             applyFilter()
         }
     }
-    
+
     private func setupWebsiteTitleMenu(website: String) {
         guard uri.count == 1, !website.isEmpty else { return }
-        
+
         let children = [
             UIAction(title: "Visit Website", image: UIImage(systemName: "globe")) { _ in
                 if let url = URL(string: website) {
                     UIApplication.shared.open(url)
                 }
-            }
+            },
         ]
 
         let menu = UIMenu(children: children)
@@ -374,20 +369,20 @@ class SourceAppViewController: UITableViewController {
             self.navigationItem.titleMenuProvider = { _ in menu }
         }
     }
-    
+
     private func finishLoading() {
         UIView.transition(
-            with: self.tableView,
+            with: tableView,
             duration: 0.3,
             options: .transitionCrossDissolve,
             animations: {
                 self.activityIndicator.stopAnimating()
                 self.navigationItem.titleView = nil
-                
+
                 if self.highlightAppName == nil {
                     self.updateFilterMenu()
                 }
-                
+
                 self.tableView.reloadData()
             }
         )
@@ -403,10 +398,11 @@ extension SourceAppViewController {
 
     override func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let app = isFiltering ? filteredApps[indexPath.row] : apps[indexPath.row]
-        
+
         if let screenshotURLs = app.screenshotURLs,
            !screenshotURLs.isEmpty,
-           Preferences.appDescriptionAppearence != 2 {
+           Preferences.appDescriptionAppearence != 2
+        {
             return 322
         } else if Preferences.appDescriptionAppearence == 2 {
             return UITableView.automaticDimension
@@ -418,22 +414,22 @@ extension SourceAppViewController {
     override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = AppTableViewCell(style: .subtitle, reuseIdentifier: "RoundedBackgroundCell")
         let app = isFiltering ? filteredApps[indexPath.row] : apps[indexPath.row]
-        
+
         // Configure cell
         configureCell(cell, with: app, at: indexPath)
-        
+
         return cell
     }
-    
+
     private func configureCell(_ cell: AppTableViewCell, with app: StoreAppsData, at indexPath: IndexPath) {
         cell.configure(with: app)
         cell.selectionStyle = .none
         cell.backgroundColor = .clear
-        
+
         // Configure button
         cell.getButton.tag = indexPath.row
         cell.getButton.addTarget(self, action: #selector(getButtonTapped(_:)), for: .touchUpInside)
-        
+
         // Add long press gesture
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(getButtonHold(_:)))
         cell.getButton.addGestureRecognizer(longPressGesture)
@@ -441,17 +437,17 @@ extension SourceAppViewController {
     }
 
     override func tableView(
-        _: UITableView, 
-        contextMenuConfigurationForRowAt indexPath: IndexPath, 
+        _: UITableView,
+        contextMenuConfigurationForRowAt indexPath: IndexPath,
         point _: CGPoint
     ) -> UIContextMenuConfiguration? {
         let app = isFiltering ? filteredApps[indexPath.row] : apps[indexPath.row]
 
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            return self.createContextMenu(for: app)
+            self.createContextMenu(for: app)
         }
     }
-    
+
     private func createContextMenu(for app: StoreAppsData) -> UIMenu {
         // Create version actions
         let versionActions = app.versions?.map { version in
@@ -486,9 +482,11 @@ extension SourceAppViewController {
         if isFiltering || apps.isEmpty || (highlightAppName != nil) {
             return nil
         }
-        
+
         return String.localized(
-            apps.count > 1 ? "SOURCES_APP_VIEW_CONTROLLER_NUMBER_OF_APPS_PLURAL" : "SOURCES_APP_VIEW_CONTROLLER_NUMBER_OF_APPS",
+            apps
+                .count > 1 ? "SOURCES_APP_VIEW_CONTROLLER_NUMBER_OF_APPS_PLURAL" :
+                "SOURCES_APP_VIEW_CONTROLLER_NUMBER_OF_APPS",
             arguments: "\(apps.count)"
         )
     }
@@ -504,7 +502,7 @@ extension SourceAppViewController: UISearchControllerDelegate, UISearchBarDelega
         searchController.searchResultsUpdater = self
         searchController.delegate = self
         searchController.searchBar.placeholder = String.localized("SOURCES_APP_VIEW_CONTROLLER_SEARCH_APPS")
-        
+
         if highlightAppName == nil {
             navigationItem.searchController = searchController
             definesPresentationContext = true
@@ -534,17 +532,17 @@ extension SourceAppViewController: UISearchResultsUpdating {
         let lowercasedSearchText = searchText.lowercased()
 
         filteredApps = apps.filter { app in
-            return doesApp(app, matchSearchText: lowercasedSearchText)
+            doesApp(app, matchSearchText: lowercasedSearchText)
         }
     }
-    
+
     private func doesApp(_ app: StoreAppsData, matchSearchText searchText: String) -> Bool {
         let nameMatch = app.name.lowercased().contains(searchText)
         let bundleIdMatch = app.bundleIdentifier.lowercased().contains(searchText)
         let developerMatch = app.developerName?.lowercased().contains(searchText) ?? false
         let subtitleMatch = app.subtitle?.lowercased().contains(searchText) ?? false
         let descriptionMatch = app.localizedDescription?.lowercased().contains(searchText) ?? false
-        
+
         return nameMatch || bundleIdMatch || developerMatch || subtitleMatch || descriptionMatch
     }
 }

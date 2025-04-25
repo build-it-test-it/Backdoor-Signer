@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 /// A comprehensive networking system with caching, retries, and background processing
@@ -39,7 +33,7 @@ final class NetworkManager {
     // MARK: - Properties
 
     /// The configuration for this manager
-    internal let _configuration: Configuration
+    let _configuration: Configuration
 
     /// Public accessor for the configuration
     var configuration: Configuration {
@@ -47,33 +41,33 @@ final class NetworkManager {
     }
 
     /// URL session for making network requests
-    internal let session: URLSession
+    let session: URLSession
 
     /// Operation queue for network operations
     private let operationQueue = OperationQueue()
 
     /// Dictionary to keep track of active operations
-    internal var activeOperations = [URLRequest: URLSessionTask]()
+    var activeOperations = [URLRequest: URLSessionTask]()
 
     /// Queue for synchronizing access to active operations
-    internal let operationQueueAccessQueue = DispatchQueue(label: "com.backdoor.NetworkManager.OperationQueue")
+    let operationQueueAccessQueue = DispatchQueue(label: "com.backdoor.NetworkManager.OperationQueue")
 
     /// In-memory cache for responses
-    internal let responseCache = NSCache<NSString, CachedResponse>()
+    let responseCache = NSCache<NSString, CachedResponse>()
 
     /// File manager for disk operations
     private let fileManager = FileManager.default
 
     /// Directory for disk cache
     private let cacheDirectory: URL
-    
+
     /// Queue for cache cleanup operations
     private let cleanupQueue = DispatchQueue(label: "com.backdoor.NetworkManager.CleanupQueue", qos: .background)
 
     // MARK: - Initialization
 
     private init(configuration: Configuration = Configuration()) {
-        self._configuration = configuration
+        _configuration = configuration
 
         // Configure URL session
         let sessionConfig = URLSessionConfiguration.default
@@ -91,7 +85,7 @@ final class NetworkManager {
         // Configure cache
         responseCache.name = "com.backdoor.NetworkManager.ResponseCache"
         responseCache.countLimit = 100 // Set a reasonable limit for in-memory cache
-        
+
         // Set total cost limit to 50MB (approximate)
         responseCache.totalCostLimit = 50 * 1024 * 1024
 
@@ -108,18 +102,18 @@ final class NetworkManager {
 
         // Clean expired caches
         cleanExpiredCaches()
-        
+
         // Register for memory warning notifications
-        NotificationCenter.default.addObserver(self, 
-                                              selector: #selector(handleMemoryWarning), 
-                                              name: UIApplication.didReceiveMemoryWarningNotification, 
-                                              object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleMemoryWarning),
+                                               name: UIApplication.didReceiveMemoryWarningNotification,
+                                               object: nil)
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     @objc private func handleMemoryWarning() {
         // Clear memory cache on memory warning
         responseCache.removeAllObjects()
@@ -146,7 +140,10 @@ final class NetworkManager {
         // Check if request is already in progress
         let existingTask = operationQueueAccessQueue.sync { activeOperations[request] }
         if let existingTask = existingTask {
-            Debug.shared.log(message: "Request already in progress: \(request.url?.absoluteString ?? "Unknown URL")", type: .debug)
+            Debug.shared.log(
+                message: "Request already in progress: \(request.url?.absoluteString ?? "Unknown URL")",
+                type: .debug
+            )
             return existingTask
         }
 
@@ -169,7 +166,10 @@ final class NetworkManager {
         }
 
         // Create network task
-        let task = createNetworkTask(request: request, retryCount: 0, useCache: useCache) { (result: Result<T, Error>) in
+        let task = createNetworkTask(request: request, retryCount: 0, useCache: useCache) { (result: Result<
+            T,
+            Error
+        >) in
             completion(result)
         }
 
@@ -213,9 +213,12 @@ final class NetworkManager {
         // Clear disk cache
         cleanupQueue.async { [weak self] in
             guard let self = self else { return }
-            
+
             do {
-                let contents = try self.fileManager.contentsOfDirectory(at: self.cacheDirectory, includingPropertiesForKeys: nil)
+                let contents = try self.fileManager.contentsOfDirectory(
+                    at: self.cacheDirectory,
+                    includingPropertiesForKeys: nil
+                )
                 for url in contents {
                     try self.fileManager.removeItem(at: url)
                 }
@@ -241,7 +244,7 @@ final class NetworkManager {
         useCache: Bool,
         completion: @escaping (Result<T, Error>) -> Void
     ) -> URLSessionTask {
-        let task = session.dataTask(with: request) { [weak self] data, response, error in
+        return session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
 
             // Remove from active operations
@@ -261,7 +264,10 @@ final class NetworkManager {
                         // Calculate delay with exponential backoff
                         let delay = self.configuration.baseRetryDelay * pow(2.0, Double(retryCount))
 
-                        Debug.shared.log(message: "Network error, retrying in \(delay) seconds (attempt \(retryCount + 1)): \(request.url?.absoluteString ?? "Unknown URL")", type: .warning)
+                        Debug.shared.log(
+                            message: "Network error, retrying in \(delay) seconds (attempt \(retryCount + 1)): \(request.url?.absoluteString ?? "Unknown URL")",
+                            type: .warning
+                        )
 
                         // Retry after delay
                         DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
@@ -311,7 +317,10 @@ final class NetworkManager {
                     // Calculate delay with exponential backoff
                     let delay = self.configuration.baseRetryDelay * pow(2.0, Double(retryCount))
 
-                    Debug.shared.log(message: "Server error (\(httpResponse.statusCode)), retrying in \(delay) seconds (attempt \(retryCount + 1)): \(request.url?.absoluteString ?? "Unknown URL")", type: .warning)
+                    Debug.shared.log(
+                        message: "Server error (\(httpResponse.statusCode)), retrying in \(delay) seconds (attempt \(retryCount + 1)): \(request.url?.absoluteString ?? "Unknown URL")",
+                        type: .warning
+                    )
 
                     // Retry after delay
                     DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
@@ -371,8 +380,6 @@ final class NetworkManager {
                 }
             }
         }
-
-        return task
     }
 
     // MARK: - Caching
@@ -381,7 +388,7 @@ final class NetworkManager {
     /// - Parameters:
     ///   - data: The response data
     ///   - request: The URL request
-    internal func cacheResponse(data: Data, for request: URLRequest) {
+    func cacheResponse(data: Data, for request: URLRequest) {
         guard let url = request.url else { return }
 
         // Create cached response
@@ -394,11 +401,14 @@ final class NetworkManager {
         // Store in disk cache
         cleanupQueue.async { [weak self] in
             guard let self = self else { return }
-            
+
             let fileURL = self.cacheFileURL(for: url)
-            
+
             do {
-                let cacheData = try NSKeyedArchiver.archivedData(withRootObject: cachedResponse, requiringSecureCoding: true)
+                let cacheData = try NSKeyedArchiver.archivedData(
+                    withRootObject: cachedResponse,
+                    requiringSecureCoding: true
+                )
                 try cacheData.write(to: fileURL)
                 Debug.shared.log(message: "Response cached: \(url.absoluteString)", type: .debug)
             } catch {
@@ -428,7 +438,10 @@ final class NetworkManager {
         if fileManager.fileExists(atPath: fileURL.path) {
             do {
                 let data = try Data(contentsOf: fileURL)
-                if let cachedResponse = try NSKeyedUnarchiver.unarchivedObject(ofClass: CachedResponse.self, from: data) {
+                if let cachedResponse = try NSKeyedUnarchiver.unarchivedObject(
+                    ofClass: CachedResponse.self,
+                    from: data
+                ) {
                     // Check if cache is expired
                     if !isCacheExpired(cachedResponse) {
                         // Store in memory cache for future use with cost based on data size
@@ -452,7 +465,7 @@ final class NetworkManager {
     /// Check if a cached response is expired
     /// - Parameter cachedResponse: The cached response
     /// - Returns: True if the cache is expired
-    internal func isCacheExpired(_ cachedResponse: CachedResponse) -> Bool {
+    func isCacheExpired(_ cachedResponse: CachedResponse) -> Bool {
         let now = Date()
         let expirationTime = cachedResponse.timestamp.addingTimeInterval(_configuration.cacheLifetime)
         return now > expirationTime
@@ -487,9 +500,13 @@ final class NetworkManager {
                 for url in contents {
                     do {
                         let data = try Data(contentsOf: url)
-                        if let cachedResponse = try NSKeyedUnarchiver.unarchivedObject(ofClass: CachedResponse.self, from: data) {
-                            let expirationTime = cachedResponse.timestamp.addingTimeInterval(self._configuration.cacheLifetime)
-                            
+                        if let cachedResponse = try NSKeyedUnarchiver.unarchivedObject(
+                            ofClass: CachedResponse.self,
+                            from: data
+                        ) {
+                            let expirationTime = cachedResponse.timestamp
+                                .addingTimeInterval(self._configuration.cacheLifetime)
+
                             // Add to delete list if expired
                             if now > expirationTime {
                                 filesToDelete.append(url)
@@ -509,20 +526,20 @@ final class NetworkManager {
                         filesToDelete.append(url)
                     }
                 }
-                
+
                 // Delete expired files
                 for url in filesToDelete {
                     try? self.fileManager.removeItem(at: url)
                     Debug.shared.log(message: "Removed expired network cache: \(url.lastPathComponent)", type: .debug)
                 }
-                
+
                 // If total size is still too large, delete oldest files
                 if totalSize > 100 * 1024 * 1024 { // 100 MB limit
                     let remainingFiles = try self.fileManager.contentsOfDirectory(
                         at: self.cacheDirectory,
                         includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]
                     )
-                    
+
                     // Sort by modification date (oldest first)
                     let sortedFiles = remainingFiles.sorted { url1, url2 -> Bool in
                         do {
@@ -535,22 +552,25 @@ final class NetworkManager {
                             return false
                         }
                     }
-                    
+
                     // Delete oldest files until we're under the limit
                     var currentSize = totalSize
                     let targetSize: UInt64 = 80 * 1024 * 1024 // Target 80 MB after cleanup
-                    
+
                     for url in sortedFiles {
                         if currentSize <= targetSize {
                             break
                         }
-                        
+
                         do {
                             let attributes = try self.fileManager.attributesOfItem(atPath: url.path)
                             if let fileSize = attributes[.size] as? UInt64 {
                                 try self.fileManager.removeItem(at: url)
                                 currentSize -= fileSize
-                                Debug.shared.log(message: "Removed old network cache to reduce size: \(url.lastPathComponent)", type: .debug)
+                                Debug.shared.log(
+                                    message: "Removed old network cache to reduce size: \(url.lastPathComponent)",
+                                    type: .debug
+                                )
                             }
                         } catch {
                             Debug.shared.log(message: "Failed to remove cache file: \(error)", type: .error)
@@ -577,18 +597,18 @@ enum NetworkError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-            case .invalidURL:
-                return "Invalid URL"
-            case .invalidResponse:
-                return "Invalid response from server"
-            case let .httpError(statusCode):
-                return "HTTP error: \(statusCode)"
-            case .noData:
-                return "No data received"
-            case let .decodingError(error):
-                return "Failed to decode response: \(error.localizedDescription)"
-            case .cancelled:
-                return "Request was cancelled"
+        case .invalidURL:
+            return "Invalid URL"
+        case .invalidResponse:
+            return "Invalid response from server"
+        case let .httpError(statusCode):
+            return "HTTP error: \(statusCode)"
+        case .noData:
+            return "No data received"
+        case let .decodingError(error):
+            return "Failed to decode response: \(error.localizedDescription)"
+        case .cancelled:
+            return "Request was cancelled"
         }
     }
 }
@@ -729,10 +749,10 @@ final class BatchRequest {
                 defer { self.lock.unlock() }
 
                 switch result {
-                    case let .success(value):
-                        self.results[index] = value
-                    case let .failure(error):
-                        self.errors[index] = error
+                case let .success(value):
+                    self.results[index] = value
+                case let .failure(error):
+                    self.errors[index] = error
                 }
 
                 self.completedCount += 1

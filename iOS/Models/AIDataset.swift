@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 /// Model representing an AI dataset file
@@ -16,8 +10,17 @@ class AIDataset: Equatable {
     let dateAdded: Date
     let recordCount: Int
     let url: URL
-    
-    init(id: String, name: String, fileName: String, format: String, size: Int, dateAdded: Date, recordCount: Int, url: URL) {
+
+    init(
+        id: String,
+        name: String,
+        fileName: String,
+        format: String,
+        size: Int,
+        dateAdded: Date,
+        recordCount: Int,
+        url: URL
+    ) {
         self.id = id
         self.name = name
         self.fileName = fileName
@@ -27,7 +30,7 @@ class AIDataset: Equatable {
         self.recordCount = recordCount
         self.url = url
     }
-    
+
     /// Formatted size string
     var formattedSize: String {
         let formatter = ByteCountFormatter()
@@ -35,7 +38,7 @@ class AIDataset: Equatable {
         formatter.countStyle = .file
         return formatter.string(fromByteCount: Int64(size))
     }
-    
+
     /// Formatted date string
     var formattedDate: String {
         let formatter = DateFormatter()
@@ -43,7 +46,7 @@ class AIDataset: Equatable {
         formatter.timeStyle = .short
         return formatter.string(from: dateAdded)
     }
-    
+
     static func == (lhs: AIDataset, rhs: AIDataset) -> Bool {
         return lhs.id == rhs.id
     }
@@ -56,7 +59,7 @@ struct AIDatasetInfo {
     let url: URL
     let size: Int
     let category: String
-    
+
     /// Formatted size string
     var formattedSize: String {
         let formatter = ByteCountFormatter()
@@ -72,16 +75,16 @@ enum AIDatasetError: Error, LocalizedError {
     case invalidData(String)
     case downloadFailed(String)
     case trainingFailed(String)
-    
+
     var errorDescription: String? {
         switch self {
-        case .invalidFormat(let message):
+        case let .invalidFormat(message):
             return "Invalid format: \(message)"
-        case .invalidData(let message):
+        case let .invalidData(message):
             return "Invalid data: \(message)"
-        case .downloadFailed(let message):
+        case let .downloadFailed(message):
             return "Download failed: \(message)"
-        case .trainingFailed(let message):
+        case let .trainingFailed(message):
             return "Training failed: \(message)"
         }
     }

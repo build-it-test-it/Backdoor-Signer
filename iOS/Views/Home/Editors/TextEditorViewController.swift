@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 class TextEditorViewController: BaseEditorViewController {
@@ -32,11 +26,6 @@ class TextEditorViewController: BaseEditorViewController {
             newItems.insert(lineNumbersButton, at: newItems.count - 1)
             toolbar.items = newItems
         }
-    }
-
-    override func loadFileContent() {
-        // Use the base implementation for loading text files
-        super.loadFileContent()
     }
 
     // MARK: - Additional Text Editor Features

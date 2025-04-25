@@ -28,7 +28,7 @@ package:
 		-derivedDataPath $(APP_TMP) \
 		CODE_SIGNING_ALLOWED=NO \
 		DSTROOT=$(APP_TMP)/install \
-		ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO
+		ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO | xcpretty
 		
 	@rm -rf Payload
 	@rm -rf $(STAGE_DIR)/

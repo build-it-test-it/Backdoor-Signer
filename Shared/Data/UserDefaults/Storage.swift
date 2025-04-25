@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import Foundation
 
 @propertyWrapper
@@ -41,7 +35,7 @@ public struct CodableStorage<Value: Codable> {
 
     var key: String
     var defaultValue: Value
-    var handler: Handler? = nil
+    var handler: Handler?
 
     public init(key: String, defaultValue: Value, handler: Handler? = nil) {
         self.key = key
@@ -55,8 +49,7 @@ public struct CodableStorage<Value: Codable> {
                 return defaultValue
             }
             do {
-                let decoded = try decoder.decode(Value.self, from: data)
-                return decoded
+                return try decoder.decode(Value.self, from: data)
             } catch {
                 Debug.shared.log(message: "Decoding \(Value.self) failed. \(error)")
             }

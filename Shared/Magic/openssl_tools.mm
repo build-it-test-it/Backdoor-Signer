@@ -30,7 +30,8 @@ X509 *generate_root_ca_cert(EVP_PKEY *pkey, const char *basename, const char *ou
 
 using namespace std;
 
-bool p12_password_check(NSString *file, NSString *pass) {
+bool p12_password_check(NSString *file, NSString *pass)
+{
     BIO *in = BIO_new(BIO_s_mem());
     d2i_CMS_bio(in, NULL);
     const string strSignerPKeyFile = [file cStringUsingEncoding:NSUTF8StringEncoding];
@@ -40,14 +41,18 @@ bool p12_password_check(NSString *file, NSString *pass) {
     BIO *bioPKey = BIO_new_file(strSignerPKeyFile.c_str(), "r");
     OSSL_PROVIDER_load(NULL, "legacy");
     PKCS12 *p12 = d2i_PKCS12_bio(bioPKey, NULL);
-    if (NULL != p12) {
-        if (0 == PKCS12_parse(p12, strPassword.c_str(), &evpPKey, &x509Cert, NULL)) {
+    if (NULL != p12)
+    {
+        if (0 == PKCS12_parse(p12, strPassword.c_str(), &evpPKey, &x509Cert, NULL))
+        {
             return false;
         }
         PKCS12_free(p12);
         BIO_free(bioPKey);
         return true;
-    } else {
+    }
+    else
+    {
         BIO_free(bioPKey);
         return false;
     }
@@ -57,7 +62,8 @@ bool p12_password_check(NSString *file, NSString *pass) {
 // It reads the file and performs basic validation
 //
 // TODO: Improve validation logic
-void provision_file_validation(NSString *path) {
+void provision_file_validation(NSString *path)
+{
     string strProvisionFile = [path cStringUsingEncoding:NSUTF8StringEncoding];
     string strProvisionData;
     ReadFile(strProvisionFile.c_str(), strProvisionData);
@@ -68,7 +74,8 @@ void provision_file_validation(NSString *path) {
     d2i_CMS_bio(in, NULL);
 }
 
-void generate_root_ca_pair(const char *basename) {
+void generate_root_ca_pair(const char *basename)
+{
     const char *documentsPath = getDocumentsDirectory();
 
     RSA *rsa = RSA_generate_key(2048, RSA_F4, NULL, NULL);
@@ -113,14 +120,16 @@ void generate_root_ca_pair(const char *basename) {
     string certfile = std::string(documentsPath) + "/" + string(basename) + ".crt";
 
     BIO *bio = BIO_new_file(keyfile.c_str(), "w");
-    if (bio) {
+    if (bio)
+    {
         PEM_write_bio_PrivateKey(bio, pkey, NULL, NULL, 0, NULL, NULL);
         BIO_free(bio);
         printf("Private key written to: %s\n", keyfile.c_str());
     }
 
     FILE *f = fopen(certfile.c_str(), "wb");
-    if (f) {
+    if (f)
+    {
         PEM_write_X509(f, x509);
         fclose(f);
         printf("Certificate written to: %s\n", certfile.c_str());

@@ -1,42 +1,35 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted
-// under the terms of the Proprietary Software License.
-
 import SwiftUI
 
 // MARK: - CardContextMenuView
 
 struct CardContextMenuView: View {
     // MARK: - Properties
-    
+
     @Environment(\.dismiss) var dismiss
     let news: NewsData
-    
+
     private enum Constants {
         static let imageHeight: CGFloat = 250
         static let cornerRadius: CGFloat = 12
         static let containerCornerRadius: CGFloat = 16
         static let buttonCornerRadius: CGFloat = 10
         static let buttonIconPadding: CGFloat = 10
-        
+
         static let stackSpacing: CGFloat = 12
         static let contentSpacing: CGFloat = 16
-        
+
         static let gradientOpacity: Double = 0.2
         static let borderOpacity: Double = 0.15
         static let placeholderOpacity: Double = 0.2
         static let borderWidth: CGFloat = 2
-        
+
         static let animationDuration: Double = 0.3
         static let dateFormat = "yyyy-MM-dd"
         static let defaultTintColor = "000000"
     }
-    
+
     // MARK: - Computed Properties
-    
+
     var formattedDate: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = Constants.dateFormat
@@ -47,7 +40,7 @@ struct CardContextMenuView: View {
     }
 
     // MARK: - Body
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
@@ -79,9 +72,9 @@ struct CardContextMenuView: View {
             }
         }
     }
-    
+
     // MARK: - View Components
-    
+
     @ViewBuilder
     private func renderHeaderImage() -> some View {
         if news.imageURL != nil {
@@ -117,7 +110,7 @@ struct CardContextMenuView: View {
                     gradient: Gradient(
                         colors: [
                             .clear,
-                            .black.opacity(Constants.gradientOpacity)
+                            .black.opacity(Constants.gradientOpacity),
                         ]
                     ),
                     startPoint: .top,
@@ -137,7 +130,7 @@ struct CardContextMenuView: View {
             .frame(height: Constants.imageHeight)
         }
     }
-    
+
     private func renderContentSection() -> some View {
         VStack(alignment: .leading, spacing: Constants.contentSpacing) {
             // Title section
@@ -179,7 +172,7 @@ struct CardContextMenuView: View {
         }
         .frame(maxWidth: .infinity)
     }
-    
+
     private func renderBackButton() -> some View {
         Button {
             dismiss()

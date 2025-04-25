@@ -1,17 +1,14 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 // MARK: - HomeViewController - Core Component
+
 // This file is the main view controller for file operations
 
 import ZIPFoundation
 
-class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentPickerDelegate, FileHandlingDelegate, UITableViewDelegate, UITableViewDataSource, UITableViewDragDelegate, UITableViewDropDelegate {
+class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentPickerDelegate, FileHandlingDelegate,
+    UITableViewDelegate, UITableViewDataSource, UITableViewDragDelegate, UITableViewDropDelegate
+{
     // MARK: - Properties
 
     var fileList: [File] = []
@@ -30,7 +27,10 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         // Get the documents directory safely
         guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
             // This is a serious error - log it and return a fallback directory
-            Debug.shared.log(message: "Failed to get documents directory, using temporary directory as fallback", type: .error)
+            Debug.shared.log(
+                message: "Failed to get documents directory, using temporary directory as fallback",
+                type: .error
+            )
             return FileManager.default.temporaryDirectory.appendingPathComponent("files")
         }
 
@@ -69,9 +69,19 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         view.layer.applyFuturisticShadow()
 
         let navItem = UINavigationItem(title: "File Nexus")
-        let menuButton = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle.fill"), style: .plain, target: self, action: #selector(showMenu))
+        let menuButton = UIBarButtonItem(
+            image: UIImage(systemName: "ellipsis.circle.fill"),
+            style: .plain,
+            target: self,
+            action: #selector(showMenu)
+        )
         let uploadButton = UIBarButtonItem(customView: HomeViewUI.uploadButton)
-        let addButton = UIBarButtonItem(image: UIImage(systemName: "folder.badge.plus"), style: .plain, target: self, action: #selector(addDirectory))
+        let addButton = UIBarButtonItem(
+            image: UIImage(systemName: "folder.badge.plus"),
+            style: .plain,
+            target: self,
+            action: #selector(addDirectory)
+        )
 
         HomeViewUI.uploadButton.addTarget(self, action: #selector(importFile), for: .touchUpInside)
         HomeViewUI.uploadButton.addGradientBackground()
@@ -91,10 +101,22 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
             HomeViewUI.navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             HomeViewUI.navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             HomeViewUI.navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            HomeViewUI.fileListTableView.topAnchor.constraint(equalTo: HomeViewUI.navigationBar.bottomAnchor, constant: 10),
-            HomeViewUI.fileListTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
-            HomeViewUI.fileListTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-            HomeViewUI.fileListTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
+            HomeViewUI.fileListTableView.topAnchor.constraint(
+                equalTo: HomeViewUI.navigationBar.bottomAnchor,
+                constant: 10
+            ),
+            HomeViewUI.fileListTableView.leadingAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.leadingAnchor,
+                constant: 10
+            ),
+            HomeViewUI.fileListTableView.trailingAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.trailingAnchor,
+                constant: -10
+            ),
+            HomeViewUI.fileListTableView.bottomAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                constant: -10
+            ),
         ])
 
         // Apply animation effect
@@ -102,7 +124,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     }
 
     /// Applies a futuristic transition effect to the view
-    @objc public func applyFuturisticEffect() {
+    @objc func applyFuturisticEffect() {
         // Create a snapshot of the current view
         guard let snapshot = view.snapshotView(afterScreenUpdates: false) else { return }
         view.addSubview(snapshot)
@@ -209,7 +231,10 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
                 // Calculate loading time for performance monitoring
                 let loadTime = Date().timeIntervalSince(startTime)
-                Debug.shared.log(message: "Loaded \(fileObjects.count) files in \(String(format: "%.3f", loadTime))s", type: .info)
+                Debug.shared.log(
+                    message: "Loaded \(fileObjects.count) files in \(String(format: "%.3f", loadTime))s",
+                    type: .info
+                )
 
                 // Update UI on main thread
                 DispatchQueue.main.async { [weak self] in
@@ -251,7 +276,9 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
             existingLabel.isHidden = false
 
             if let error = error {
-                existingLabel.text = "Could not load files.\n\(error.localizedDescription)\n\nTap the upload button to add files."
+                existingLabel
+                    .text =
+                    "Could not load files.\n\(error.localizedDescription)\n\nTap the upload button to add files."
             } else {
                 existingLabel.text = "No files found.\n\nTap the upload button to add files."
             }
@@ -268,7 +295,8 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         emptyLabel.font = .systemFont(ofSize: 16)
 
         if let error = error {
-            emptyLabel.text = "Could not load files.\n\(error.localizedDescription)\n\nTap the upload button to add files."
+            emptyLabel
+                .text = "Could not load files.\n\(error.localizedDescription)\n\nTap the upload button to add files."
         } else {
             emptyLabel.text = "No files found.\n\nTap the upload button to add files."
         }
@@ -292,7 +320,11 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
     /// Creates a new directory
     @objc func addDirectory() {
-        let alertController = UIAlertController(title: "Add Directory", message: "Enter the name of the new directory", preferredStyle: .alert)
+        let alertController = UIAlertController(
+            title: "Add Directory",
+            message: "Enter the name of the new directory",
+            preferredStyle: .alert
+        )
         alertController.addTextField { textField in
             textField.placeholder = "Directory Name"
             textField.autocapitalizationType = .none
@@ -306,14 +338,18 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
             let newDirectoryURL = self.documentsDirectory.appendingPathComponent(directoryName)
             do {
-                try self.fileManager.createDirectory(at: newDirectoryURL, withIntermediateDirectories: false, attributes: nil)
+                try self.fileManager.createDirectory(
+                    at: newDirectoryURL,
+                    withIntermediateDirectories: false,
+                    attributes: nil
+                )
                 self.loadFiles()
                 HapticFeedbackGenerator.generateNotificationFeedback(type: .success)
             } catch {
                 self.utilities.handleError(in: self, error: error, withTitle: "Directory Creation Error")
             }
         }
-        
+
         alertController.addAction(createAction)
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         present(alertController, animated: true, completion: nil)
@@ -331,7 +367,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         activityIndicator.startAnimating()
 
         // Generate a unique name if a file with the same name exists
-        let fileName = HomeViewController.getUniqueFileNameShared(for: url.lastPathComponent)
+        let fileName = Self.getUniqueFileNameShared(for: url.lastPathComponent)
         let destinationURL = documentsDirectory.appendingPathComponent(fileName)
 
         Debug.shared.log(message: "Importing file from \(url.path) to \(destinationURL.path)", type: .info)
@@ -358,7 +394,11 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
                 // Make sure documents directory exists
                 if !self.fileManager.fileExists(atPath: self.documentsDirectory.path) {
-                    try self.fileManager.createDirectory(at: self.documentsDirectory, withIntermediateDirectories: true, attributes: nil)
+                    try self.fileManager.createDirectory(
+                        at: self.documentsDirectory,
+                        withIntermediateDirectories: true,
+                        attributes: nil
+                    )
                 }
 
                 // Ensure we can write to the destination
@@ -450,10 +490,12 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     static func getUniqueFileNameShared(for filename: String) -> String {
         // Get the documents directory in a static-friendly way
         let fileManager = FileManager.default
-        guard let documentsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("files") else {
+        guard let documentsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("files")
+        else {
             return filename + "_unique"
         }
-        
+
         let fileURL = documentsDir.appendingPathComponent(filename)
 
         // If the file doesn't exist, return the original name
@@ -607,23 +649,23 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
     func sortFiles() {
         switch sortOrder {
-            case .name:
-                fileList.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-            case .date:
-                fileList.sort { $0.date > $1.date }
-            case .size:
-                fileList.sort { $0.size > $1.size }
+        case .name:
+            fileList.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .date:
+            fileList.sort { $0.date > $1.date }
+        case .size:
+            fileList.sort { $0.size > $1.size }
         }
-        
+
         // Also sort filtered file list if search is active
         if searchController.isActive {
             switch sortOrder {
-                case .name:
-                    filteredFileList.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-                case .date:
-                    filteredFileList.sort { $0.date > $1.date }
-                case .size:
-                    filteredFileList.sort { $0.size > $1.size }
+            case .name:
+                filteredFileList.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            case .date:
+                filteredFileList.sort { $0.date > $1.date }
+            case .size:
+                filteredFileList.sort { $0.size > $1.size }
             }
         }
     }
@@ -639,21 +681,21 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
             self.sortFiles()
             HomeViewUI.fileListTableView.reloadData()
         }
-        
+
         let sortByDateAction = UIAlertAction(title: "Date", style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.sortOrder = .date
             self.sortFiles()
             HomeViewUI.fileListTableView.reloadData()
         }
-        
+
         let sortBySizeAction = UIAlertAction(title: "Size", style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.sortOrder = .size
             self.sortFiles()
             HomeViewUI.fileListTableView.reloadData()
         }
-        
+
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         alertController.addAction(sortByNameAction)
         alertController.addAction(sortByDateAction)
@@ -665,8 +707,8 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
             if let barButtonItem = navigationItem.rightBarButtonItems?.first {
                 popover.barButtonItem = barButtonItem
             } else {
-                popover.sourceView = self.view
-                popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                popover.sourceView = view
+                popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
                 popover.permittedArrowDirections = []
             }
         }
@@ -764,13 +806,16 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
         // Configure popover presentation on iPad
         if let popover = alertController.popoverPresentationController {
-            if let cell = HomeViewUI.fileListTableView.cellForRow(at: IndexPath(row: self.fileList.firstIndex(of: file) ?? 0, section: 0)) {
+            if let cell = HomeViewUI.fileListTableView.cellForRow(at: IndexPath(
+                row: fileList.firstIndex(of: file) ?? 0,
+                section: 0
+            )) {
                 popover.sourceView = cell
                 popover.sourceRect = cell.bounds
             } else {
                 // Fallback if cell isn't found
-                popover.sourceView = self.view
-                popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                popover.sourceView = view
+                popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
                 popover.permittedArrowDirections = []
             }
         }
@@ -779,7 +824,11 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     }
 
     private func createNewFile(in directory: File? = nil) {
-        let alertController = UIAlertController(title: "Create New File", message: "Enter a name for the new file", preferredStyle: .alert)
+        let alertController = UIAlertController(
+            title: "Create New File",
+            message: "Enter a name for the new file",
+            preferredStyle: .alert
+        )
 
         alertController.addTextField { textField in
             textField.placeholder = "File Name (e.g., example.txt)"
@@ -863,7 +912,11 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     }
 
     private func createNewFolder(in directory: File? = nil) {
-        let alertController = UIAlertController(title: "Create New Folder", message: "Enter a name for the new folder", preferredStyle: .alert)
+        let alertController = UIAlertController(
+            title: "Create New Folder",
+            message: "Enter a name for the new folder",
+            preferredStyle: .alert
+        )
 
         alertController.addTextField { textField in
             textField.placeholder = "Folder Name"
@@ -899,7 +952,11 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
                     }
 
                     // Create the folder
-                    try self.fileManager.createDirectory(at: folderURL, withIntermediateDirectories: true, attributes: nil)
+                    try self.fileManager.createDirectory(
+                        at: folderURL,
+                        withIntermediateDirectories: true,
+                        attributes: nil
+                    )
 
                     DispatchQueue.main.async {
                         self.activityIndicator.stopAnimating()
@@ -938,8 +995,12 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         present(alertController, animated: true, completion: nil)
     }
 
-    internal func renameFile(_ file: File) {
-        let alertController = UIAlertController(title: "Rename \(file.isDirectory ? "Folder" : "File")", message: "Enter a new name", preferredStyle: .alert)
+    func renameFile(_ file: File) {
+        let alertController = UIAlertController(
+            title: "Rename \(file.isDirectory ? "Folder" : "File")",
+            message: "Enter a new name",
+            preferredStyle: .alert
+        )
 
         alertController.addTextField { textField in
             textField.text = file.name
@@ -1047,27 +1108,27 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
             // Open appropriate editor based on file type
             switch fileExtension {
-                case "txt", "md", "swift", "h", "m", "c", "cpp", "js", "html", "css", "json", "strings":
-                    let editor = TextEditorViewController(fileURL: file.url)
-                    navigationController?.pushViewController(editor, animated: true)
+            case "txt", "md", "swift", "h", "m", "c", "cpp", "js", "html", "css", "json", "strings":
+                let editor = TextEditorViewController(fileURL: file.url)
+                navigationController?.pushViewController(editor, animated: true)
 
-                case "plist", "entitlements":
-                    let editor = PlistEditorViewController(fileURL: file.url)
-                    navigationController?.pushViewController(editor, animated: true)
+            case "plist", "entitlements":
+                let editor = PlistEditorViewController(fileURL: file.url)
+                navigationController?.pushViewController(editor, animated: true)
 
-                case "ipa":
-                    let editor = IPAEditorViewController(fileURL: file.url)
-                    navigationController?.pushViewController(editor, animated: true)
+            case "ipa":
+                let editor = IPAEditorViewController(fileURL: file.url)
+                navigationController?.pushViewController(editor, animated: true)
 
-                case "zip", "gz", "tar", "7z":
-                    presentArchiveOptions(for: file)
+            case "zip", "gz", "tar", "7z":
+                presentArchiveOptions(for: file)
 
-                case "jpg", "jpeg", "png", "gif", "heic", "webp":
-                    presentFilePreview(for: file)
+            case "jpg", "jpeg", "png", "gif", "heic", "webp":
+                presentFilePreview(for: file)
 
-                default:
-                    let editor = HexEditorViewController(fileURL: file.url)
-                    navigationController?.pushViewController(editor, animated: true)
+            default:
+                let editor = HexEditorViewController(fileURL: file.url)
+                navigationController?.pushViewController(editor, animated: true)
             }
         } catch {
             activityIndicator.stopAnimating()
@@ -1163,8 +1224,8 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
 
         // Handle iPad presentation
         if let popover = alert.popoverPresentationController {
-            popover.sourceView = self.view
-            popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popover.sourceView = view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
             popover.permittedArrowDirections = []
         }
 
@@ -1194,7 +1255,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         present(alert, animated: true, completion: nil)
     }
 
-    internal func extractArchive(_ file: File) {
+    func extractArchive(_ file: File) {
         // Show activity indicator
         activityIndicator.startAnimating()
 
@@ -1210,11 +1271,15 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
                 // Check if destination already exists
                 if self.fileManager.fileExists(atPath: destinationURL.path) {
                     // Create a unique name if needed
-                    let uniqueName = HomeViewController.getUniqueFileNameShared(for: destinationName)
+                    let uniqueName = Self.getUniqueFileNameShared(for: destinationName)
                     let uniqueURL = self.documentsDirectory.appendingPathComponent(uniqueName)
 
                     // Create extraction directory
-                    try self.fileManager.createDirectory(at: uniqueURL, withIntermediateDirectories: true, attributes: nil)
+                    try self.fileManager.createDirectory(
+                        at: uniqueURL,
+                        withIntermediateDirectories: true,
+                        attributes: nil
+                    )
 
                     // Extract archive
                     try self.fileManager.unzipItem(at: file.url, to: uniqueURL)
@@ -1238,7 +1303,11 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
                     }
                 } else {
                     // Create extraction directory
-                    try self.fileManager.createDirectory(at: destinationURL, withIntermediateDirectories: true, attributes: nil)
+                    try self.fileManager.createDirectory(
+                        at: destinationURL,
+                        withIntermediateDirectories: true,
+                        attributes: nil
+                    )
 
                     // Extract archive
                     try self.fileManager.unzipItem(at: file.url, to: destinationURL)
@@ -1283,7 +1352,9 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "FileCell", for: indexPath) as? FileTableViewCell else {
+        guard let cell = tableView
+            .dequeueReusableCell(withIdentifier: "FileCell", for: indexPath) as? FileTableViewCell
+        else {
             return UITableViewCell()
         }
         let file = searchController.isActive ? filteredFileList[indexPath.row] : fileList[indexPath.row]
@@ -1305,7 +1376,9 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
-    func tableView(_: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(_: UITableView,
+                   trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration?
+    {
         let file = searchController.isActive ? filteredFileList[indexPath.row] : fileList[indexPath.row]
 
         // Delete action
@@ -1344,17 +1417,6 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         let configuration = UISwipeActionsConfiguration(actions: actions)
         configuration.performsFirstActionWithFullSwipe = false
         return configuration
-    }
-
-    // MARK: - UITableViewDragDelegate and UITableViewDropDelegate
-    
-    // The drag and drop delegate methods are implemented in the FileDragAndDrop.swift extension
-    // to avoid duplicate method declarations causing compilation errors
-
-    // MARK: - FileHandlingDelegate
-
-    override func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)?) {
-        super.present(viewControllerToPresent, animated: flag, completion: completion)
     }
 
     // MARK: - UIDocumentPickerDelegate

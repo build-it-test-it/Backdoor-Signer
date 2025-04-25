@@ -13,8 +13,9 @@
 #include <vector>
 using namespace std;
 
-class ZBase64 {
-public:
+class ZBase64
+{
+  public:
     ZBase64(void);
     ~ZBase64(void);
 
@@ -23,7 +24,7 @@ public:
     const char *Decode(const char *pData, int nDataLen, int *pOutDataLen);
     const char *Decode(const string &strData, int *pOutDataLen);
 
-private:
+  private:
     vector<char *> m_arrEnc;
     vector<char *> m_arrDec;
     static unsigned char s_ca_table_enc[];

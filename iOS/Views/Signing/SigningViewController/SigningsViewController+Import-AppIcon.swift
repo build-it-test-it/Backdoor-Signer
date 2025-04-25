@@ -1,20 +1,19 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 
-extension SigningsViewController: UIDocumentPickerDelegate & UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+extension SigningsViewController: UIDocumentPickerDelegate & UIImagePickerControllerDelegate,
+    UINavigationControllerDelegate
+{
     func importAppIconFile() {
         let actionSheet = UIAlertController(title: "Select App Icon", message: nil, preferredStyle: .actionSheet)
 
         let altIconAction = UIAlertAction(title: "Select Alt Icon", style: .default) { _ in
 
-            let settingsAltIconView = SettingsAltIconView(mainOptions: self.mainOptions, app: self.getFilesForDownloadedApps(app: self.application as! DownloadedApps, getuuidonly: false))
+            let settingsAltIconView = SettingsAltIconView(
+                mainOptions: self.mainOptions,
+                app: self.getFilesForDownloadedApps(app: self.application as! DownloadedApps, getuuidonly: false)
+            )
             let hostingcontroller = UIHostingController(rootView: settingsAltIconView)
 
             if let sheet = hostingcontroller.sheetPresentationController {
@@ -40,12 +39,12 @@ extension SigningsViewController: UIDocumentPickerDelegate & UIImagePickerContro
         actionSheet.addAction(cancelAction)
 
         if let popoverController = actionSheet.popoverPresentationController {
-            popoverController.sourceView = self.view
-            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popoverController.sourceView = view
+            popoverController.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
             popoverController.permittedArrowDirections = []
         }
 
-        self.present(actionSheet, animated: true, completion: nil)
+        present(actionSheet, animated: true, completion: nil)
     }
 
     // MARK: - Documents
@@ -62,7 +61,7 @@ extension SigningsViewController: UIDocumentPickerDelegate & UIImagePickerContro
         let meow = CoreDataManager.shared.loadImage(from: selectedFileURL)
         mainOptions.mainOptions.iconURL = meow?.resizeToSquare()
         Debug.shared.log(message: "\(selectedFileURL)")
-        self.tableView.reloadData()
+        tableView.reloadData()
     }
 
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
@@ -76,16 +75,19 @@ extension SigningsViewController: UIDocumentPickerDelegate & UIImagePickerContro
         imagePicker.delegate = self
         imagePicker.sourceType = .photoLibrary
         imagePicker.mediaTypes = mediaTypes
-        self.present(imagePicker, animated: true, completion: nil)
+        present(imagePicker, animated: true, completion: nil)
     }
 
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+    func imagePickerController(
+        _ picker: UIImagePickerController,
+        didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+    ) {
         picker.dismiss(animated: true, completion: nil)
 
         guard let selectedImage = info[.originalImage] as? UIImage else { return }
 
         mainOptions.mainOptions.iconURL = selectedImage.resizeToSquare()
-        self.tableView.reloadData()
+        tableView.reloadData()
     }
 
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {

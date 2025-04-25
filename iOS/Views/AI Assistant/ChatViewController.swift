@@ -1,12 +1,8 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
-class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISheetPresentationControllerDelegate {
+class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDelegate,
+    UISheetPresentationControllerDelegate
+{
     // MARK: - UI Components
 
     private let tableView = UITableView()
@@ -25,9 +21,9 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
     private var _isProcessingMessage = false
     private var isProcessingMessage: Bool {
         get { stateQueue.sync { _isProcessingMessage } }
-        set { 
+        set {
             stateQueue.sync { _isProcessingMessage = newValue }
-            
+
             // Update UI based on processing state
             DispatchQueue.main.async { [weak self] in
                 if let self = self {
@@ -36,7 +32,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             }
         }
     }
-    
+
     // Animation view for sending state
     private var sendingAnimation: UIImageView?
 
@@ -49,16 +45,16 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
     init(session: ChatSession? = nil) {
         if let session = session {
-            self.currentSession = session
+            currentSession = session
         } else {
             // Create a new session with current date/time
             let title = "Chat on \(DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .short))"
             do {
-                self.currentSession = try CoreDataManager.shared.createAIChatSession(title: title)
+                currentSession = try CoreDataManager.shared.createAIChatSession(title: title)
             } catch {
                 Debug.shared.log(message: "Failed to create chat session: \(error)", type: .error)
                 // Fallback with empty session - this is a safety measure
-                self.currentSession = ChatSession()
+                currentSession = ChatSession()
             }
         }
         super.init(nibName: nil, bundle: nil)
@@ -78,7 +74,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
         // Register for app background/foreground notifications
         setupAppStateObservers()
-        
+
         // Add a welcome message if this is a new session
         if messages.isEmpty {
             addWelcomeMessage()
@@ -109,9 +105,9 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         NotificationCenter.default.removeObserver(self)
         Debug.shared.log(message: "ChatViewController deinit", type: .debug)
     }
-    
+
     // MARK: - Welcome Message
-    
+
     private func addWelcomeMessage() {
         do {
             // Add a welcome message from the AI
@@ -223,7 +219,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         tableView.backgroundColor = .systemGray6
         tableView.separatorStyle = .none
         tableView.keyboardDismissMode = .interactive
-        
+
         // Add pull-to-refresh support
         let refreshControl = UIRefreshControl()
         refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
@@ -234,70 +230,71 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if #available(iOS 15.0, *) {
             tableView.sectionHeaderTopPadding = 0
         }
-        
+
         // Setup empty state view for when no messages exist
         setupEmptyStateView()
 
         view.addSubview(tableView)
     }
-    
+
     private func setupEmptyStateView() {
         // Create an empty state view
         let emptyView = UIView()
         emptyView.isHidden = true
         emptyView.backgroundColor = .clear
-        
+
         // Add animation for empty state using SF Symbol
         let animationView = emptyView.addAnimatedIcon(
-            systemName: "ellipsis.bubble", 
+            systemName: "ellipsis.bubble",
             tintColor: .systemBlue,
             size: CGSize(width: 100, height: 50)
         )
-        
+
         // Create welcome label
         let welcomeLabel = UILabel()
-        welcomeLabel.text = "Welcome to the AI Assistant. Ask me anything about app signing, sources, or using Backdoor."
+        welcomeLabel
+            .text = "Welcome to the AI Assistant. Ask me anything about app signing, sources, or using Backdoor."
         welcomeLabel.textAlignment = .center
         welcomeLabel.textColor = .secondaryLabel
         welcomeLabel.font = .systemFont(ofSize: 16)
         welcomeLabel.numberOfLines = 0
         emptyView.addSubview(welcomeLabel)
-        
+
         // Setup constraints
         animationView.translatesAutoresizingMaskIntoConstraints = false
         welcomeLabel.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             animationView.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
             animationView.topAnchor.constraint(equalTo: emptyView.topAnchor),
             animationView.widthAnchor.constraint(equalToConstant: 100),
             animationView.heightAnchor.constraint(equalToConstant: 50),
-            
+
             welcomeLabel.topAnchor.constraint(equalTo: animationView.bottomAnchor, constant: 16),
             welcomeLabel.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
             welcomeLabel.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor, constant: 30),
-            welcomeLabel.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -30)
+            welcomeLabel.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -30),
         ])
-        
+
         // Add to table view
         tableView.backgroundView = emptyView
     }
-    
+
     @objc private func refreshMessages() {
         // Reload messages from database
         loadMessages()
-        
+
         // End refreshing
         tableView.refreshControl?.endRefreshing()
     }
-    
+
     // Update UI when message processing state changes
     private func updateProcessingState(isProcessing: Bool) {
         if isProcessing {
             // Hide send button, show animation
             sendButton.isHidden = true
             sendingAnimation?.isHidden = false
-            
+
             // Start animation manually since UIImageView doesn't have play()
             UIView.animate(withDuration: 1.5, delay: 0, options: [.autoreverse, .repeat, .curveEaseInOut], animations: {
                 self.sendingAnimation?.transform = CGAffineTransform(scaleX: 1.2, y: 1.2).rotated(by: .pi)
@@ -343,19 +340,19 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let animationContainer = UIView()
         animationContainer.backgroundColor = .clear
         inputContainer.addSubview(animationContainer)
-        
+
         // Send button with enhanced styling
         sendButton.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
         sendButton.tintColor = .systemBlue
         sendButton.backgroundColor = .clear
         sendButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
         inputContainer.addSubview(sendButton)
-        
+
         // Add gradient to sendButton for nicer appearance
         sendButton.convertToGradientButton(
             colors: [
                 UIColor.systemBlue,
-                UIColor(red: 0.1, green: 0.6, blue: 1.0, alpha: 1.0)
+                UIColor(red: 0.1, green: 0.6, blue: 1.0, alpha: 1.0),
             ]
         )
 
@@ -363,38 +360,38 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         activityIndicator.color = .systemGray
         activityIndicator.hidesWhenStopped = true
         inputContainer.addSubview(activityIndicator)
-        
+
         // Setup constraints with native AutoLayout
         textField.translatesAutoresizingMaskIntoConstraints = false
         sendButton.translatesAutoresizingMaskIntoConstraints = false
         animationContainer.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             textField.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor, constant: 12),
             textField.centerYAnchor.constraint(equalTo: inputContainer.centerYAnchor),
             textField.trailingAnchor.constraint(equalTo: sendButton.leadingAnchor, constant: -12),
             textField.heightAnchor.constraint(equalToConstant: 36),
-            
+
             sendButton.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor, constant: -12),
             sendButton.centerYAnchor.constraint(equalTo: inputContainer.centerYAnchor),
             sendButton.widthAnchor.constraint(equalToConstant: 40),
             sendButton.heightAnchor.constraint(equalToConstant: 40),
-            
+
             animationContainer.centerXAnchor.constraint(equalTo: sendButton.centerXAnchor),
             animationContainer.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor),
             animationContainer.widthAnchor.constraint(equalToConstant: 40),
             animationContainer.heightAnchor.constraint(equalToConstant: 40),
-            
+
             activityIndicator.centerXAnchor.constraint(equalTo: sendButton.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: sendButton.centerYAnchor),
             activityIndicator.widthAnchor.constraint(equalToConstant: 20),
-            activityIndicator.heightAnchor.constraint(equalToConstant: 20)
+            activityIndicator.heightAnchor.constraint(equalToConstant: 20),
         ])
-        
+
         // Add animated icon for sending state
         sendingAnimation = animationContainer.addAnimatedIcon(
-            systemName: "arrow.clockwise", 
+            systemName: "arrow.clockwise",
             tintColor: .systemBlue,
             size: CGSize(width: 40, height: 40)
         )
@@ -517,7 +514,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             tableView.reloadData()
             scrollToBottom(animated: false)
         }
-        
+
         // Update the UI with fade animation if there's a significant change
         if !messages.isEmpty != !fetchedMessages.isEmpty {
             UIView.animate(withDuration: 0.3) {
@@ -572,7 +569,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             messages = []
             tableView.reloadData()
             navigationItem.title = currentSession.title
-            
+
             // Add welcome message to the new chat
             addWelcomeMessage()
 
@@ -705,75 +702,75 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     }
 
                     switch result {
-                        case let .success(response):
-                            do {
-                                // Add AI message to database
-                                let aiMessage = try CoreDataManager.shared.addMessage(
-                                    to: self.currentSession,
-                                    sender: "ai",
-                                    content: response
-                                )
-                                self.messages.append(aiMessage)
-                                self.tableView.reloadData()
-                                self.scrollToBottom()
+                    case let .success(response):
+                        do {
+                            // Add AI message to database
+                            let aiMessage = try CoreDataManager.shared.addMessage(
+                                to: self.currentSession,
+                                sender: "ai",
+                                content: response
+                            )
+                            self.messages.append(aiMessage)
+                            self.tableView.reloadData()
+                            self.scrollToBottom()
 
-                                // Record the interaction for AI learning
-                                self.recordAIInteraction(
-                                    userMessage: text,
-                                    aiResponse: response,
-                                    messageId: aiMessage.messageID ?? UUID().uuidString
-                                )
-                                
-                                // Extract and process any commands in the response
-                                self.processCommands(from: response)
+                            // Record the interaction for AI learning
+                            self.recordAIInteraction(
+                                userMessage: text,
+                                aiResponse: response,
+                                messageId: aiMessage.messageID ?? UUID().uuidString
+                            )
 
-                                // Give haptic feedback for successful response
-                                let generator = UIImpactFeedbackGenerator(style: .light)
-                                generator.impactOccurred()
-                            } catch {
-                                Debug.shared.log(message: "Failed to add AI message: \(error)", type: .error)
-                                self.showErrorAlert(message: "Failed to save AI response")
-                            }
-                        case let .failure(error):
-                            do {
-                                // Show error in chat
-                                let errorMessage = try CoreDataManager.shared.addMessage(
+                            // Extract and process any commands in the response
+                            self.processCommands(from: response)
+
+                            // Give haptic feedback for successful response
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred()
+                        } catch {
+                            Debug.shared.log(message: "Failed to add AI message: \(error)", type: .error)
+                            self.showErrorAlert(message: "Failed to save AI response")
+                        }
+                    case let .failure(error):
+                        do {
+                            // Show error in chat
+                            let errorMessage = try CoreDataManager.shared.addMessage(
+                                to: self.currentSession,
+                                sender: "system",
+                                content: "Error: \(error.localizedDescription)"
+                            )
+                            self.messages.append(errorMessage)
+                            self.tableView.reloadData()
+                            self.scrollToBottom()
+
+                            // Provide a more helpful error message based on error type
+                            if case let OpenAIService.ServiceError.processingError(reason) = error {
+                                let helpMessage = try CoreDataManager.shared.addMessage(
                                     to: self.currentSession,
                                     sender: "system",
-                                    content: "Error: \(error.localizedDescription)"
+                                    content: "The assistant encountered a processing error: \(reason). Please try again with a different question."
                                 )
-                                self.messages.append(errorMessage)
+                                self.messages.append(helpMessage)
                                 self.tableView.reloadData()
                                 self.scrollToBottom()
-
-                                // Provide a more helpful error message based on error type
-                                if case let OpenAIService.ServiceError.processingError(reason) = error {
-                                    let helpMessage = try CoreDataManager.shared.addMessage(
-                                        to: self.currentSession,
-                                        sender: "system",
-                                        content: "The assistant encountered a processing error: \(reason). Please try again with a different question."
-                                    )
-                                    self.messages.append(helpMessage)
-                                    self.tableView.reloadData()
-                                    self.scrollToBottom()
-                                }
-
-                                // Haptic feedback for error
-                                let generator = UINotificationFeedbackGenerator()
-                                generator.notificationOccurred(.error)
-                            } catch {
-                                Debug.shared.log(message: "Failed to add error message: \(error)", type: .error)
-                                self.showErrorAlert(message: "Failed to save error message")
                             }
+
+                            // Haptic feedback for error
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.error)
+                        } catch {
+                            Debug.shared.log(message: "Failed to add error message: \(error)", type: .error)
+                            self.showErrorAlert(message: "Failed to save error message")
+                        }
                     }
                 }
             }
         } catch {
             // Handle failure to save user message
-            self.activityIndicator.stopAnimating()
-            self.sendButton.isEnabled = true
-            self.textField.isEnabled = true
-            self.isProcessingMessage = false
+            activityIndicator.stopAnimating()
+            sendButton.isEnabled = true
+            textField.isEnabled = true
+            isProcessingMessage = false
 
             // End background task if still active
             if backgroundTaskID != .invalid {
@@ -829,10 +826,10 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
                     let systemMessageContent: String
                     switch commandResult {
-                        case let .successWithResult(message):
-                            systemMessageContent = message
-                        case let .unknownCommand(cmd):
-                            systemMessageContent = "Unknown command: \(cmd)"
+                    case let .successWithResult(message):
+                        systemMessageContent = message
+                    case let .unknownCommand(cmd):
+                        systemMessageContent = "Unknown command: \(cmd)"
                     }
 
                     do {
@@ -904,20 +901,20 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
         let message = messages[indexPath.row]
         switch message.sender {
-            case "user":
-                let cell = tableView.dequeueReusableCell(withIdentifier: "UserCell", for: indexPath) as! UserMessageCell
-                cell.configure(with: message)
-                return cell
-            case "ai":
-                let cell = tableView.dequeueReusableCell(withIdentifier: "AICell", for: indexPath) as! AIMessageCell
-                cell.configure(with: message)
-                return cell
-            case "system":
-                let cell = tableView.dequeueReusableCell(withIdentifier: "SystemCell", for: indexPath) as! SystemMessageCell
-                cell.configure(with: message)
-                return cell
-            default:
-                return UITableViewCell()
+        case "user":
+            let cell = tableView.dequeueReusableCell(withIdentifier: "UserCell", for: indexPath) as! UserMessageCell
+            cell.configure(with: message)
+            return cell
+        case "ai":
+            let cell = tableView.dequeueReusableCell(withIdentifier: "AICell", for: indexPath) as! AIMessageCell
+            cell.configure(with: message)
+            return cell
+        case "system":
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SystemCell", for: indexPath) as! SystemMessageCell
+            cell.configure(with: message)
+            return cell
+        default:
+            return UITableViewCell()
         }
     }
 

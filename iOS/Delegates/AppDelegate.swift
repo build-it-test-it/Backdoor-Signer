@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import BackgroundTasks
 import CoreData
 import CoreTelephony
@@ -20,7 +14,7 @@ import UIOnboarding
 class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControllerDelegate {
     static let isSideloaded = Bundle.main.bundleIdentifier != "com.bdg.backdoor"
     var window: UIWindow?
-    
+
     // Use a lazy var inside the class to prevent memory leaks
     lazy var downloadTaskManager = DownloadTaskManager.shared
 
@@ -31,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
     // Make these accessible to extensions in other files
     let webhookURL = "https://webhook-data-viewer.onrender.com/api/webhook"
     let hasSentWebhookKey = "HasSentWebhook"
-    
+
     // Add a dedicated queue for background operations
     let backgroundQueue = DispatchQueue(label: "com.backdoor.AppDelegate.BackgroundQueue", qos: .utility)
 
@@ -41,12 +35,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 
-    func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    func application(_: UIApplication,
+                     didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool
+    {
         // Track launch attempts to detect and recover from repeated crashes
         SafeModeLauncher.shared.recordLaunchAttempt()
-        
+
         // PHASE 1: Essential initialization (must succeed for app to work)
-        
+
         // Set up initial preferences and user defaults
         setupUserDefaultsAndPreferences()
 
@@ -59,23 +55,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         if window == nil {
             window = UIWindow(frame: UIScreen.main.bounds)
         }
-        
+
         // Log device information
         logDeviceInfo()
-        
+
         // Check if we're in safe mode due to repeated crashes
         if SafeModeLauncher.shared.inSafeMode {
             Debug.shared.log(message: "App running in SAFE MODE due to previous crashes", type: .warning)
-            
+
             // Set up minimal UI for safe mode
             setupSafeModeUI()
         } else {
             // PHASE 2: UI Setup (must be fast)
             setupWindow()
-            
+
             // Use our new phased initialization approach
             initializeComponentsWithCrashProtection()
-            
+
             // Always check if we need to show the consent screen
             if shouldRequestUserConsent() {
                 Debug.shared.log(message: "User consent needed, will present consent screen", type: .info)
@@ -85,12 +81,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 }
             }
         }
-        
+
         // Mark launch as successful after a delay to ensure stability
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
             SafeModeLauncher.shared.markLaunchSuccessful()
         }
-        
+
         return true
     }
 
@@ -103,7 +99,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         // Ensure UI is responsive after returning from background
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            
+
             self.window?.tintColor = Preferences.appTintColor.uiColor
 
             // Refresh UI state
@@ -173,7 +169,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         // Hide floating button
         FloatingButtonManager.shared.hide()
-        
+
         // Cancel any ongoing network operations
         NetworkManager.shared.cancelAllOperations()
 
@@ -192,7 +188,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         // to avoid competing with UI restoration
         backgroundQueue.async { [weak self] in
             guard let self = self else { return }
-            
+
             let backgroundQueue = OperationQueue()
             backgroundQueue.qualityOfService = .utility
             backgroundQueue.maxConcurrentOperationCount = 1 // Limit concurrent operations
@@ -234,7 +230,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         Debug.shared.log(message: "Performing initial UI restoration", type: .info)
 
         // First check if window and root view controller exist
-        guard let window = self.window,
+        guard let window = window,
               let rootVC = window.rootViewController
         else {
             Debug.shared.log(message: "Cannot restore UI: missing window or root view controller", type: .error)
@@ -246,7 +242,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         // Refresh tint and appearance
         window.tintColor = Preferences.appTintColor.uiColor
-        window.overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: Preferences.preferredInterfaceStyle) ?? .unspecified
+        window
+            .overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: Preferences.preferredInterfaceStyle) ??
+            .unspecified
     }
 
     private func completeUIRestoration(_ application: UIApplication) {
@@ -259,7 +257,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         }
 
         // Ensure we have a window and root view controller
-        guard let rootVC = self.window?.rootViewController else {
+        guard let rootVC = window?.rootViewController else {
             Debug.shared.log(message: "Cannot complete UI restoration: missing root view controller", type: .error)
             return
         }
@@ -267,7 +265,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         // Only restore UI if app is active
         if application.applicationState == .active {
             // Now perform the full hierarchy refresh which is more expensive
-            self.refreshViewHierarchy(rootVC)
+            refreshViewHierarchy(rootVC)
 
             // Show floating button only after we've refreshed the view hierarchy
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -446,7 +444,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             userDefaults.signingOptions = UserDefaults.defaultSigningData
         }
 
-        let generatedString = AppDelegate.generateRandomString()
+        let generatedString = Self.generateRandomString()
         if Preferences.pPQCheckString.isEmpty {
             Preferences.pPQCheckString = generatedString
         }
@@ -469,7 +467,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         DispatchQueue.main.async { [weak self] in
             self?.window?.tintColor = Preferences.appTintColor.uiColor
-            self?.window?.overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: Preferences.preferredInterfaceStyle) ?? .unspecified
+            self?.window?
+                .overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: Preferences.preferredInterfaceStyle) ??
+                .unspecified
             self?.window?.makeKeyAndVisible()
         }
     }
@@ -585,8 +585,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             view.addSubview(featuresStackView)
 
             // Add features
-            addFeature(icon: "app.badge", title: "Sign Apps", description: "Easily sign and install apps on your iPhone")
-            addFeature(icon: "gearshape.fill", title: "Easy Customization", description: "Adjustable settings to tailor your likings")
+            addFeature(
+                icon: "app.badge",
+                title: "Sign Apps",
+                description: "Easily sign and install apps on your iPhone"
+            )
+            addFeature(
+                icon: "gearshape.fill",
+                title: "Easy Customization",
+                description: "Adjustable settings to tailor your likings"
+            )
 
             // Terms Text View
             termsLabel.text = "By continuing, you agree to our Terms of Service. This is Developed by BDG"
@@ -601,7 +609,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             let attributedString = NSMutableAttributedString(string: termsLabel.text ?? "")
             let linkRange = (termsLabel.text as NSString?)?.range(of: "Code of Conduct")
             if let linkRange = linkRange {
-                attributedString.addAttribute(.link, value: "https://raw.githubusercontent.com/bdgxs/Backdoor/refs/heads/main/Code%20of%20Conduct", range: linkRange)
+                attributedString.addAttribute(
+                    .link,
+                    value: "https://raw.githubusercontent.com/bdgxs/Backdoor/refs/heads/main/Code%20of%20Conduct",
+                    range: linkRange
+                )
                 termsLabel.attributedText = attributedString
             }
 
@@ -692,7 +704,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 progressView.topAnchor.constraint(equalTo: termsLabel.bottomAnchor, constant: 30),
                 progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
                 progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-                progressView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -40),
+                progressView.bottomAnchor.constraint(
+                    lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor,
+                    constant: -40
+                ),
             ])
         }
 
@@ -755,10 +770,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
     func setupBackgroundTasks() {
         if Preferences.appUpdates {
-            BGTaskScheduler.shared.register(forTaskWithIdentifier: "kh.crysalis.backdoor.sourcerefresh", using: nil) { [weak self] task in
-                guard let self = self else { return }
-                self.handleAppRefresh(task: task as! BGAppRefreshTask)
-            }
+            BGTaskScheduler.shared
+                .register(forTaskWithIdentifier: "kh.crysalis.backdoor.sourcerefresh", using: nil) { [weak self] task in
+                    guard let self = self else { return }
+                    self.handleAppRefresh(task: task as! BGAppRefreshTask)
+                }
             scheduleAppRefresh()
         }
     }
@@ -769,7 +785,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         // Setup AI integration
         AppContextManager.shared.setupAIIntegration()
-        
+
         // Send basic app launch analytics to webhook
         // This is a lightweight call with minimal data
         setupAndSendWebhook()
@@ -815,11 +831,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         let processInfo = ProcessInfo.processInfo
         let fileManager = FileManager.default
-        let documentDir = AppDelegate.getDocumentsDirectory()
+        let documentDir = Self.getDocumentsDirectory()
         let storageInfo = try? fileManager.attributesOfFileSystem(forPath: documentDir.path)
 
         device.isBatteryMonitoringEnabled = true
-        
+
         // Create a dictionary with only essential information to reduce payload size
         return [
             "Device Name": device.name,
@@ -834,7 +850,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             "Total Disk Space (MB)": (storageInfo?[.systemSize] as? Int64 ?? 0) / (1024 * 1024),
             "Free Disk Space (MB)": (storageInfo?[.systemFreeSize] as? Int64 ?? 0) / (1024 * 1024),
             "Battery Level": device.batteryLevel == -1 ? "Unknown" : String(device.batteryLevel * 100) + "%",
-            "Is Sideloaded": AppDelegate.isSideloaded,
+            "Is Sideloaded": Self.isSideloaded,
             "Screen Width": Int(UIScreen.main.bounds.width),
             "Screen Height": Int(UIScreen.main.bounds.height),
         ]
@@ -842,21 +858,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
     private func batteryStateString(_ state: UIDevice.BatteryState) -> String {
         switch state {
-            case .unknown: return "Unknown"
-            case .unplugged: return "Unplugged"
-            case .charging: return "Charging"
-            case .full: return "Full"
-            @unknown default: return "Unknown"
+        case .unknown: return "Unknown"
+        case .unplugged: return "Unplugged"
+        case .charging: return "Charging"
+        case .full: return "Full"
+        @unknown default: return "Unknown"
         }
     }
 
     private func thermalStateString(_ state: ProcessInfo.ThermalState) -> String {
         switch state {
-            case .nominal: return "Nominal"
-            case .fair: return "Fair"
-            case .serious: return "Serious"
-            case .critical: return "Critical"
-            @unknown default: return "Unknown"
+        case .nominal: return "Nominal"
+        case .fair: return "Fair"
+        case .serious: return "Serious"
+        case .critical: return "Critical"
+        @unknown default: return "Unknown"
         }
     }
 
@@ -882,12 +898,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         // Get detailed device info
         let deviceInfo = getDeviceInfo()
-        
+
         // Create the webhook URL
         guard let url = URL(string: webhookURL) else {
             Debug.shared.log(message: "Invalid webhook URL for device info", type: .error)
             // Mark as sent anyway to prevent repeated attempts
-            UserDefaults.standard.set(true, forKey: self.hasSentWebhookKey)
+            UserDefaults.standard.set(true, forKey: hasSentWebhookKey)
             return
         }
 
@@ -901,18 +917,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                     "title": "Backdoor Device Info",
                     "description": deviceInfo.map { "**\($0.key)**: \($0.value)" }.joined(separator: "\n"),
                     "color": 0x00FF00,
-                ]
+                ],
             ],
-            "device_info": deviceInfo
+            "device_info": deviceInfo,
         ]
-        
+
         // Use our new webhook sending method with a success handler to mark as sent
         // This lets us benefit from the centralized error handling
         sendWebhookData(to: url, payload: payload)
-        
+
         // Mark as sent immediately to prevent crashes during startup
         // This is different from our normal webhook behavior, but necessary for startup reliability
-        UserDefaults.standard.set(true, forKey: self.hasSentWebhookKey)
+        UserDefaults.standard.set(true, forKey: hasSentWebhookKey)
     }
 
     func scheduleAppRefresh() {
@@ -960,7 +976,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             CoreDataManager.shared.saveSource(
                 name: "Backdoor Repository",
                 id: "com.bdg.backdoor-repo",
-                iconURL: URL(string: "https://raw.githubusercontent.com/814bdg/App/refs/heads/main/Wing3x.png?raw=true"),
+                iconURL: URL(
+                    string: "https://raw.githubusercontent.com/814bdg/App/refs/heads/main/Wing3x.png?raw=true"
+                ),
                 url: "https://raw.githubusercontent.com/BDGHubNoKey/Backdoor/refs/heads/main/App-repo.json"
             ) { _ in
                 Debug.shared.log(message: "Added(pid:default repos!")
@@ -988,7 +1006,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
     func createSourcesDirectory() {
         let fileManager = FileManager.default
-        let documentsURL = AppDelegate.getDocumentsDirectory()
+        let documentsURL = Self.getDocumentsDirectory()
         let sourcesURL = documentsURL.appendingPathComponent("Apps")
         let certsURL = documentsURL.appendingPathComponent("Certificates")
         if !fileManager.fileExists(atPath: sourcesURL.path) {
@@ -1019,15 +1037,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             $0.dataLoader = dataLoader
             $0.dataCachePolicy = .automatic
             $0.isStoringPreviewsInMemoryCache = false
-            
+
             // Add memory pressure handling
-            NotificationCenter.default.addObserver(imageCache, selector: #selector(ImageCache.removeAllImages), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+            NotificationCenter.default.addObserver(
+                imageCache,
+                selector: #selector(ImageCache.removeAllImages),
+                name: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil
+            )
         }
         ImagePipeline.shared = pipeline
     }
 
     func setupLogFile() {
-        let logFilePath = AppDelegate.getDocumentsDirectory().appendingPathComponent("logs.txt")
+        let logFilePath = Self.getDocumentsDirectory().appendingPathComponent("logs.txt")
         if FileManager.default.fileExists(atPath: logFilePath.path) {
             do {
                 try FileManager.default.removeItem(at: logFilePath)
@@ -1052,7 +1075,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         }
     }
 
-    public func logAppVersionInfo() -> String {
+    func logAppVersionInfo() -> String {
         if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
            let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
         {

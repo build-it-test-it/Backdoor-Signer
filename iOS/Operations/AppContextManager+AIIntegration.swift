@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 import SwiftUI
 import UIKit
@@ -18,10 +12,10 @@ extension AppContextManager {
 
         // Setup observers for context updates
         setupContextObservers()
-        
+
         // Setup CoreML integration
         setupCoreML()
-        
+
         // Register for CoreML model load completion
         NotificationCenter.default.addObserver(
             self,
@@ -31,20 +25,23 @@ extension AppContextManager {
         )
 
         // Log successful initialization
-        Debug.shared.log(message: "Custom AI Assistant integration initialized with \(availableCommands().count) commands", type: .info)
+        Debug.shared.log(
+            message: "Custom AI Assistant integration initialized with \(availableCommands().count) commands",
+            type: .info
+        )
     }
-    
+
     /// Handle CoreML model load completion
     @objc private func coreMLModelLoaded() {
         Debug.shared.log(message: "CoreML model load completed, enhancing AI capabilities", type: .info)
-        
+
         // Update any AI components that depend on the model
         let additionalData: [String: Any] = [
             "mlModelLoaded": true,
-            "mlCapabilities": ["intent recognition", "sentiment analysis", "parameter extraction"]
+            "mlCapabilities": ["intent recognition", "sentiment analysis", "parameter extraction"],
         ]
         setAdditionalContextData(additionalData)
-        
+
         // Notify custom AI service that ML is available
         NotificationCenter.default.post(
             name: Notification.Name("AICapabilitiesEnhanced"),
@@ -99,12 +96,12 @@ extension AppContextManager {
         if let newTab = notification.userInfo?["tab"] as? String {
             var screenName: String
             switch newTab {
-                case "home": screenName = "Home"
-                case "sources": screenName = "Sources"
-                case "library": screenName = "Library"
-                case "settings": screenName = "Settings"
-                case "bdgHub": screenName = "BDG Hub"
-                default: screenName = "Unknown"
+            case "home": screenName = "Home"
+            case "sources": screenName = "Sources"
+            case "library": screenName = "Library"
+            case "settings": screenName = "Settings"
+            case "bdgHub": screenName = "BDG Hub"
+            default: screenName = "Unknown"
             }
 
             // Update AI context with new screen
@@ -144,8 +141,13 @@ extension AppContextManager {
         let signedApps = CoreDataManager.shared.getDatedSignedApps()
 
         let additionalData: [String: Any] = [
-            "downloadedApps": downloadedApps.map { AppInfo(name: $0.name ?? "Unnamed", version: $0.version ?? "Unknown").description },
-            "signedApps": signedApps.map { SignedAppInfo(name: $0.name ?? "Unnamed", bundleIdentifier: $0.bundleidentifier ?? "Unknown", teamName: $0.teamName ?? "N/A").description },
+            "downloadedApps": downloadedApps
+                .map { AppInfo(name: $0.name ?? "Unnamed", version: $0.version ?? "Unknown").description },
+            "signedApps": signedApps
+                .map {
+                    SignedAppInfo(name: $0.name ?? "Unnamed", bundleIdentifier: $0.bundleidentifier ?? "Unknown",
+                                  teamName: $0.teamName ?? "N/A").description
+                },
             "downloadedAppCount": downloadedApps.count,
             "signedAppCount": signedApps.count,
         ]
@@ -158,7 +160,8 @@ extension AppContextManager {
         // Update AI context with relevant settings changes
         let additionalData: [String: Any] = [
             "appTintColor": Preferences.appTintColor.uiColor.toHexString(),
-            "interfaceStyle": UIUserInterfaceStyle(rawValue: Preferences.preferredInterfaceStyle)?.styleName ?? "unspecified",
+            "interfaceStyle": UIUserInterfaceStyle(rawValue: Preferences.preferredInterfaceStyle)?
+                .styleName ?? "unspecified",
             "preferredLanguage": Preferences.preferredLanguageCode ?? "system default",
         ]
 
@@ -203,31 +206,54 @@ extension AppContextManager {
 
         // Check for app signing intent
         if lowercasedInput.matches(pattern: "(?i)sign\\s+(the\\s+)?app\\s+(?:called\\s+|named\\s+)?(.+?)\\s*$") {
-            let appName = textInput.extractMatch(pattern: "(?i)sign\\s+(the\\s+)?app\\s+(?:called\\s+|named\\s+)?(.+?)\\s*$", groupIndex: 2)
+            let appName = textInput.extractMatch(
+                pattern: "(?i)sign\\s+(the\\s+)?app\\s+(?:called\\s+|named\\s+)?(.+?)\\s*$",
+                groupIndex: 2
+            )
             return ("sign app", appName ?? "")
         }
 
         // Check for navigation intent
-        if lowercasedInput.matches(pattern: "(?i)(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?(.+?)\\s+(?:tab|screen|page|section)") {
-            let screen = textInput.extractMatch(pattern: "(?i)(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?(.+?)\\s+(?:tab|screen|page|section)", groupIndex: 1)
+        if lowercasedInput
+            .matches(
+                pattern: "(?i)(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?(.+?)\\s+(?:tab|screen|page|section)"
+            )
+        {
+            let screen = textInput.extractMatch(
+                pattern: "(?i)(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?(.+?)\\s+(?:tab|screen|page|section)",
+                groupIndex: 1
+            )
             return ("navigate to", screen ?? "")
         }
 
         // Check for source adding intent
-        if lowercasedInput.matches(pattern: "(?i)add\\s+(?:a\\s+)?(?:new\\s+)?source\\s+(?:with\\s+url\\s+|at\\s+|from\\s+)?(.+?)\\s*$") {
-            let url = textInput.extractMatch(pattern: "(?i)add\\s+(?:a\\s+)?(?:new\\s+)?source\\s+(?:with\\s+url\\s+|at\\s+|from\\s+)?(.+?)\\s*$", groupIndex: 1)
+        if lowercasedInput
+            .matches(
+                pattern: "(?i)add\\s+(?:a\\s+)?(?:new\\s+)?source\\s+(?:with\\s+url\\s+|at\\s+|from\\s+)?(.+?)\\s*$"
+            )
+        {
+            let url = textInput.extractMatch(
+                pattern: "(?i)add\\s+(?:a\\s+)?(?:new\\s+)?source\\s+(?:with\\s+url\\s+|at\\s+|from\\s+)?(.+?)\\s*$",
+                groupIndex: 1
+            )
             return ("add source", url ?? "")
         }
 
         // Check for installing app intent
         if lowercasedInput.matches(pattern: "(?i)install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?(.+?)\\s*$") {
-            let appName = textInput.extractMatch(pattern: "(?i)install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?(.+?)\\s*$", groupIndex: 1)
+            let appName = textInput.extractMatch(
+                pattern: "(?i)install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?(.+?)\\s*$",
+                groupIndex: 1
+            )
             return ("install app", appName ?? "")
         }
 
         // Check for opening app intent
         if lowercasedInput.matches(pattern: "(?i)open\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?(.+?)\\s*$") {
-            let appName = textInput.extractMatch(pattern: "(?i)open\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?(.+?)\\s*$", groupIndex: 1)
+            let appName = textInput.extractMatch(
+                pattern: "(?i)open\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?(.+?)\\s*$",
+                groupIndex: 1
+            )
             return ("open app", appName ?? "")
         }
 
@@ -241,7 +267,7 @@ extension String {
     func matches(pattern: String) -> Bool {
         do {
             let regex = try NSRegularExpression(pattern: pattern)
-            let range = NSRange(self.startIndex..., in: self)
+            let range = NSRange(startIndex..., in: self)
             return regex.firstMatch(in: self, range: range) != nil
         } catch {
             return false
@@ -251,7 +277,7 @@ extension String {
     func extractMatch(pattern: String, groupIndex: Int) -> String? {
         do {
             let regex = try NSRegularExpression(pattern: pattern)
-            let range = NSRange(self.startIndex..., in: self)
+            let range = NSRange(startIndex..., in: self)
             if let match = regex.firstMatch(in: self, range: range) {
                 if match.numberOfRanges > groupIndex {
                     let group = match.range(at: groupIndex)
@@ -273,10 +299,10 @@ extension String {
 extension UIUserInterfaceStyle {
     var styleName: String {
         switch self {
-            case .unspecified: return "unspecified"
-            case .light: return "light"
-            case .dark: return "dark"
-            @unknown default: return "unknown"
+        case .unspecified: return "unspecified"
+        case .light: return "light"
+        case .dark: return "dark"
+        @unknown default: return "unknown"
         }
     }
 }

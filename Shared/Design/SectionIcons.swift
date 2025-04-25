@@ -1,10 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly
-// permitted under the terms of the Proprietary Software License.
-
 import Foundation
 import Nuke
 import UIKit
@@ -22,7 +15,7 @@ private enum SectionIconConstants {
         /// Default inset amount for symbols
         static let symbolInset: CGFloat = 7
     }
-    
+
     /// Visual properties
     enum Appearance {
         /// Default border width
@@ -35,13 +28,13 @@ private enum SectionIconConstants {
 /// Utility class for creating and managing section icons in table views
 class SectionIcons {
     /// Adds a SF Symbol icon with background color to a table view cell
-    /// 
+    ///
     /// - Parameters:
     ///   - cell: The table cell to add the icon to
     ///   - symbolName: The SF Symbol name to use
     ///   - backgroundColor: The background color for the icon
     @available(iOS 13.0, *)
-    public static func sectionIcon(
+    static func sectionIcon(
         to cell: UITableViewCell,
         with symbolName: String,
         backgroundColor: UIColor
@@ -51,7 +44,7 @@ class SectionIcons {
             pointSize: SectionIconConstants.Sizes.symbolPointSize,
             weight: .medium
         )
-        
+
         // Configure the symbol image with white tint
         guard let symbolImage = UIImage(
             systemName: symbolName,
@@ -59,10 +52,10 @@ class SectionIcons {
         )?.withTintColor(.white, renderingMode: .alwaysOriginal) else {
             return
         }
-        
+
         let imageSize = SectionIconConstants.Sizes.defaultIconSize
         let insetAmount = SectionIconConstants.Sizes.symbolInset
-        
+
         // Calculate the proper size for the symbol to fit within the background
         let scaledSymbolSize = symbolImage.size.aspectFit(in: imageSize, insetBy: insetAmount)
 
@@ -79,7 +72,7 @@ class SectionIcons {
         let mergedImage = UIGraphicsImageRenderer(size: imageSize).image { _ in
             // Draw the background
             coloredBackgroundImage.draw(in: CGRect(origin: .zero, size: imageSize))
-            
+
             // Center and draw the symbol
             symbolImage.draw(in: CGRect(
                 x: (imageSize.width - scaledSymbolSize.width) / 2,
@@ -105,7 +98,7 @@ class SectionIcons {
     ///   - originalImage: The source image to use
     ///   - size: The desired size for the image (default: 52x52)
     ///   - radius: The corner radius to apply (default: 12)
-    public static func sectionImage(
+    static func sectionImage(
         to cell: UITableViewCell,
         with originalImage: UIImage,
         size: CGSize = SectionIconConstants.Sizes.defaultIconSize,
@@ -116,7 +109,7 @@ class SectionIcons {
             // Draw the original image scaled to the new size
             originalImage.draw(in: CGRect(origin: .zero, size: size))
         }
-        
+
         // Apply the image to the cell
         cell.imageView?.image = resizedImage
 
@@ -135,23 +128,23 @@ class SectionIcons {
     ///   - cell: The table cell to apply the image to
     ///   - indexPath: The index path of the cell (unused but kept for API compatibility)
     ///   - tableView: The table view containing the cell (unused but kept for API compatibility)
-    public static func loadSectionImageFromURL(
+    static func loadSectionImageFromURL(
         from url: URL,
         for cell: UITableViewCell,
-        at indexPath: IndexPath,
-        in tableView: UITableView
+        at _: IndexPath,
+        in _: UITableView
     ) {
         // Create the image request
         let request = ImageRequest(url: url)
-        
+
         // Start with a placeholder image
         let placeholderImage = UIImage(named: "unknown") ?? UIImage()
-        SectionIcons.sectionImage(to: cell, with: placeholderImage)
+        Self.sectionImage(to: cell, with: placeholderImage)
 
         // Check if the image is already cached
         if let cachedImage = ImagePipeline.shared.cache.cachedImage(for: request)?.image {
             // Use the cached image
-            SectionIcons.sectionImage(to: cell, with: cachedImage)
+            Self.sectionImage(to: cell, with: cachedImage)
         } else {
             // Load the image asynchronously
             ImagePipeline.shared.loadImage(
@@ -165,7 +158,7 @@ class SectionIcons {
                         DispatchQueue.main.async {
                             // Ensure the cell still exists
                             guard let cell = cell else { return }
-                            SectionIcons.sectionImage(to: cell, with: imageResponse.image)
+                            Self.sectionImage(to: cell, with: imageResponse.image)
                         }
                     case let .failure(error):
                         // Log the error but keep the placeholder image
@@ -185,7 +178,7 @@ class SectionIcons {
     /// - Parameters:
     ///   - url: The URL to load the image from
     ///   - completion: A closure that will be called with the loaded image or nil if failed
-    public static func loadImageFromURL(
+    static func loadImageFromURL(
         from url: URL,
         completion: @escaping (UIImage?) -> Void
     ) {
@@ -198,7 +191,7 @@ class SectionIcons {
             completion(cachedImage)
             return
         }
-        
+
         // Load the image asynchronously
         ImagePipeline.shared.loadImage(
             with: request,

@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import CoreData
 
 extension CoreDataManager {
@@ -63,7 +57,11 @@ extension CoreDataManager {
     }
 
     /// Get application file path (non-throwing version for compatibility)
-    @available(*, deprecated, message: "Use the throwing version getFilesForDownloadedApps(for:getuuidonly:) in CoreDataManager instead")
+    @available(
+        *,
+        deprecated,
+        message: "Use the throwing version getFilesForDownloadedApps(for:getuuidonly:) in CoreDataManager instead"
+    )
     func getDownloadedAppsFilePath(for app: DownloadedApps, getuuidonly: Bool = false) -> URL {
         do {
             // Call the main CoreDataManager implementation
@@ -90,7 +88,7 @@ extension CoreDataManager {
         let ctx = try context
         ctx.delete(app)
         // Use self instead of shared to ensure consistent context usage
-        let fileURL = try self.getFilesForDownloadedApps(for: app, getuuidonly: true)
+        let fileURL = try getFilesForDownloadedApps(for: app, getuuidonly: true)
         try FileManager.default.removeItem(at: fileURL)
         try ctx.save()
     }

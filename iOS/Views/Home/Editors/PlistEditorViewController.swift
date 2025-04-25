@@ -1,9 +1,3 @@
-// Proprietary Software License Version 1.0
-//
-// Copyright (C) 2025 BDG
-//
-// Backdoor App Signer is proprietary software. You may not use, modify, or distribute it except as expressly permitted under the terms of the Proprietary Software License.
-
 import UIKit
 
 /// Editor for property list (plist) files with syntax highlighting and validation
@@ -79,7 +73,7 @@ class PlistEditorViewController: BaseEditorViewController {
 
         // Try to parse as property list
         do {
-            let _ = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+            _ = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
             return true
         } catch {
             Debug.shared.log(message: "Plist validation error: \(error.localizedDescription)", type: .error)
