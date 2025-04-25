@@ -170,9 +170,107 @@ EOF
           name: code-quality-reports
           path: build/reports/
 
+  auto_fix:
+    name: Auto-Fix Code Issues
+    needs: xcpretty_check
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }} # Checkout the PR branch
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+          git lfs pull
+
+      - name: Install Formatter Tools
+        run: |
+          gem install xcpretty xcpretty-json-formatter
+          brew install swiftlint swiftformat clang-format
+          
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+      - name: Auto-Fix SwiftLint Issues
+        run: |
+          echo "Automatically fixing SwiftLint issues..."
+          find . -name "*.swift" -type f -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | xargs swiftlint autocorrect --config Clean/.swiftlint.yml || true
+          
+      - name: Auto-Fix SwiftFormat Issues
+        run: |
+          echo "Automatically fixing SwiftFormat issues..."
+          swiftformat . --config Clean/.swiftformat || true
+          
+      - name: Auto-Fix Clang-Format Issues
+        run: |
+          echo "Creating basic .clang-format configuration..."
+          cat > .clang-format << EOF
+          BasedOnStyle: LLVM
+          IndentWidth: 4
+          TabWidth: 4
+          UseTab: Never
+          ColumnLimit: 120
+          BreakBeforeBraces: Allman
+          IndentCaseLabels: true
+          AlignAfterOpenBracket: Align
+          SpaceBeforeParens: ControlStatements
+          EOF
+          
+          echo "Automatically fixing Clang-Format issues..."
+          find . -type f \( -name "*.m" -o -name "*.mm" -o -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp" \) -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | while read file; do
+            clang-format -i -style=file "$file" || true
+          done
+          
+          # Remove temporary .clang-format to avoid overriding project settings
+          rm -f .clang-format
+          
+      - name: Check for Changes and Commit
+        id: check_changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "Detected changes after auto-fixing code issues"
+            
+            # Add all changes
+            git add -A
+            
+            # Commit the changes
+            git commit -m "Auto-fix code quality issues [skip ci]" -m "Automatically fixed code quality issues using SwiftLint, SwiftFormat, and Clang-Format."
+            
+            # Push the changes back to the same branch
+            git push
+            
+            echo "✅ Successfully fixed code issues and pushed changes"
+          else
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "No changes detected after auto-fixing code issues"
+          fi
+      
+      - name: Create Fix Summary
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        run: |
+          echo "# 🛠️ Auto-Fixed Code Issues" > fix_summary.md
+          echo "" >> fix_summary.md
+          echo "The workflow automatically fixed code quality issues:" >> fix_summary.md
+          echo "" >> fix_summary.md
+          echo "## Changed Files" >> fix_summary.md
+          git show --name-only --oneline HEAD | grep -v "^[a-f0-9]\+ " >> fix_summary.md
+          
+          echo "## Summary of Fixes" >> fix_summary.md
+          echo "* Applied SwiftLint autocorrect with your custom rules" >> fix_summary.md
+          echo "* Applied SwiftFormat with your custom configuration" >> fix_summary.md
+          echo "* Applied Clang-Format to Objective-C/C++ files" >> fix_summary.md
+          
+          cat fix_summary.md
+
   build:
     name: Build and Package
-    needs: xcpretty_check
+    needs: auto_fix
     runs-on: macos-15
     steps:
       - name: Checkout
