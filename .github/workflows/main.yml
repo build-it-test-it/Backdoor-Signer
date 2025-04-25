@@ -126,10 +126,18 @@ jobs:
     name: Build and Package
     needs: auto_fix
     runs-on: macos-15
-    if: always() && (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    # Run for both PRs and main branch pushes
+    if: |
+      always() && (
+        (github.event_name == 'pull_request') || 
+        (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      )
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # For PRs, use the PR head ref; for pushes, use the default
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || '' }}
 
       - name: Install Git LFS
         run: |
@@ -149,18 +157,30 @@ jobs:
           make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile"
           mv packages/* upload/
 
+      # Store artifacts for both PRs and main branch
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipa-files
+          path: upload/*.ipa
+          retention-days: 7
+
+      # The following steps only run for main branch pushes (releases)
       - name: Get Version Number
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: get_version
         run: |
           VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Payload/backdoor.app/Info.plist)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Setup Release Assets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           mv upload/backdoor.ipa upload/backdoor_v${{ env.VERSION }}.ipa
           cp upload/backdoor_v${{ env.VERSION }}.ipa upload/backdoor_v${{ env.VERSION }}.tipa
 
       - name: Create GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           name: backdoor v${{ env.VERSION }}
