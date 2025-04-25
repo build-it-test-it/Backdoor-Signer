@@ -16,24 +16,25 @@ bool GetCMSContent(const string &strCMSDataInput, string &strContentOutput);
 bool GenerateCMS(const string &strSignerCertData, const string &strSignerPKeyData, const string &strCDHashData,
                  const string &strCDHashesPlist, string &strCMSOutput);
 
-class ZSignAsset {
-public:
+class ZSignAsset
+{
+  public:
     ZSignAsset();
 
-public:
+  public:
     bool GenerateCMS(const string &strCDHashData, const string &strCDHashesPlist,
                      const string &strCodeDirectorySlotSHA1, const string &strAltnateCodeDirectorySlot256,
                      string &strCMSOutput);
     bool Init(const string &strSignerCertFile, const string &strSignerPKeyFile, const string &strProvisionFile,
               const string &strEntitlementsFile, const string &strPassword);
 
-public:
+  public:
     string m_strTeamId;
     string m_strSubjectCN;
     string m_strProvisionData;
     string m_strEntitlementsData;
 
-private:
+  private:
     void *m_evpPKey;
     void *m_x509Cert;
 };

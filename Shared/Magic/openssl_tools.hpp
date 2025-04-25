@@ -13,11 +13,12 @@
 #import <Foundation/Foundation.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-bool p12_password_check(NSString *file, NSString *pass);
-void provision_file_validation(NSString *path);
-void generate_root_ca_pair(const char *basename);
+    bool p12_password_check(NSString *file, NSString *pass);
+    void provision_file_validation(NSString *path);
+    void generate_root_ca_pair(const char *basename);
 #ifdef __cplusplus
 }
 #endif

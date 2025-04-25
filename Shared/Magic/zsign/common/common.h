@@ -88,7 +88,8 @@ uint64_t GetMicroSecond();
 bool SystemExec(const char *szFormatCmd, ...);
 uint32_t ByteAlign(uint32_t uValue, uint32_t uAlign);
 
-enum {
+enum
+{
     E_SHASUM_TYPE_1 = 1,
     E_SHASUM_TYPE_256 = 2,
 };
@@ -105,40 +106,50 @@ void PrintSHASum(const char *prefix, const string &strSHASum, const char *suffix
 void PrintDataSHASum(const char *prefix, int nSumType, const string &strData, const char *suffix = "\n");
 void PrintDataSHASum(const char *prefix, int nSumType, uint8_t *data, size_t size, const char *suffix = "\n");
 
-class ZBuffer {
-public:
+class ZBuffer
+{
+  public:
     ZBuffer();
     ~ZBuffer();
 
-public:
+  public:
     char *GetBuffer(uint32_t uSize);
 
-private:
+  private:
     void Free();
 
-private:
+  private:
     char *m_pData;
     uint32_t m_uSize;
 };
 
-class ZTimer {
-public:
+class ZTimer
+{
+  public:
     ZTimer();
 
-public:
+  public:
     uint64_t Reset();
     uint64_t Print(const char *szFormatArgs, ...);
     uint64_t PrintResult(bool bSuccess, const char *szFormatArgs, ...);
 
-private:
+  private:
     uint64_t m_uBeginTime;
 };
 
-class ZLog {
-public:
-    enum eLogType { E_NONE = 0, E_ERROR = 1, E_WARN = 2, E_INFO = 3, E_DEBUG = 4 };
+class ZLog
+{
+  public:
+    enum eLogType
+    {
+        E_NONE = 0,
+        E_ERROR = 1,
+        E_WARN = 2,
+        E_INFO = 3,
+        E_DEBUG = 4
+    };
 
-public:
+  public:
     static bool IsDebug();
     static void Print(const char *szLog);
     static void PrintV(const char *szFormatArgs, ...);
@@ -156,7 +167,7 @@ public:
     static void PrintV(int nLevel, const char *szFormatArgs, ...);
     static void SetLogLever(int nLogLevel);
 
-private:
+  private:
     static int g_nLogLevel;
     static void writeToLogFile(const std::string &message);
 };

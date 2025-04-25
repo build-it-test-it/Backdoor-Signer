@@ -13,12 +13,13 @@
 #pragma once
 #include "archo.h"
 
-class ZMachO {
-public:
+class ZMachO
+{
+  public:
     ZMachO();
     ~ZMachO();
 
-public:
+  public:
     bool Init(const char *szFile);
     bool InitV(const char *szFormatPath, ...);
     bool Free();
@@ -30,7 +31,7 @@ public:
     std::vector<std::string> ListDylibs();
     bool RemoveDylib(const std::set<std::string> &dylibNames);
 
-private:
+  private:
     bool OpenFile(const char *szPath);
     bool CloseFile();
 
@@ -38,7 +39,7 @@ private:
     void FreeArchOes();
     bool ReallocCodeSignSpace();
 
-private:
+  private:
     size_t m_sSize;
     string m_strFile;
     uint8_t *m_pBase;

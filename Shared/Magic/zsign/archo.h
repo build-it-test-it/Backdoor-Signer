@@ -14,13 +14,14 @@
 /**
  * Class for manipulating Mach-O architecture files
  */
-class ZArchO {
-public:
+class ZArchO
+{
+  public:
     /**
      * Default constructor
      */
     ZArchO();
-    
+
     /**
      * Initializes the object with Mach-O binary data
      *
@@ -30,7 +31,7 @@ public:
      */
     bool Init(uint8_t *pBase, uint32_t uLength);
 
-public:
+  public:
     /**
      * Signs the Mach-O binary
      *
@@ -44,19 +45,19 @@ public:
      */
     bool Sign(ZSignAsset *pSignAsset, bool bForce, const string &strBundleId, const string &strInfoPlistSHA1,
               const string &strInfoPlistSHA256, const string &strCodeResourcesData);
-    
+
     /**
      * Prints information about the Mach-O binary
      */
     void PrintInfo() const;
-    
+
     /**
      * Checks if the binary is an executable
      *
      * @return true if executable, false otherwise
      */
     bool IsExecute();
-    
+
     /**
      * Injects a dylib into the binary
      *
@@ -66,7 +67,7 @@ public:
      * @return true if injection succeeded, false otherwise
      */
     bool InjectDyLib(bool bWeakInject, const char *szDyLibPath, bool &bCreate);
-    
+
     /**
      * Reallocates code signing space
      *
@@ -74,14 +75,14 @@ public:
      * @return The size of the reallocated space
      */
     uint32_t ReallocCodeSignSpace(const string &strNewFile);
-    
+
     /**
      * Uninstalls dylibs from the binary
      *
      * @param dylibNames Set of dylib names to uninstall
      */
     void uninstallDylibs(const set<string> &dylibNames);
-    
+
     /**
      * Changes a dylib path in the binary
      *
@@ -90,7 +91,7 @@ public:
      * @return true if change succeeded, false otherwise
      */
     bool ChangeDylibPath(const char *oldPath, const char *newPath);
-    
+
     /**
      * Lists all dylibs used by the binary
      *
@@ -98,7 +99,7 @@ public:
      */
     std::vector<std::string> ListDylibs();
 
-private:
+  private:
     /**
      * Byte-order swaps a value if needed
      *
@@ -106,7 +107,7 @@ private:
      * @return Byte-swapped value if big-endian, original value if little-endian
      */
     uint32_t BO(uint32_t uValue) const;
-    
+
     /**
      * Gets the file type name for a file type code
      *
@@ -114,7 +115,7 @@ private:
      * @return String representation of the file type
      */
     static const char *GetFileType(uint32_t uFileType);
-    
+
     /**
      * Gets architecture name for CPU type and subtype
      *
@@ -123,7 +124,7 @@ private:
      * @return String representation of the architecture
      */
     static const char *GetArch(int cpuType, int cpuSubType);
-    
+
     /**
      * Builds code signature for the binary
      *
@@ -142,49 +143,49 @@ private:
                             const string &strCodeResourcesSHA1, const string &strCodeResourcesSHA256,
                             string &strOutput);
 
-public:
+  public:
     /** Pointer to the base of the Mach-O binary data */
     uint8_t *m_pBase;
-    
+
     /** Total length of the binary data */
     uint32_t m_uLength;
-    
+
     /** Length of the code section */
     uint32_t m_uCodeLength;
-    
+
     /** Pointer to the signature section base */
     uint8_t *m_pSignBase;
-    
+
     /** Length of the signature section */
     uint32_t m_uSignLength;
-    
+
     /** Contents of the Info.plist file */
     string m_strInfoPlist;
-    
+
     /** Whether the binary is encrypted */
     bool m_bEncrypted;
-    
+
     /** Whether the binary is 64-bit */
     bool m_b64;
-    
+
     /** Whether the binary uses big-endian byte order */
     bool m_bBigEndian;
-    
+
     /** Whether there's enough space for code signing */
     bool m_bEnoughSpace;
-    
+
     /** Pointer to the code signature segment */
     uint8_t *m_pCodeSignSegment;
-    
+
     /** Pointer to the link edit segment */
     uint8_t *m_pLinkEditSegment;
-    
+
     /** Available free space in load commands */
     uint32_t m_uLoadCommandsFreeSpace;
-    
+
     /** Pointer to the Mach-O header */
     mach_header *m_pHeader;
-    
+
     /** Size of the Mach-O header */
     uint32_t m_uHeaderSize;
 };

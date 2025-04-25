@@ -11,40 +11,40 @@
 #define JSON_INCLUDED
 
 // Basic system headers
+#include <stdint.h> // Standard integer types
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>  // Standard integer types
 
 #ifdef _WIN32
-    // Additional Windows-specific headers if needed
-    #if defined(_MSC_VER) && _MSC_VER < 1600
-        // Only define these for really old Visual Studio versions without stdint.h
-        // We check that they're not already defined to avoid conflicts
-        #ifndef int8_t
-            typedef signed char int8_t;
-        #endif
-        #ifndef int16_t
-            typedef short int int16_t;
-        #endif
-        #ifndef int32_t
-            typedef int int32_t;
-        #endif
-        #ifndef int64_t
-            typedef long long int int64_t;
-        #endif
-        #ifndef uint8_t
-            typedef unsigned char uint8_t;
-        #endif
-        #ifndef uint16_t
-            typedef unsigned short int uint16_t;
-        #endif
-        #ifndef uint32_t
-            typedef unsigned int uint32_t;
-        #endif
-        #ifndef uint64_t
-            typedef unsigned long long int uint64_t;
-        #endif
-    #endif
+// Additional Windows-specific headers if needed
+#if defined(_MSC_VER) && _MSC_VER < 1600
+// Only define these for really old Visual Studio versions without stdint.h
+// We check that they're not already defined to avoid conflicts
+#ifndef int8_t
+typedef signed char int8_t;
+#endif
+#ifndef int16_t
+typedef short int int16_t;
+#endif
+#ifndef int32_t
+typedef int int32_t;
+#endif
+#ifndef int64_t
+typedef long long int int64_t;
+#endif
+#ifndef uint8_t
+typedef unsigned char uint8_t;
+#endif
+#ifndef uint16_t
+typedef unsigned short int uint16_t;
+#endif
+#ifndef uint32_t
+typedef unsigned int uint32_t;
+#endif
+#ifndef uint64_t
+typedef unsigned long long int uint64_t;
+#endif
+#endif
 #endif
 
 #include <algorithm>
@@ -56,9 +56,11 @@
 #include <vector>
 using namespace std;
 
-class JValue {
-public:
-    enum TYPE {
+class JValue
+{
+  public:
+    enum TYPE
+    {
         E_NULL = 0,
         E_INT,
         E_BOOL,
@@ -70,55 +72,55 @@ public:
         E_DATA,
     };
 
-public:
+  public:
     /**
      * Constructor that creates a JValue of the specified type
      * @param type The type of JValue to create (default is null)
      */
     explicit JValue(TYPE type = E_NULL);
-    
+
     /**
      * Constructor that creates a JValue from an integer
      * @param val The integer value
      */
     explicit JValue(int val);
-    
+
     /**
      * Constructor that creates a JValue from a boolean
      * @param val The boolean value
      */
     explicit JValue(bool val);
-    
+
     /**
      * Constructor that creates a JValue from a double
      * @param val The double value
      */
     explicit JValue(double val);
-    
+
     /**
      * Constructor that creates a JValue from a 64-bit integer
      * @param val The 64-bit integer value
      */
     explicit JValue(int64_t val);
-    
+
     /**
      * Constructor that creates a JValue from a C-string
      * @param val The C-string value
      */
     explicit JValue(const char *val);
-    
+
     /**
      * Constructor that creates a JValue from a C++ string
      * @param val The string value
      */
     explicit JValue(const string &val);
-    
+
     /**
      * Copy constructor
      * @param other The JValue to copy
      */
     JValue(const JValue &other);
-    
+
     /**
      * Constructor that creates a JValue from a C-string of specified length
      * @param val The C-string value
@@ -127,7 +129,7 @@ public:
     explicit JValue(const char *val, size_t len);
     ~JValue();
 
-public:
+  public:
     int asInt() const;
     bool asBool() const;
     double asFloat() const;
@@ -223,18 +225,19 @@ public:
 
     friend bool operator!=(const char *psz, const JValue &jv) { return (0 != strcmp(jv.asCString(), psz)); }
 
-private:
+  private:
     void Free();
     char *NewString(const char *cstr);
     void CopyValue(const JValue &src);
     bool WriteDataToFile(const char *file, const char *data, size_t len);
 
-public:
+  public:
     static const JValue null;
     static const string nullData;
 
-private:
-    union HOLD {
+  private:
+    union HOLD
+    {
         bool vBool;
         double vFloat;
         int64_t vInt64;
@@ -248,7 +251,7 @@ private:
 
     TYPE m_eType;
 
-public:
+  public:
     string write() const;
     const char *write(string &strDoc) const;
 
@@ -278,19 +281,14 @@ public:
     bool styleWritePath(const char *path, ...);
 };
 
-class JReader {
-public:
+class JReader
+{
+  public:
     /**
      * Default constructor that initializes member variables
      */
-    JReader() 
-        : m_pBeg(nullptr)
-        , m_pEnd(nullptr)
-        , m_pCur(nullptr)
-        , m_pErr(nullptr)
-    {
-    }
-    
+    JReader() : m_pBeg(nullptr), m_pEnd(nullptr), m_pCur(nullptr), m_pErr(nullptr) {}
+
     /**
      * Parses a JSON document string into a JValue object
      *
@@ -299,7 +297,7 @@ public:
      * @return True if parsing succeeded, false otherwise
      */
     bool parse(const char *pdoc, JValue &root);
-    
+
     /**
      * Gets the error message if parsing failed
      *
@@ -307,9 +305,11 @@ public:
      */
     void error(string &strmsg) const;
 
-private:
-    struct Token {
-        enum TYPE {
+  private:
+    struct Token
+    {
+        enum TYPE
+        {
             E_Error = 0,
             E_End,
             E_Null,
@@ -349,7 +349,7 @@ private:
     char GetNextChar();
     bool addError(const string &message, const char *ploc);
 
-private:
+  private:
     const char *m_pBeg;
     const char *m_pEnd;
     const char *m_pCur;
@@ -357,43 +357,40 @@ private:
     string m_strErr;
 };
 
-class JWriter {
-public:
+class JWriter
+{
+  public:
     /**
      * Default constructor that initializes member variables
      */
-    JWriter() 
-        : m_strTab("")
-        , m_bAddChild(false)
-    {
-    }
-    
+    JWriter() : m_strTab(""), m_bAddChild(false) {}
+
     /**
      * Static method to quickly write a JValue to a string
-     * 
+     *
      * @param jval The JValue to convert to a string
      * @param strDoc Reference to a string to receive the output
      */
     static void FastWrite(const JValue &jval, string &strDoc);
-    
+
     /**
      * Static method to quickly write a JValue to a string
-     * 
+     *
      * @param jval The JValue to convert to a string
      * @param strDoc Reference to a string to receive the output
      */
     static void FastWriteValue(const JValue &jval, string &strDoc);
 
-public:
+  public:
     const string &StyleWrite(const JValue &jval);
 
-private:
+  private:
     void PushValue(const string &strval);
     void StyleWriteValue(const JValue &jval);
     void StyleWriteArrayValue(const JValue &jval);
     bool isMultineArray(const JValue &jval);
 
-public:
+  public:
     static string v2s(double val);
     static string v2s(int64_t val);
     static string v2s(const char *val);
@@ -401,7 +398,7 @@ public:
     static string vstring2s(const char *val);
     static string d2s(time_t t);
 
-private:
+  private:
     string m_strDoc;
     string m_strTab;
     bool m_bAddChild;
@@ -409,17 +406,20 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class PReader {
-public:
+class PReader
+{
+  public:
     PReader();
 
-public:
+  public:
     bool parse(const char *pdoc, size_t len, JValue &root);
     void error(string &strmsg) const;
 
-private:
-    struct Token {
-        enum TYPE {
+  private:
+    struct Token
+    {
+        enum TYPE
+        {
             E_Error = 0,
             E_End,
             E_Null,
@@ -441,7 +441,8 @@ private:
             E_MemberSeparator
         };
 
-        Token() {
+        Token()
+        {
             pbeg = NULL;
             pend = NULL;
             type = E_Error;
@@ -470,10 +471,10 @@ private:
     void skipSpaces();
     bool addError(const string &message, const char *ploc);
 
-public:
+  public:
     bool parseBinary(const char *pbdoc, size_t len, JValue &pv);
 
-private:
+  private:
     uint32_t getUInt24FromBE(const char *v);
     void byteConvert(uint8_t *v, size_t size);
     uint64_t getUIntVal(const char *v, size_t size);
@@ -481,17 +482,17 @@ private:
     bool readBinaryValue(const char *&pcur, JValue &pv);
     bool readUnicode(const char *pcur, size_t size, JValue &pv);
 
-public:
+  public:
     static void XMLUnescape(string &strval);
 
-private: // xml
+  private: // xml
     const char *m_pBeg;
     const char *m_pEnd;
     const char *m_pCur;
     const char *m_pErr;
     string m_strErr;
 
-private: // binary
+  private: // binary
     const char *m_pTrailer;
     uint64_t m_uObjects;
     uint8_t m_uOffsetSize;
@@ -499,12 +500,13 @@ private: // binary
     uint8_t m_uDictParamSize;
 };
 
-class PWriter {
-public:
+class PWriter
+{
+  public:
     static void FastWrite(const JValue &pval, string &strdoc);
     static void FastWriteValue(const JValue &pval, string &strdoc, string &strindent);
 
-public:
+  public:
     static void XMLEscape(string &strval);
     static string &StringReplace(string &context, const string &from, const string &to);
 };
