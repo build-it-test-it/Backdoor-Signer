@@ -258,7 +258,7 @@ class EnhancedDropboxDeviceIdentifier {
         envInfo["locale"] = Locale.current.identifier
 
         // Add device orientation
-        envInfo["orientation"] = UIDevice.current.orientation.description
+        envInfo["orientation"] = deviceOrientationToString(UIDevice.current.orientation)
 
         // Add battery state if available
         UIDevice.current.isBatteryMonitoringEnabled = true
@@ -312,33 +312,31 @@ extension FileManager {
     }
 }
 
-// MARK: - UIDevice.BatteryState Extension
+// MARK: - UIDevice.BatteryState Helper
 
-extension UIDevice.BatteryState: CustomStringConvertible {
-    public var description: String {
-        switch self {
-        case .charging: return "Charging"
-        case .full: return "Full"
-        case .unplugged: return "Unplugged"
-        case .unknown: return "Unknown"
-        @unknown default: return "Undefined"
-        }
+/// Helper function to convert battery state to string for diagnostics
+private func batteryStateToString(_ state: UIDevice.BatteryState) -> String {
+    switch state {
+    case .charging: return "Charging"
+    case .full: return "Full"
+    case .unplugged: return "Unplugged"
+    case .unknown: return "Unknown"
+    @unknown default: return "Undefined"
     }
 }
 
-// MARK: - UIDeviceOrientation Extension
+// MARK: - UIDeviceOrientation Helper
 
-extension UIDeviceOrientation: CustomStringConvertible {
-    public var description: String {
-        switch self {
-        case .portrait: return "Portrait"
-        case .portraitUpsideDown: return "Portrait Upside Down"
-        case .landscapeLeft: return "Landscape Left"
-        case .landscapeRight: return "Landscape Right"
-        case .faceUp: return "Face Up"
-        case .faceDown: return "Face Down"
-        case .unknown: return "Unknown"
-        @unknown default: return "Undefined"
-        }
+/// Helper function to convert device orientation to string for diagnostics
+private func deviceOrientationToString(_ orientation: UIDeviceOrientation) -> String {
+    switch orientation {
+    case .portrait: return "Portrait"
+    case .portraitUpsideDown: return "Portrait Upside Down"
+    case .landscapeLeft: return "Landscape Left"
+    case .landscapeRight: return "Landscape Right"
+    case .faceUp: return "Face Up"
+    case .faceDown: return "Face Down"
+    case .unknown: return "Unknown"
+    @unknown default: return "Undefined"
     }
 }

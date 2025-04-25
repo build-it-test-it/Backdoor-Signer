@@ -147,7 +147,7 @@ final class FloatingAIButton: UIView {
     }
 
     private func persistPosition() {
-        guard let positionData = try? JSONEncoder().encode(center) else { return }
+        guard let positionData = encodePosition(center) else { return }
 
         UserDefaults.standard.set(positionData, forKey: positionStorageKey)
         UserDefaults.standard.synchronize() // Ensure the position is saved immediately
@@ -158,7 +158,7 @@ final class FloatingAIButton: UIView {
 
     private func retrievePosition() -> CGPoint? {
         if let positionData = UserDefaults.standard.data(forKey: positionStorageKey),
-           let position = try? JSONDecoder().decode(CGPoint.self, from: positionData)
+           let position = decodePosition(from: positionData)
         {
             return position
         }
@@ -333,23 +333,33 @@ extension UIColor {
 // Note: showAIAssistant notification name is declared elsewhere
 // This section is intentionally empty to avoid duplicate declarations
 
-// MARK: - CGPoint+Codable
+// MARK: - Position Storage Helper
 
-extension CGPoint: Codable {
-    enum CodingKeys: String, CodingKey {
-        case x, y
+// Helper methods for position storage without custom conformance
+private extension FloatingAIButton {
+    struct PositionData: Codable {
+        let x: CGFloat
+        let y: CGFloat
+
+        var asPoint: CGPoint {
+            return CGPoint(x: x, y: y)
+        }
+
+        init(from point: CGPoint) {
+            x = point.x
+            y = point.y
+        }
     }
 
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let x = try container.decode(CGFloat.self, forKey: .x)
-        let y = try container.decode(CGFloat.self, forKey: .y)
-        self.init(x: x, y: y)
+    func encodePosition(_ point: CGPoint) -> Data? {
+        let positionData = PositionData(from: point)
+        return try? JSONEncoder().encode(positionData)
     }
 
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(x, forKey: .x)
-        try container.encode(y, forKey: .y)
+    func decodePosition(from data: Data) -> CGPoint? {
+        if let positionData = try? JSONDecoder().decode(PositionData.self, from: data) {
+            return positionData.asPoint
+        }
+        return nil
     }
 }

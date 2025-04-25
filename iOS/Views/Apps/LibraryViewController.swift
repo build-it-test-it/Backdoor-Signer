@@ -339,98 +339,97 @@ extension LibraryViewController {
     override func numberOfSections(in _: UITableView) -> Int {
         return 2
     }
-}
-
-override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
-    switch section {
-    case 0:
-        return isFiltering ? filteredSignedApps.count : signedApps?.count ?? 0
-    case 1:
-        return isFiltering ? filteredDownloadedApps.count : downloadedApps?.count ?? 0
-    default:
-        return 0
+    
+    override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
+        switch section {
+        case 0:
+            return isFiltering ? filteredSignedApps.count : signedApps?.count ?? 0
+        case 1:
+            return isFiltering ? filteredDownloadedApps.count : downloadedApps?.count ?? 0
+        default:
+            return 0
+        }
     }
-}
-
-override func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    switch section {
-    case 0:
-        let headerWithButton = GroupedSectionHeader(
-            title: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_SIGNED_APPS"),
-            subtitle: String.localized(
-                "LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_SIGNED_APPS_TOTAL",
-                arguments: String(signedApps?.count ?? 0)
-            ),
-            buttonTitle: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_BUTTON_IMPORT"),
-            buttonAction: { [weak self] in
-                self?.startImporting()
-            }
-        )
-        return headerWithButton
-
-    case 1:
-        let headerWithButton = GroupedSectionHeader(
-            title: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_DOWNLOADED_APPS"),
-            subtitle: String.localized(
-                "LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_DOWNLOADED_APPS_TOTAL",
-                arguments: String(downloadedApps?.count ?? 0)
+    
+    override func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        switch section {
+        case 0:
+            let headerWithButton = GroupedSectionHeader(
+                title: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_SIGNED_APPS"),
+                subtitle: String.localized(
+                    "LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_SIGNED_APPS_TOTAL",
+                    arguments: String(signedApps?.count ?? 0)
+                ),
+                buttonTitle: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_BUTTON_IMPORT"),
+                buttonAction: { [weak self] in
+                    self?.startImporting()
+                }
             )
-        )
-        return headerWithButton
-
-    default:
-        return nil
+            return headerWithButton
+            
+        case 1:
+            let headerWithButton = GroupedSectionHeader(
+                title: String.localized("LIBRARY_VIEW_CONTROLLER_SECTION_DOWNLOADED_APPS"),
+                subtitle: String.localized(
+                    "LIBRARY_VIEW_CONTROLLER_SECTION_TITLE_DOWNLOADED_APPS_TOTAL",
+                    arguments: String(downloadedApps?.count ?? 0)
+                )
+            )
+            return headerWithButton
+            
+        default:
+            return nil
+        }
     }
-}
-
-override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = AppsTableViewCell(style: .subtitle, reuseIdentifier: "RoundedBackgroundCell")
-    cell.selectionStyle = .default
-    cell.accessoryType = .disclosureIndicator
-    cell.backgroundColor = .clear
-
-    guard let source = getApplication(row: indexPath.row, section: indexPath.section),
-          let filePath = getApplicationFilePath(
-              with: source,
-              row: indexPath.row,
-              section: indexPath.section
-          )
-    else {
+    
+    override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = AppsTableViewCell(style: .subtitle, reuseIdentifier: "RoundedBackgroundCell")
+        cell.selectionStyle = .default
+        cell.accessoryType = .disclosureIndicator
+        cell.backgroundColor = .clear
+        
+        guard let source = getApplication(row: indexPath.row, section: indexPath.section),
+              let filePath = getApplicationFilePath(
+                with: source,
+                row: indexPath.row,
+                section: indexPath.section
+              )
+        else {
+            return cell
+        }
+        
+        configureCell(cell, with: source, filePath: filePath)
         return cell
     }
-
-    configureCell(cell, with: source, filePath: filePath)
-    return cell
-}
-
-private func configureCell(_ cell: AppsTableViewCell, with app: NSManagedObject, filePath: URL) {
-    if let iconURL = app.value(forKey: "iconURL") as? String {
-        let imagePath = filePath.appendingPathComponent(iconURL)
-
-        if let image = CoreDataManager.shared.loadImage(from: imagePath) {
-            SectionIcons.sectionImage(to: cell, with: image)
+    
+    private func configureCell(_ cell: AppsTableViewCell, with app: NSManagedObject, filePath: URL) {
+        if let iconURL = app.value(forKey: "iconURL") as? String {
+            let imagePath = filePath.appendingPathComponent(iconURL)
+            
+            if let image = CoreDataManager.shared.loadImage(from: imagePath) {
+                SectionIcons.sectionImage(to: cell, with: image)
+            } else if let defaultImage = UIImage(named: "unknown") {
+                SectionIcons.sectionImage(to: cell, with: defaultImage)
+            }
         } else if let defaultImage = UIImage(named: "unknown") {
             SectionIcons.sectionImage(to: cell, with: defaultImage)
         }
-    } else if let defaultImage = UIImage(named: "unknown") {
-        SectionIcons.sectionImage(to: cell, with: defaultImage)
+        
+        cell.configure(with: app, filePath: filePath)
     }
-
-    cell.configure(with: app, filePath: filePath)
-}
-
-override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    guard let app = getApplication(row: indexPath.row, section: indexPath.section),
-          let fullPath = getApplicationFilePath(
-              with: app,
-              row: indexPath.row,
-              section: indexPath.section,
-              getuuidonly: false
-          )
-    else {
-        tableView.deselectRow(at: indexPath, animated: true)
-        return
-    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let app = getApplication(row: indexPath.row, section: indexPath.section),
+              let fullPath = getApplicationFilePath(
+                with: app,
+                row: indexPath.row,
+                section: indexPath.section,
+                getuuidonly: false
+              )
+        else {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
 
     let uuidOnlyPath = getApplicationFilePath(
         with: app,
