@@ -124,23 +124,22 @@ extension AppsInformationViewController: UITableViewDelegate, UITableViewDataSou
     func numberOfSections(in _: UITableView) -> Int {
         return sectionTitles.count
     }
-    
+
     func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         return tableData[section].count
     }
-    
+
     func tableView(_: UITableView, titleForHeaderInSection section: Int) -> String? {
         return sectionTitles[section]
     }
-    
+
     func tableView(_: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return sectionTitles[section].isEmpty ? 5 : 40
     }
 
     func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let title = sectionTitles[section]
-        let headerView = InsetGroupedSectionHeader(title: title)
-        return headerView
+        return InsetGroupedSectionHeader(title: title)
     }
 
     func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
@@ -173,20 +172,20 @@ extension AppsInformationViewController: UITableViewDelegate, UITableViewDataSou
             // cell.detailTextLabel?.textAlignment = .center
             cell.textLabel?.numberOfLines = 0
             cell.detailTextLabel?.numberOfLines = 0
-            
+
         case String.localized("APPS_INFORMATION_TITLE_NAME"):
             if let appName = source.value(forKey: "name") as? String {
                 cell.detailTextLabel?.text = appName
             }
-            
+
         case String.localized("APPS_INFORMATION_TITLE_VERSION"):
             if let version = source.value(forKey: "version") as? String {
                 cell.detailTextLabel?.text = version
             }
-            
+
         case String.localized("APPS_INFORMATION_TITLE_SIZE"):
             cell.detailTextLabel?.text = "test"
-            
+
         case String.localized("APPS_INFORMATION_TITLE_DATE_ADDED"):
             if let dateAdded = source.value(forKey: "dateAdded") as? Date {
                 let dateFormatter = DateFormatter()
@@ -194,45 +193,45 @@ extension AppsInformationViewController: UITableViewDelegate, UITableViewDataSou
                 let dateString = dateFormatter.string(from: dateAdded)
                 cell.detailTextLabel?.text = dateString
             }
-            
+
         case String.localized("APPS_INFORMATION_TITLE_BUNDLE_NAME"):
             if let appPath = source.value(forKey: "appPath") as? String {
                 cell.detailTextLabel?.text = appPath
             }
-            
+
         case String.localized("APPS_INFORMATION_TITLE_IDENTIFIER"):
             if let bundleID = source.value(forKey: "bundleidentifier") as? String {
                 cell.detailTextLabel?.text = bundleID
             }
-            
+
         case String.localized("APPS_INFORMATION_TITLE_ICON_FILE"):
             if let iconURL = source.value(forKey: "iconURL") as? String {
                 cell.detailTextLabel?.text = iconURL
             }
-            
+
         case "UUID":
             if let uuid = source.value(forKey: "uuid") as? String {
                 cell.detailTextLabel?.text = uuid
             }
-            
+
         case String.localized("APPS_INFORMATION_TITLE_BUNDLE_PATH"):
             cell.detailTextLabel?.text = filePath.path
-            
+
         case String.localized("APPS_INFORMATION_TITLE_OPEN_IN_FILES"):
             cell.textLabel?.textColor = Preferences.appTintColor.uiColor
             cell.textLabel?.textAlignment = .center
             cell.selectionStyle = .default
-            
+
         default:
             break
         }
-        
+
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let itemTapped = tableData[indexPath.section][indexPath.row]
-        
+
         switch itemTapped {
         case String.localized("APPS_INFORMATION_TITLE_OPEN_IN_FILES"):
             guard let fileURL = filePath else {
@@ -255,7 +254,7 @@ extension AppsInformationViewController: UITableViewDelegate, UITableViewDataSou
                     }
                 }
             }
-            
+
         default:
             break
         }

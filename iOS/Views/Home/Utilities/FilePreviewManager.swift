@@ -48,7 +48,7 @@ class FilePreviewManager {
 
             // Text and code
             "txt", "rtf", "md", "json", "xml", "csv",
-            "swift", "h", "m", "c", "cpp", "py", "js", "html", "css",
+            "swift", "h", "m", "c", "cpp", "py", "js", "html", "css"
         ]
     }
 

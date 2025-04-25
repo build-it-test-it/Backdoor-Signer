@@ -44,7 +44,7 @@ class SettingsHeaderTableViewCell: UITableViewCell {
             versionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
             versionLabel.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 16),
             versionLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16),
-            versionLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+            versionLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
         ])
     }
 

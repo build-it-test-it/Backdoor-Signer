@@ -32,7 +32,7 @@ class DirectoryViewController: HomeViewController {
     }
 
     // MARK: - Lifecycle
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupFileManagementUI() // Call the setup method from the extension
@@ -43,11 +43,6 @@ class DirectoryViewController: HomeViewController {
     /// Override documentsDirectory to use the specified directory URL
     override var documentsDirectory: URL {
         return directoryURL
-    }
-
-    /// Load files from the directory URL
-    override func loadFiles() {
-        super.loadFiles()
     }
 
     /// Reload content when returning to view

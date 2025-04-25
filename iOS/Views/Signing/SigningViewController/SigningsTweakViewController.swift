@@ -97,7 +97,7 @@ extension SigningsTweakViewController: UIDocumentPickerDelegate {
     func importFile() {
         self.presentDocumentPicker(fileExtension: [
             UTType(filenameExtension: "deb")!,
-            UTType(filenameExtension: "dylib")!,
+            UTType(filenameExtension: "dylib")!
         ])
     }
 
@@ -177,7 +177,7 @@ class ProductCollectionViewCell: UICollectionViewCell {
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
             imageView.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.4),
-            stackView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            stackView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
         ])
     }
 }

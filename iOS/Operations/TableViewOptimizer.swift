@@ -270,8 +270,7 @@ extension TableViewOptimizer: UITableViewDataSourcePrefetching {
             if let object = fetchedResultsController?.object(at: indexPath) {
                 // Check if object has an image URL property
                 if let imageURLString = object.value(forKey: "iconURL") as? String,
-                   let imageURL = URL(string: imageURLString)
-                {
+                   let imageURL = URL(string: imageURLString) {
                     // Prefetch image for this object
                     ImageCache.shared.loadImage(from: imageURL, completion: { _ in })
                 }
@@ -284,8 +283,7 @@ extension TableViewOptimizer: UITableViewDataSourcePrefetching {
         for indexPath in indexPaths {
             if let object = fetchedResultsController?.object(at: indexPath) {
                 if let imageURLString = object.value(forKey: "iconURL") as? String,
-                   let imageURL = URL(string: imageURLString)
-                {
+                   let imageURL = URL(string: imageURLString) {
                     ImageCache.shared.cancelLoading(for: imageURL)
                 }
             }
@@ -303,8 +301,7 @@ extension TableViewOptimizer: NSFetchedResultsControllerDelegate {
     func controller(_: NSFetchedResultsController<NSFetchRequestResult>,
                     didChange _: NSFetchedResultsSectionInfo,
                     atSectionIndex sectionIndex: Int,
-                    for type: NSFetchedResultsChangeType)
-    {
+                    for type: NSFetchedResultsChangeType) {
         switch type {
             case .insert:
                 tableView?.insertSections(IndexSet(integer: sectionIndex), with: .fade)
@@ -321,8 +318,7 @@ extension TableViewOptimizer: NSFetchedResultsControllerDelegate {
                     didChange _: Any,
                     at indexPath: IndexPath?,
                     for type: NSFetchedResultsChangeType,
-                    newIndexPath: IndexPath?)
-    {
+                    newIndexPath: IndexPath?) {
         switch type {
             case .insert:
                 if let newIndexPath = newIndexPath {
@@ -428,7 +424,7 @@ class SkeletonLoadingCell: UITableViewCell {
             subtitleView.leadingAnchor.constraint(equalTo: titleView.leadingAnchor),
             subtitleView.topAnchor.constraint(equalTo: titleView.bottomAnchor, constant: 8),
             subtitleView.widthAnchor.constraint(equalTo: titleView.widthAnchor, multiplier: 0.7),
-            subtitleView.heightAnchor.constraint(equalToConstant: 12),
+            subtitleView.heightAnchor.constraint(equalToConstant: 12)
         ])
 
         // Add gradient layers for shimmer effect
@@ -448,7 +444,7 @@ class SkeletonLoadingCell: UITableViewCell {
             gradientLayer.colors = [
                 UIColor.systemGray5.cgColor,
                 UIColor.systemGray4.cgColor,
-                UIColor.systemGray5.cgColor,
+                UIColor.systemGray5.cgColor
             ]
 
             // Set locations for shimmer effect

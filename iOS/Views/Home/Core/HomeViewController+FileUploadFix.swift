@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
 
 /// Extension to fix file upload functionality in Home tab
 extension HomeViewController {
-    
+
     /// Enhanced file import function with improved security-scoped resource handling
     @objc func enhancedImportFile() {
         // Improved security-scoped resource access with proper feedback
@@ -22,22 +22,22 @@ extension HomeViewController {
             UTType.zip,
             UTType.data
         ]
-        
+
         // Create document picker with proper configuration
         let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: documentTypes)
         documentPicker.delegate = self
         documentPicker.allowsMultipleSelection = true
-        
+
         // Apply LED styling to indicate active state
         addLEDEffectsToDocumentPicker(documentPicker)
-        
+
         // Present the document picker
         present(documentPicker, animated: true) {
             // Log the presentation for debugging
             Debug.shared.log(message: "Document picker presented for file import", type: .info)
         }
     }
-    
+
     /// Apply LED effects to document picker for better visibility
     private func addLEDEffectsToDocumentPicker(_ picker: UIDocumentPickerViewController) {
         // We need to wait until the picker is presented to apply effects
@@ -55,36 +55,36 @@ extension HomeViewController {
             }
         }
     }
-    
+
     /// Fixed implementation for document picker delegate method
     // Renamed to avoid conflict with base implementation
     func documentPickerExtension(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         // Enable activity indicator to show loading state
         activityIndicator.startAnimating()
-        
+
         // Process documents in background to keep UI responsive
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             // Use dispatch group to track completion of all imports
             let importGroup = DispatchGroup()
-            
+
             // Track success/failure counts
             var successCount = 0
             var failureCount = 0
             var failures: [String] = []
-            
+
             // Process each URL
             for url in urls {
                 importGroup.enter()
-                
+
                 // Start accessing security-scoped resource
                 let canAccess = url.startAccessingSecurityScopedResource()
-                
+
                 if canAccess {
                     Debug.shared.log(message: "Started accessing security-scoped resource for \(url.lastPathComponent)", type: .info)
                 } else {
                     Debug.shared.log(message: "Failed to get security-scoped resource access for \(url.lastPathComponent)", type: .warning)
                 }
-                
+
                 // Use defer to ensure we stop accessing the resource even if an error occurs
                 defer {
                     if canAccess {
@@ -92,16 +92,16 @@ extension HomeViewController {
                         Debug.shared.log(message: "Stopped accessing security-scoped resource", type: .debug)
                     }
                 }
-                
+
                 do {
                     // Check if the file still exists
                     guard FileManager.default.fileExists(atPath: url.path) else {
                         throw FileAppError.fileNotFound(url.lastPathComponent)
                     }
-                    
+
                     // Process the file
                     try self?.processImportedFile(url: url)
-                    
+
                     // Update success counter
                     DispatchQueue.main.async {
                         successCount += 1
@@ -109,28 +109,28 @@ extension HomeViewController {
                 } catch {
                     // Log error
                     Debug.shared.log(message: "Error importing file \(url.lastPathComponent): \(error.localizedDescription)", type: .error)
-                    
+
                     // Update failure counter
                     DispatchQueue.main.async {
                         failureCount += 1
                         failures.append("\(url.lastPathComponent): \(error.localizedDescription)")
                     }
                 }
-                
+
                 // Mark this import as complete
                 importGroup.leave()
             }
-            
+
             // When all imports are complete
             importGroup.notify(queue: .main) { [weak self] in
                 guard let self = self else { return }
-                
+
                 // Stop the activity indicator
                 self.activityIndicator.stopAnimating()
-                
+
                 // Refresh file list
                 self.loadFiles()
-                
+
                 // Show result with LED indicator
                 if failureCount == 0 {
                     // All succeeded
@@ -142,7 +142,7 @@ extension HomeViewController {
                     // Mixed results
                     self.showLEDMixedResultMessage(successes: successCount, failures: failureCount)
                 }
-                
+
                 // Add haptic feedback
                 let feedbackType: UINotificationFeedbackGenerator.FeedbackType = failureCount == 0 ? .success : .warning
                 let generator = UINotificationFeedbackGenerator()
@@ -150,48 +150,48 @@ extension HomeViewController {
             }
         }
     }
-    
+
     /// Process a single imported file
     private func processImportedFile(url: URL) throws {
         // Get a unique filename that won't conflict with existing files
         let fileName = HomeViewController.getUniqueFileNameShared(for: url.lastPathComponent)
         let destinationURL = documentsDirectory.appendingPathComponent(fileName)
-        
+
         Debug.shared.log(message: "Processing import: \(url.path) to \(destinationURL.path)", type: .info)
-        
+
         // Create files directory if needed
         try FileManager.default.createDirectory(
             at: documentsDirectory,
             withIntermediateDirectories: true,
             attributes: nil
         )
-        
+
         // Process ZIP files specially
         if url.pathExtension.lowercased() == "zip" {
             try FileManager.default.unzipItem(at: url, to: documentsDirectory)
             return
         }
-        
+
         // For regular files, copy to destination
         try FileManager.default.copyItem(at: url, to: destinationURL)
-        
+
         // Verify the copy was successful
         guard FileManager.default.fileExists(atPath: destinationURL.path) else {
             throw FileAppError.fileCreationFailed(fileName)
         }
     }
-    
+
     /// Show a success message with LED effect
     private func showLEDSuccessMessage(count: Int) {
         let message = count == 1 ? "File imported successfully" : "\(count) files imported successfully"
         showLEDIndicator(type: .success, message: message)
     }
-    
+
     /// Show an error message with LED effect
     private func showLEDErrorMessage(failures: [String]) {
         let message = failures.count == 1 ? "Failed to import file: \(failures.first ?? "")" : "Failed to import \(failures.count) files"
         showLEDIndicator(type: .error, message: message)
-        
+
         // For multiple failures, also show a detailed report
         if failures.count > 1 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -205,13 +205,13 @@ extension HomeViewController {
             }
         }
     }
-    
+
     /// Show a mixed result message with LED effect
     private func showLEDMixedResultMessage(successes: Int, failures: Int) {
         let message = "Imported \(successes) files successfully, \(failures) failed"
         showLEDIndicator(type: .warning, message: message)
     }
-    
+
     /// Show an LED indicator with message
     private func showLEDIndicator(type: LEDIndicatorType, message: String) {
         // Create container view
@@ -221,7 +221,7 @@ extension HomeViewController {
         container.layer.cornerRadius = 10
         container.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(container)
-        
+
         // Create message label
         let label = UILabel()
         label.text = message
@@ -231,20 +231,20 @@ extension HomeViewController {
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(label)
-        
+
         // Layout
         NSLayoutConstraint.activate([
             container.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             container.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             container.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.8),
             container.heightAnchor.constraint(greaterThanOrEqualToConstant: 60),
-            
+
             label.topAnchor.constraint(equalTo: container.topAnchor, constant: 15),
             label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 15),
             label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -15),
             label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -15)
         ])
-        
+
         // Add LED glow effect
         container.addLEDEffect(
             color: type.glowColor,
@@ -253,12 +253,12 @@ extension HomeViewController {
             animated: true,
             animationDuration: 1.0
         )
-        
+
         // Animate in
         UIView.animate(withDuration: 0.3) {
             container.alpha = 1.0
         }
-        
+
         // Automatically hide after 3 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             UIView.animate(withDuration: 0.5, animations: {
@@ -268,7 +268,7 @@ extension HomeViewController {
             })
         }
     }
-    
+
     /// Alternative implementation of importFile
     @objc func enhancedImportFileMethod() {
         enhancedImportFile()
@@ -285,17 +285,17 @@ extension HomeViewController {
         case .warning: color = UIColor.systemOrange
         case .info: color = UIColor.systemBlue
         }
-        
+
         // Apply LED effect using the existing extension
         self.view.addLEDEffect(color: color, intensity: 0.8, spread: 5, animated: true)
     }
-    
+
     enum UploadStatus {
         case success
         case error
         case warning
         case info
-        
+
         var glowColor: UIColor {
             switch self {
             case .success: return .systemGreen

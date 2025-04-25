@@ -8,7 +8,7 @@
 import Foundation
 
 struct Language {
-    static var availableLanguages: [Language] {
+    static var availableLanguages: [Self] {
         return Bundle.main.localizations.compactMap { languageCode in
             // Skip over 'Base', it means nothing
             guard languageCode != "Base",
@@ -23,7 +23,7 @@ struct Language {
                 return nil
             }
 
-            return Language(
+            return Self(
                 displayName: displayName,
                 subtitleText: subtitle,
                 languageCode: languageCode

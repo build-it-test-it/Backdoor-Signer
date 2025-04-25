@@ -14,20 +14,20 @@ extension AppDelegate {
         if UserDefaults.standard.object(forKey: "show_terminal_button") == nil {
             UserDefaults.standard.set(true, forKey: "show_terminal_button")
         }
-        
+
         // Remove any existing server settings (now hardcoded)
         UserDefaults.standard.removeObject(forKey: "terminal_server_url")
         UserDefaults.standard.removeObject(forKey: "terminal_api_key")
-        
+
         // Register AI commands for terminal
         registerTerminalCommands()
-        
+
         // Initialize button manager
         _ = TerminalButtonManager.shared
-        
+
         Debug.shared.log(message: "Terminal components initialized", type: .info)
     }
-    
+
     /// Register terminal-related commands for AI assistant
     private func registerTerminalCommands() {
         // Command: open terminal
@@ -38,7 +38,7 @@ extension AppDelegate {
                 completion("Terminal opened")
             }
         }
-        
+
         // Command: execute shell
         AppContextManager.shared.registerCommand("shell") { command, completion in
             // Execute command through ProcessUtility
@@ -50,27 +50,27 @@ extension AppDelegate {
                 }
             }
         }
-        
+
         // Command: terminal settings
         AppContextManager.shared.registerCommand("terminal settings") { _, completion in
             DispatchQueue.main.async {
                 if let topVC = UIApplication.shared.topMostViewController() {
                     let settingsVC = TerminalSettingsViewController(style: .grouped)
-                    
+
                     // Present in navigation controller
                     let navController = UINavigationController(rootViewController: settingsVC)
                     topVC.present(navController, animated: true)
-                    
+
                     completion("Terminal settings opened")
                 } else {
                     completion("Could not open terminal settings")
                 }
             }
         }
-        
+
         Debug.shared.log(message: "Terminal commands registered with AI assistant", type: .info)
     }
-    
+
     /// Initialize terminal components after app launch
     func initializeTerminalAfterLaunch() {
         // Delay to allow UI to stabilize
@@ -81,7 +81,7 @@ extension AppDelegate {
             }
         }
     }
-    
+
     // Call this from applicationDidBecomeActive
     func restoreTerminalButtonIfNeeded() {
         if UserDefaults.standard.bool(forKey: "show_terminal_button") ?? true {

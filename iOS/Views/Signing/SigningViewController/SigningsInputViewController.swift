@@ -77,7 +77,7 @@ class SigningsInputViewController: UITableViewController {
                     NSLayoutConstraint.activate([
                         textField.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
                         textField.leadingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.leadingAnchor),
-                        textField.trailingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.trailingAnchor),
+                        textField.trailingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.trailingAnchor)
                     ])
                 }
 

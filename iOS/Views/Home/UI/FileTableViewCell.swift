@@ -48,7 +48,7 @@ class FileTableViewCell: UITableViewCell {
 
             fileDateLabel.leadingAnchor.constraint(equalTo: fileNameLabel.leadingAnchor),
             fileDateLabel.topAnchor.constraint(equalTo: fileSizeLabel.bottomAnchor, constant: 4),
-            fileDateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            fileDateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
         ])
 
         fileIconImageView.contentMode = .scaleAspectFit

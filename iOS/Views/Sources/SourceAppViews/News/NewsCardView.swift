@@ -11,9 +11,9 @@ import SwiftUI
 
 struct NewsCardView: View {
     // MARK: - Properties
-    
+
     var news: NewsData
-    
+
     private enum Constants {
         static let cardWidth: CGFloat = 250
         static let cardHeight: CGFloat = 150
@@ -29,7 +29,7 @@ struct NewsCardView: View {
     }
 
     // MARK: - Body
-    
+
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             renderBackgroundImage()
@@ -60,9 +60,9 @@ struct NewsCardView: View {
             )
         )
     }
-    
+
     // MARK: - View Components
-    
+
     @ViewBuilder
     private func renderBackgroundImage() -> some View {
         if news.imageURL != nil {
@@ -85,7 +85,7 @@ struct NewsCardView: View {
                             .tint(.white)
                     )
             }
-            
+
             // Gradient overlay
             LinearGradient(
                 gradient: Gradient(
@@ -99,7 +99,7 @@ struct NewsCardView: View {
             )
         }
     }
-    
+
     private func renderBlurOverlay() -> some View {
         VariableBlurView()
             .opacity(Constants.blurOpacity)
@@ -107,7 +107,7 @@ struct NewsCardView: View {
             .rotationEffect(.degrees(180))
             .padding(.top, Constants.topPadding)
     }
-    
+
     private func renderTitleContent() -> some View {
         VStack {
             Spacer()

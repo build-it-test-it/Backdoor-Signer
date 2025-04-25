@@ -66,7 +66,7 @@ final class NetworkManager {
 
     /// Directory for disk cache
     private let cacheDirectory: URL
-    
+
     /// Queue for cache cleanup operations
     private let cleanupQueue = DispatchQueue(label: "com.backdoor.NetworkManager.CleanupQueue", qos: .background)
 
@@ -91,7 +91,7 @@ final class NetworkManager {
         // Configure cache
         responseCache.name = "com.backdoor.NetworkManager.ResponseCache"
         responseCache.countLimit = 100 // Set a reasonable limit for in-memory cache
-        
+
         // Set total cost limit to 50MB (approximate)
         responseCache.totalCostLimit = 50 * 1024 * 1024
 
@@ -108,18 +108,18 @@ final class NetworkManager {
 
         // Clean expired caches
         cleanExpiredCaches()
-        
+
         // Register for memory warning notifications
-        NotificationCenter.default.addObserver(self, 
-                                              selector: #selector(handleMemoryWarning), 
-                                              name: UIApplication.didReceiveMemoryWarningNotification, 
+        NotificationCenter.default.addObserver(self,
+                                              selector: #selector(handleMemoryWarning),
+                                              name: UIApplication.didReceiveMemoryWarningNotification,
                                               object: nil)
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     @objc private func handleMemoryWarning() {
         // Clear memory cache on memory warning
         responseCache.removeAllObjects()
@@ -213,7 +213,7 @@ final class NetworkManager {
         // Clear disk cache
         cleanupQueue.async { [weak self] in
             guard let self = self else { return }
-            
+
             do {
                 let contents = try self.fileManager.contentsOfDirectory(at: self.cacheDirectory, includingPropertiesForKeys: nil)
                 for url in contents {
@@ -241,7 +241,7 @@ final class NetworkManager {
         useCache: Bool,
         completion: @escaping (Result<T, Error>) -> Void
     ) -> URLSessionTask {
-        let task = session.dataTask(with: request) { [weak self] data, response, error in
+        return session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
 
             // Remove from active operations
@@ -254,8 +254,7 @@ final class NetworkManager {
                 // Check if this is a connectivity issue that should be retried
                 if (error as NSError).code == NSURLErrorNotConnectedToInternet ||
                     (error as NSError).code == NSURLErrorTimedOut ||
-                    (error as NSError).code == NSURLErrorNetworkConnectionLost
-                {
+                    (error as NSError).code == NSURLErrorNetworkConnectionLost {
                     // Check if we should retry
                     if retryCount < self.configuration.maxRetryAttempts {
                         // Calculate delay with exponential backoff
@@ -371,8 +370,6 @@ final class NetworkManager {
                 }
             }
         }
-
-        return task
     }
 
     // MARK: - Caching
@@ -394,9 +391,9 @@ final class NetworkManager {
         // Store in disk cache
         cleanupQueue.async { [weak self] in
             guard let self = self else { return }
-            
+
             let fileURL = self.cacheFileURL(for: url)
-            
+
             do {
                 let cacheData = try NSKeyedArchiver.archivedData(withRootObject: cachedResponse, requiringSecureCoding: true)
                 try cacheData.write(to: fileURL)
@@ -489,7 +486,7 @@ final class NetworkManager {
                         let data = try Data(contentsOf: url)
                         if let cachedResponse = try NSKeyedUnarchiver.unarchivedObject(ofClass: CachedResponse.self, from: data) {
                             let expirationTime = cachedResponse.timestamp.addingTimeInterval(self._configuration.cacheLifetime)
-                            
+
                             // Add to delete list if expired
                             if now > expirationTime {
                                 filesToDelete.append(url)
@@ -509,20 +506,20 @@ final class NetworkManager {
                         filesToDelete.append(url)
                     }
                 }
-                
+
                 // Delete expired files
                 for url in filesToDelete {
                     try? self.fileManager.removeItem(at: url)
                     Debug.shared.log(message: "Removed expired network cache: \(url.lastPathComponent)", type: .debug)
                 }
-                
+
                 // If total size is still too large, delete oldest files
                 if totalSize > 100 * 1024 * 1024 { // 100 MB limit
                     let remainingFiles = try self.fileManager.contentsOfDirectory(
                         at: self.cacheDirectory,
                         includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]
                     )
-                    
+
                     // Sort by modification date (oldest first)
                     let sortedFiles = remainingFiles.sorted { url1, url2 -> Bool in
                         do {
@@ -535,16 +532,16 @@ final class NetworkManager {
                             return false
                         }
                     }
-                    
+
                     // Delete oldest files until we're under the limit
                     var currentSize = totalSize
                     let targetSize: UInt64 = 80 * 1024 * 1024 // Target 80 MB after cleanup
-                    
+
                     for url in sortedFiles {
                         if currentSize <= targetSize {
                             break
                         }
-                        
+
                         do {
                             let attributes = try self.fileManager.attributesOfItem(atPath: url.path)
                             if let fileSize = attributes[.size] as? UInt64 {

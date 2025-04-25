@@ -50,10 +50,8 @@ public extension UIImage {
         let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
 
         // Resize the image
-        let resized = renderer.image { _ in
+        return renderer.image { _ in
             self.draw(in: CGRect(origin: .zero, size: targetSize))
         }
-
-        return resized
     }
 }

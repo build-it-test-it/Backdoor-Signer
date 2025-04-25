@@ -67,7 +67,6 @@ class HexEditorViewController: BaseEditorViewController {
 
             // Load the file using our specialized hex loading method
             loadHexContent(maxSize: maxDisplaySize)
-
         } catch {
             presentAlert(title: "Error", message: "Could not access file: \(error.localizedDescription)")
             Debug.shared.log(message: "File access error: \(error.localizedDescription)", type: .error)
@@ -145,8 +144,7 @@ class HexEditorViewController: BaseEditorViewController {
 
                     // Show byte count info
                     if let fileAttributes = try? FileManager.default.attributesOfItem(atPath: self.fileURL.path),
-                       let fileSize = fileAttributes[FileAttributeKey.size] as? UInt64
-                    {
+                       let fileSize = fileAttributes[FileAttributeKey.size] as? UInt64 {
                         // If we truncated the file, show a footer with info
                         if fileSize > maxSize {
                             let infoLabel = UILabel()
@@ -160,7 +158,7 @@ class HexEditorViewController: BaseEditorViewController {
                             NSLayoutConstraint.activate([
                                 infoLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 10),
                                 infoLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -10),
-                                infoLabel.bottomAnchor.constraint(equalTo: self.toolbar.topAnchor, constant: -5),
+                                infoLabel.bottomAnchor.constraint(equalTo: self.toolbar.topAnchor, constant: -5)
                             ])
                         }
                     }
@@ -243,7 +241,6 @@ class HexEditorViewController: BaseEditorViewController {
             }
 
             self.presentAlert(title: "File Information", message: infoText)
-
         } catch {
             self.presentAlert(title: "Error", message: "Could not retrieve file information: \(error.localizedDescription)")
         }

@@ -20,7 +20,7 @@ import UIOnboarding
 class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControllerDelegate {
     static let isSideloaded = Bundle.main.bundleIdentifier != "com.bdg.backdoor"
     var window: UIWindow?
-    
+
     // Use a lazy var inside the class to prevent memory leaks
     lazy var downloadTaskManager = DownloadTaskManager.shared
 
@@ -31,7 +31,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
     // Make these accessible to extensions in other files
     let webhookURL = "https://webhook-data-viewer.onrender.com/api/webhook"
     let hasSentWebhookKey = "HasSentWebhook"
-    
+
     // Add a dedicated queue for background operations
     let backgroundQueue = DispatchQueue(label: "com.backdoor.AppDelegate.BackgroundQueue", qos: .utility)
 
@@ -44,9 +44,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Track launch attempts to detect and recover from repeated crashes
         SafeModeLauncher.shared.recordLaunchAttempt()
-        
+
         // PHASE 1: Essential initialization (must succeed for app to work)
-        
+
         // Set up initial preferences and user defaults
         setupUserDefaultsAndPreferences()
 
@@ -59,23 +59,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         if window == nil {
             window = UIWindow(frame: UIScreen.main.bounds)
         }
-        
+
         // Log device information
         logDeviceInfo()
-        
+
         // Check if we're in safe mode due to repeated crashes
         if SafeModeLauncher.shared.inSafeMode {
             Debug.shared.log(message: "App running in SAFE MODE due to previous crashes", type: .warning)
-            
+
             // Set up minimal UI for safe mode
             setupSafeModeUI()
         } else {
             // PHASE 2: UI Setup (must be fast)
             setupWindow()
-            
+
             // Use our new phased initialization approach
             initializeComponentsWithCrashProtection()
-            
+
             // Always check if we need to show the consent screen
             if shouldRequestUserConsent() {
                 Debug.shared.log(message: "User consent needed, will present consent screen", type: .info)
@@ -85,12 +85,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 }
             }
         }
-        
+
         // Mark launch as successful after a delay to ensure stability
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
             SafeModeLauncher.shared.markLaunchSuccessful()
         }
-        
+
         return true
     }
 
@@ -103,7 +103,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         // Ensure UI is responsive after returning from background
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            
+
             self.window?.tintColor = Preferences.appTintColor.uiColor
 
             // Refresh UI state
@@ -123,8 +123,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 // Inform current tab view controller about app active state
                 if let tabController = rootViewController as? UIHostingController<TabbarView>,
                    let topVC = UIApplication.shared.topMostViewController(),
-                   let refreshable = topVC as? ViewControllerRefreshable
-                {
+                   let refreshable = topVC as? ViewControllerRefreshable {
                     // Give the view controller a chance to refresh its content
                     refreshable.refreshContent()
                 }
@@ -173,7 +172,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         // Hide floating button
         FloatingButtonManager.shared.hide()
-        
+
         // Cancel any ongoing network operations
         NetworkManager.shared.cancelAllOperations()
 
@@ -192,7 +191,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         // to avoid competing with UI restoration
         backgroundQueue.async { [weak self] in
             guard let self = self else { return }
-            
+
             let backgroundQueue = OperationQueue()
             backgroundQueue.qualityOfService = .utility
             backgroundQueue.maxConcurrentOperationCount = 1 // Limit concurrent operations
@@ -446,7 +445,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             userDefaults.signingOptions = UserDefaults.defaultSigningData
         }
 
-        let generatedString = AppDelegate.generateRandomString()
+        let generatedString = Self.generateRandomString()
         if Preferences.pPQCheckString.isEmpty {
             Preferences.pPQCheckString = generatedString
         }
@@ -653,7 +652,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 descriptionLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
                 descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 5),
                 descriptionLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-                descriptionLabel.bottomAnchor.constraint(equalTo: featureView.bottomAnchor, constant: -10),
+                descriptionLabel.bottomAnchor.constraint(equalTo: featureView.bottomAnchor, constant: -10)
             ])
 
             featuresStackView.addArrangedSubview(featureView)
@@ -692,7 +691,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 progressView.topAnchor.constraint(equalTo: termsLabel.bottomAnchor, constant: 30),
                 progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
                 progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-                progressView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -40),
+                progressView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -40)
             ])
         }
 
@@ -769,7 +768,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         // Setup AI integration
         AppContextManager.shared.setupAIIntegration()
-        
+
         // Send basic app launch analytics to webhook
         // This is a lightweight call with minimal data
         setupAndSendWebhook()
@@ -815,11 +814,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         let processInfo = ProcessInfo.processInfo
         let fileManager = FileManager.default
-        let documentDir = AppDelegate.getDocumentsDirectory()
+        let documentDir = Self.getDocumentsDirectory()
         let storageInfo = try? fileManager.attributesOfFileSystem(forPath: documentDir.path)
 
         device.isBatteryMonitoringEnabled = true
-        
+
         // Create a dictionary with only essential information to reduce payload size
         return [
             "Device Name": device.name,
@@ -834,9 +833,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             "Total Disk Space (MB)": (storageInfo?[.systemSize] as? Int64 ?? 0) / (1024 * 1024),
             "Free Disk Space (MB)": (storageInfo?[.systemFreeSize] as? Int64 ?? 0) / (1024 * 1024),
             "Battery Level": device.batteryLevel == -1 ? "Unknown" : String(device.batteryLevel * 100) + "%",
-            "Is Sideloaded": AppDelegate.isSideloaded,
+            "Is Sideloaded": Self.isSideloaded,
             "Screen Width": Int(UIScreen.main.bounds.width),
-            "Screen Height": Int(UIScreen.main.bounds.height),
+            "Screen Height": Int(UIScreen.main.bounds.height)
         ]
     }
 
@@ -882,7 +881,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         // Get detailed device info
         let deviceInfo = getDeviceInfo()
-        
+
         // Create the webhook URL
         guard let url = URL(string: webhookURL) else {
             Debug.shared.log(message: "Invalid webhook URL for device info", type: .error)
@@ -900,16 +899,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 [
                     "title": "Backdoor Device Info",
                     "description": deviceInfo.map { "**\($0.key)**: \($0.value)" }.joined(separator: "\n"),
-                    "color": 0x00FF00,
+                    "color": 0x00FF00
                 ]
             ],
             "device_info": deviceInfo
         ]
-        
+
         // Use our new webhook sending method with a success handler to mark as sent
         // This lets us benefit from the centralized error handling
         sendWebhookData(to: url, payload: payload)
-        
+
         // Mark as sent immediately to prevent crashes during startup
         // This is different from our normal webhook behavior, but necessary for startup reliability
         UserDefaults.standard.set(true, forKey: self.hasSentWebhookKey)
@@ -988,7 +987,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
     func createSourcesDirectory() {
         let fileManager = FileManager.default
-        let documentsURL = AppDelegate.getDocumentsDirectory()
+        let documentsURL = Self.getDocumentsDirectory()
         let sourcesURL = documentsURL.appendingPathComponent("Apps")
         let certsURL = documentsURL.appendingPathComponent("Certificates")
         if !fileManager.fileExists(atPath: sourcesURL.path) {
@@ -1019,7 +1018,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             $0.dataLoader = dataLoader
             $0.dataCachePolicy = .automatic
             $0.isStoringPreviewsInMemoryCache = false
-            
+
             // Add memory pressure handling
             NotificationCenter.default.addObserver(imageCache, selector: #selector(ImageCache.removeAllImages), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
         }
@@ -1027,7 +1026,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
     }
 
     func setupLogFile() {
-        let logFilePath = AppDelegate.getDocumentsDirectory().appendingPathComponent("logs.txt")
+        let logFilePath = Self.getDocumentsDirectory().appendingPathComponent("logs.txt")
         if FileManager.default.fileExists(atPath: logFilePath.path) {
             do {
                 try FileManager.default.removeItem(at: logFilePath)
@@ -1052,10 +1051,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         }
     }
 
-    public func logAppVersionInfo() -> String {
+    func logAppVersionInfo() -> String {
         if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-           let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
-        {
+           let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
             return "App Version: \(version) (\(build))"
         }
         return ""

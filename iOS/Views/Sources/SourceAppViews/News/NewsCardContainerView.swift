@@ -11,7 +11,7 @@ import SwiftUI
 
 struct NewsCardContainerView: View {
     // MARK: - Properties
-    
+
     @Binding var isSheetPresented: Bool
     var news: NewsData
     @Namespace private var namespace
@@ -19,7 +19,7 @@ struct NewsCardContainerView: View {
     let uuid = UUID().uuidString
 
     // MARK: - Body
-    
+
     var body: some View {
         Button(action: {
             isSheetPresented = true

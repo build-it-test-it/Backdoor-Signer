@@ -94,7 +94,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
             HomeViewUI.fileListTableView.topAnchor.constraint(equalTo: HomeViewUI.navigationBar.bottomAnchor, constant: 10),
             HomeViewUI.fileListTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
             HomeViewUI.fileListTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-            HomeViewUI.fileListTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
+            HomeViewUI.fileListTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10)
         ])
 
         // Apply animation effect
@@ -102,7 +102,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     }
 
     /// Applies a futuristic transition effect to the view
-    @objc public func applyFuturisticEffect() {
+    @objc func applyFuturisticEffect() {
         // Create a snapshot of the current view
         guard let snapshot = view.snapshotView(afterScreenUpdates: false) else { return }
         view.addSubview(snapshot)
@@ -120,7 +120,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         view.addSubview(activityIndicator)
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
 
@@ -194,7 +194,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
                         .creationDateKey,
                         .contentModificationDateKey,
                         .fileSizeKey,
-                        .isDirectoryKey,
+                        .isDirectoryKey
                     ],
                     options: .skipsHiddenFiles
                 )
@@ -279,7 +279,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
             emptyLabel.centerXAnchor.constraint(equalTo: HomeViewUI.fileListTableView.centerXAnchor),
             emptyLabel.centerYAnchor.constraint(equalTo: HomeViewUI.fileListTableView.centerYAnchor),
             emptyLabel.leadingAnchor.constraint(equalTo: HomeViewUI.fileListTableView.leadingAnchor, constant: 40),
-            emptyLabel.trailingAnchor.constraint(equalTo: HomeViewUI.fileListTableView.trailingAnchor, constant: -40),
+            emptyLabel.trailingAnchor.constraint(equalTo: HomeViewUI.fileListTableView.trailingAnchor, constant: -40)
         ])
     }
 
@@ -313,7 +313,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
                 self.utilities.handleError(in: self, error: error, withTitle: "Directory Creation Error")
             }
         }
-        
+
         alertController.addAction(createAction)
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         present(alertController, animated: true, completion: nil)
@@ -331,7 +331,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         activityIndicator.startAnimating()
 
         // Generate a unique name if a file with the same name exists
-        let fileName = HomeViewController.getUniqueFileNameShared(for: url.lastPathComponent)
+        let fileName = Self.getUniqueFileNameShared(for: url.lastPathComponent)
         let destinationURL = documentsDirectory.appendingPathComponent(fileName)
 
         Debug.shared.log(message: "Importing file from \(url.path) to \(destinationURL.path)", type: .info)
@@ -453,7 +453,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         guard let documentsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("files") else {
             return filename + "_unique"
         }
-        
+
         let fileURL = documentsDir.appendingPathComponent(filename)
 
         // If the file doesn't exist, return the original name
@@ -614,7 +614,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
             case .size:
                 fileList.sort { $0.size > $1.size }
         }
-        
+
         // Also sort filtered file list if search is active
         if searchController.isActive {
             switch sortOrder {
@@ -639,21 +639,21 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
             self.sortFiles()
             HomeViewUI.fileListTableView.reloadData()
         }
-        
+
         let sortByDateAction = UIAlertAction(title: "Date", style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.sortOrder = .date
             self.sortFiles()
             HomeViewUI.fileListTableView.reloadData()
         }
-        
+
         let sortBySizeAction = UIAlertAction(title: "Size", style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.sortOrder = .size
             self.sortFiles()
             HomeViewUI.fileListTableView.reloadData()
         }
-        
+
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         alertController.addAction(sortByNameAction)
         alertController.addAction(sortByDateAction)
@@ -1093,7 +1093,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
                         .creationDateKey,
                         .contentModificationDateKey,
                         .fileSizeKey,
-                        .isDirectoryKey,
+                        .isDirectoryKey
                     ],
                     options: .skipsHiddenFiles
                 )
@@ -1210,7 +1210,7 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
                 // Check if destination already exists
                 if self.fileManager.fileExists(atPath: destinationURL.path) {
                     // Create a unique name if needed
-                    let uniqueName = HomeViewController.getUniqueFileNameShared(for: destinationName)
+                    let uniqueName = Self.getUniqueFileNameShared(for: destinationName)
                     let uniqueURL = self.documentsDirectory.appendingPathComponent(uniqueName)
 
                     // Create extraction directory
@@ -1344,17 +1344,6 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
         let configuration = UISwipeActionsConfiguration(actions: actions)
         configuration.performsFirstActionWithFullSwipe = false
         return configuration
-    }
-
-    // MARK: - UITableViewDragDelegate and UITableViewDropDelegate
-    
-    // The drag and drop delegate methods are implemented in the FileDragAndDrop.swift extension
-    // to avoid duplicate method declarations causing compilation errors
-
-    // MARK: - FileHandlingDelegate
-
-    override func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)?) {
-        super.present(viewControllerToPresent, animated: flag, completion: completion)
     }
 
     // MARK: - UIDocumentPickerDelegate

@@ -18,14 +18,14 @@ class DisplayViewController: FRSTableViewController {
             [String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE")],
             ["Collection View"],
             [],
-            ["Certificate Name"],
+            ["Certificate Name"]
         ]
 
         sectionTitles = [
             "",
             String.localized("DISPLAY_VIEW_CONTROLLER_SECTION_TITLE_TINT_COLOR"),
             String.localized("DISPLAY_VIEW_CONTROLLER_SECTION_TITLE_STORE"),
-            String.localized("CERTIFICATES_VIEW_CONTROLLER_TITLE"),
+            String.localized("CERTIFICATES_VIEW_CONTROLLER_TITLE")
         ]
 
         self.tableView.register(CollectionTableViewCell.self, forCellReuseIdentifier: "CollectionCell")

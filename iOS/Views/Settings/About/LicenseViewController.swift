@@ -31,7 +31,7 @@ class LicenseViewController: UIViewController {
             textView.topAnchor.constraint(equalTo: view.topAnchor),
             textView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             textView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            textView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            textView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
 }

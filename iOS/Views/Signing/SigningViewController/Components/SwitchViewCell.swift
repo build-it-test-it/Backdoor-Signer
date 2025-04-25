@@ -29,7 +29,7 @@ class SwitchViewCell: UITableViewCell {
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             switchControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            switchControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -22),
+            switchControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -22)
         ])
     }
 }

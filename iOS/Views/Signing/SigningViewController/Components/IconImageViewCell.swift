@@ -38,7 +38,7 @@ class IconImageViewCell: UITableViewCell {
             iconImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             iconImageView.widthAnchor.constraint(equalToConstant: 45),
             iconImageView.heightAnchor.constraint(equalToConstant: 45),
-            iconImageView.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -10),
+            iconImageView.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -10)
         ])
     }
 

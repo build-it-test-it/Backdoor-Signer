@@ -13,7 +13,7 @@ class ResetDataClass {
     init() {}
     deinit {}
 
-    public func clearNetworkCache() {
+    func clearNetworkCache() {
         URLCache.shared.removeAllCachedResponses()
         HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
 
@@ -26,7 +26,7 @@ class ResetDataClass {
         }
     }
 
-    public func deleteSignedApps() {
+    func deleteSignedApps() {
         do {
             try CoreDataManager.shared.clearSignedApps()
             self.deleteDirectory(named: "Apps", additionalComponents: ["Signed"])
@@ -35,7 +35,7 @@ class ResetDataClass {
         }
     }
 
-    public func deleteDownloadedApps() {
+    func deleteDownloadedApps() {
         do {
             try CoreDataManager.shared.clearDownloadedApps()
             self.deleteDirectory(named: "Apps", additionalComponents: ["Unsigned"])
@@ -44,7 +44,7 @@ class ResetDataClass {
         }
     }
 
-    public func resetCertificates(resetAll: Bool) {
+    func resetCertificates(resetAll: Bool) {
         if !resetAll { Preferences.selectedCert = 0 }
         do {
             try CoreDataManager.shared.clearCertificate()
@@ -54,7 +54,7 @@ class ResetDataClass {
         }
     }
 
-    public func resetSources(resetAll: Bool) {
+    func resetSources(resetAll: Bool) {
         if !resetAll { Preferences.defaultRepos = false }
         do {
             try CoreDataManager.shared.clearSources()
@@ -69,7 +69,7 @@ class ResetDataClass {
         }
     }
 
-    public func resetAll() {
+    func resetAll() {
         self.deleteSignedApps()
         self.deleteDownloadedApps()
         self.resetCertificates(resetAll: true)

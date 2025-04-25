@@ -43,7 +43,7 @@ class CollectionTableViewCell: UITableViewCell, UICollectionViewDelegate, UIColl
             collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            collectionView.heightAnchor.constraint(greaterThanOrEqualToConstant: 100),
+            collectionView.heightAnchor.constraint(greaterThanOrEqualToConstant: 100)
         ])
     }
 
@@ -116,8 +116,7 @@ class CollectionItemCell: UICollectionViewCell {
     }()
 
     let colorCircleView: UIView = {
-        let view = UIView()
-        return view
+        return UIView()
     }()
 
     let titleLabel: UILabel = {
@@ -144,7 +143,7 @@ class CollectionItemCell: UICollectionViewCell {
             colorCircleView.widthAnchor.constraint(equalToConstant: 30),
             colorCircleView.heightAnchor.constraint(equalToConstant: 30),
 
-            titleLabel.widthAnchor.constraint(equalTo: stackView.widthAnchor),
+            titleLabel.widthAnchor.constraint(equalTo: stackView.widthAnchor)
         ])
 
         colorCircleView.layer.cornerRadius = 15

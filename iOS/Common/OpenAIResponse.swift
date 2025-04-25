@@ -24,14 +24,14 @@ struct OpenAIResponse: Codable {
     }
 
     /// Creates a response with the given content
-    static func createLocal(content: String) -> OpenAIResponse {
-        return OpenAIResponse(
+    static func createLocal(content: String) -> Self {
+        return Self(
             choices: [
                 Choice(
                     message: Message(content: content, role: "assistant"),
                     index: 0,
                     finish_reason: "stop"
-                ),
+                )
             ],
             id: UUID().uuidString,
             model: "backdoor-custom-ai"

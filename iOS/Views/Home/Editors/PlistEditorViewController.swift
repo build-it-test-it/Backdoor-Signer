@@ -79,7 +79,7 @@ class PlistEditorViewController: BaseEditorViewController {
 
         // Try to parse as property list
         do {
-            let _ = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+            _ = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
             return true
         } catch {
             Debug.shared.log(message: "Plist validation error: \(error.localizedDescription)", type: .error)

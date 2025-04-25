@@ -53,19 +53,19 @@ func processFile(at packagesFile: inout URL) throws {
     switch succeededExtension {
         case "xz":
             try handleCompressedFile(extension: succeededExtension, decompressor: XZArchive.unarchive)
-            
+
         case "lzma":
             try handleCompressedFile(extension: succeededExtension, decompressor: LZMA.decompress)
-            
+
         case "bz2":
             try handleCompressedFile(extension: succeededExtension, decompressor: BZip2.decompress)
-            
+
         case "gz":
             try handleCompressedFile(extension: succeededExtension, decompressor: GzipArchive.unarchive)
-            
+
         case "tar":
             try handleTarFile()
-            
+
         default:
             throw FileProcessingError.unsupportedFileExtension(succeededExtension)
     }

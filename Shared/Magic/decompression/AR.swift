@@ -51,25 +51,25 @@ func getFileInfo(_ data: Data, _ offset: Int) throws -> ARFile {
     let modificationTimeRange = offset + 16 ..< offset + 16 + 12
     let modificationTimeString = String(data: data.subdata(in: modificationTimeRange), encoding: .ascii) ?? "0"
     let modificationTime = Double(removePadding(modificationTimeString))!
-    
+
     // Extract owner and group IDs
     let ownerIdRange = offset + 28 ..< offset + 28 + 6
     let ownerIdString = String(data: data.subdata(in: ownerIdRange), encoding: .ascii) ?? "0"
     let ownerId = Int(removePadding(ownerIdString))!
-    
+
     let groupIdRange = offset + 34 ..< offset + 34 + 6
     let groupIdString = String(data: data.subdata(in: groupIdRange), encoding: .ascii) ?? "0"
     let groupId = Int(removePadding(groupIdString))!
-    
+
     // Extract mode
     let modeRange = offset + 40 ..< offset + 40 + 8
     let modeString = String(data: data.subdata(in: modeRange), encoding: .ascii) ?? "0"
     let mode = Int(removePadding(modeString))!
-    
+
     // Extract content
     let contentRange = offset + 60 ..< offset + 60 + size
     let content = data.subdata(in: contentRange)
-    
+
     return ARFile(
         name: name,
         modificationDate: NSDate(timeIntervalSince1970: modificationTime) as Date,
@@ -86,7 +86,7 @@ public func extractAR(_ rawData: Data) throws -> [ARFile] {
     let magicBytes: [UInt8] = [0x21, 0x3C, 0x61, 0x72, 0x63, 0x68, 0x3E, 0x0A]
     let headerData = rawData.subdata(in: 0..<8)
     // Create a more explicit [UInt8] array conversion for unambiguous type checking
-    let headerBytes = Array<UInt8>(headerData)
+    let headerBytes = [UInt8](headerData)
     if headerBytes != magicBytes {
         throw ARError.badArchive("Invalid magic")
     }

@@ -72,7 +72,7 @@ class IconsListTableViewCell: UITableViewCell {
 
             author.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 17.5),
             author.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -7.5),
-            author.centerYAnchor.constraint(equalTo: contentView.centerYAnchor, constant: 10),
+            author.centerYAnchor.constraint(equalTo: contentView.centerYAnchor, constant: 10)
         ])
     }
 }

@@ -17,7 +17,7 @@ extension UIView {
         addSubview(child)
         NSLayoutConstraint.activate(setup(child))
     }
-    
+
     /// Create a stack of views with equal spacing
     /// - Parameters:
     ///   - views: Views to include in the stack
@@ -42,7 +42,7 @@ extension UIView {
         stack.isLayoutMarginsRelativeArrangement = true
         return stack
     }
-    
+
     /// Add a loading indicator with optional text
     /// - Parameters:
     ///   - text: Optional loading text
@@ -54,14 +54,14 @@ extension UIView {
         container.backgroundColor = UIColor.black.withAlphaComponent(0.3)
         container.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(container)
-        
+
         NSLayoutConstraint.activate([
             container.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             container.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             container.topAnchor.constraint(equalTo: self.topAnchor),
             container.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
-        
+
         // Create content container with blur effect
         let blurEffect = UIBlurEffect(style: .systemMaterial)
         let contentContainer = UIVisualEffectView(effect: blurEffect)
@@ -69,28 +69,28 @@ extension UIView {
         contentContainer.clipsToBounds = true
         contentContainer.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(contentContainer)
-        
+
         NSLayoutConstraint.activate([
             contentContainer.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             contentContainer.centerYAnchor.constraint(equalTo: container.centerYAnchor),
             contentContainer.widthAnchor.constraint(equalToConstant: 200),
             contentContainer.heightAnchor.constraint(equalToConstant: text != nil ? 200 : 150)
         ])
-        
+
         // Add activity indicator
         let activityIndicator = UIActivityIndicatorView(style: style)
         activityIndicator.startAnimating()
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         contentContainer.contentView.addSubview(activityIndicator)
-        
+
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: contentContainer.contentView.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: contentContainer.contentView.centerYAnchor, 
+            activityIndicator.centerYAnchor.constraint(equalTo: contentContainer.contentView.centerYAnchor,
                                                      constant: text != nil ? -20 : 0),
             activityIndicator.widthAnchor.constraint(equalToConstant: 50),
             activityIndicator.heightAnchor.constraint(equalToConstant: 50)
         ])
-        
+
         // Add message label if provided
         if let text = text {
             let label = UILabel()
@@ -100,7 +100,7 @@ extension UIView {
             label.textColor = .label
             label.translatesAutoresizingMaskIntoConstraints = false
             contentContainer.contentView.addSubview(label)
-            
+
             NSLayoutConstraint.activate([
                 label.centerXAnchor.constraint(equalTo: contentContainer.contentView.centerXAnchor),
                 label.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 20),
@@ -108,10 +108,10 @@ extension UIView {
                 label.trailingAnchor.constraint(equalTo: contentContainer.contentView.trailingAnchor, constant: -16)
             ])
         }
-        
+
         return container
     }
-    
+
     /// Add an animated icon as a child view (replacement for Lottie)
     /// - Parameters:
     ///   - systemName: SF Symbol name
@@ -119,7 +119,7 @@ extension UIView {
     ///   - size: Size for the icon
     /// - Returns: The configured image view
     func addAnimatedIcon(
-        systemName: String, 
+        systemName: String,
         tintColor: UIColor = .systemBlue,
         size: CGSize = CGSize(width: 100, height: 100)
     ) -> UIImageView {
@@ -131,25 +131,25 @@ extension UIView {
             imageView.backgroundColor = tintColor.withAlphaComponent(0.2)
             imageView.layer.cornerRadius = min(size.width, size.height) / 2
         }
-        
+
         imageView.tintColor = tintColor
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(imageView)
-        
+
         NSLayoutConstraint.activate([
             imageView.widthAnchor.constraint(equalToConstant: size.width),
             imageView.heightAnchor.constraint(equalToConstant: size.height)
         ])
-        
+
         // Add animation
         UIView.animate(withDuration: 1.5, delay: 0, options: [.autoreverse, .repeat, .curveEaseInOut], animations: {
             imageView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
         }, completion: nil)
-        
+
         return imageView
     }
-    
+
     /// Apply elegant card styling to the view
     /// - Parameters:
     ///   - cornerRadius: Corner radius for the card
@@ -163,14 +163,14 @@ extension UIView {
         self.backgroundColor = backgroundColor
         layer.cornerRadius = cornerRadius
         layer.masksToBounds = false
-        
+
         // Add shadow
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOffset = CGSize(width: 0, height: 4)
         layer.shadowOpacity = shadowOpacity
         layer.shadowRadius = 6
     }
-    
+
     /// Add a gradient background to the view
     /// - Parameters:
     ///   - colors: Gradient colors
@@ -178,12 +178,12 @@ extension UIView {
     ///   - endPoint: End point (default bottom-right)
     func addViewGradientBackground(
         colors: [UIColor] = [.systemBlue, UIColor(red: 0, green: 0.5, blue: 1, alpha: 1)],
-        startPoint: CGPoint = CGPoint(x: 0, y: 0),
+        startPoint: CGPoint = CGPoint.zero,
         endPoint: CGPoint = CGPoint(x: 1, y: 1)
     ) {
         // Remove any existing gradient
         layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
-        
+
         // Create gradient layer
         let gradientLayer = CAGradientLayer()
         gradientLayer.colors = colors.map { $0.cgColor }
@@ -191,24 +191,24 @@ extension UIView {
         gradientLayer.endPoint = endPoint
         gradientLayer.frame = bounds
         gradientLayer.cornerRadius = layer.cornerRadius
-        
+
         // Insert at index 0 to be below other sublayers
         layer.insertSublayer(gradientLayer, at: 0)
-        
+
         // Make sure gradient updates when view is resized
         layoutIfNeeded()
     }
-    
+
     /// Compatibility method for existing code 
     @available(*, deprecated, message: "Use addViewGradientBackground instead")
     func addGradientBackground(
         colors: [UIColor] = [.systemBlue, UIColor(red: 0, green: 0.5, blue: 1, alpha: 1)],
-        startPoint: CGPoint = CGPoint(x: 0, y: 0),
+        startPoint: CGPoint = CGPoint.zero,
         endPoint: CGPoint = CGPoint(x: 1, y: 1)
     ) {
         addViewGradientBackground(colors: colors, startPoint: startPoint, endPoint: endPoint)
     }
-    
+
     /// Apply futuristic shadow effect to the view
     func applyFuturisticShadow() {
         layer.masksToBounds = false
@@ -228,15 +228,15 @@ extension UIButton {
     ///   - endPoint: End point of gradient
     func convertToGradientButton(
         colors: [UIColor] = [.systemBlue, UIColor(red: 0, green: 0.5, blue: 1, alpha: 1)],
-        startPoint: CGPoint = CGPoint(x: 0, y: 0),
+        startPoint: CGPoint = CGPoint.zero,
         endPoint: CGPoint = CGPoint(x: 1, y: 1)
     ) {
         // Get the button's title color for styling consideration
         // (Currently not used but could be used for contrast calculations)
-        
+
         // Add gradient background
         addViewGradientBackground(colors: colors, startPoint: startPoint, endPoint: endPoint)
-        
+
         // Add shadow
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOffset = CGSize(width: 0, height: 3)
@@ -244,7 +244,7 @@ extension UIButton {
         layer.shadowRadius = 4
         layer.masksToBounds = false
     }
-    
+
     /// Create a gradient button
     /// - Parameters:
     ///   - title: Button title
@@ -263,17 +263,17 @@ extension UIButton {
         button.titleLabel?.font = UIFont.systemFont(ofSize: fontSize, weight: .semibold)
         button.layer.cornerRadius = cornerRadius
         button.clipsToBounds = true
-        
+
         // Add gradient
         button.addViewGradientBackground(colors: colors)
-        
+
         // Add shadow
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOffset = CGSize(width: 0, height: 3)
         button.layer.shadowOpacity = 0.2
         button.layer.shadowRadius = 4
         button.layer.masksToBounds = false
-        
+
         return button
     }
 }
@@ -287,7 +287,7 @@ extension UIViewController {
     func showLoadingOverlay(message: String? = "Loading...") -> UIView {
         return view.addLoadingIndicator(text: message)
     }
-    
+
     /// Hide the loading overlay
     /// - Parameter overlay: The overlay container view returned by showLoadingOverlay
     func hideLoadingOverlay(_ overlay: UIView) {
@@ -297,7 +297,7 @@ extension UIViewController {
             overlay.removeFromSuperview()
         })
     }
-    
+
     /// Show a brief success animation
     /// - Parameter message: Optional success message
     func showSuccessAnimation(message: String? = nil) {
@@ -307,13 +307,13 @@ extension UIViewController {
             tintColor: .systemGreen,
             size: CGSize(width: 100, height: 100)
         )
-        
+
         // Center the animation
         NSLayoutConstraint.activate([
             imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
-        
+
         // Add message label if provided
         if let message = message {
             let label = UILabel()
@@ -323,18 +323,18 @@ extension UIViewController {
             label.textColor = .label
             label.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(label)
-            
+
             NSLayoutConstraint.activate([
                 label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8)
             ])
-            
+
             // Remove label after animation
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 label.removeFromSuperview()
             }
         }
-        
+
         // Remove animation after playing
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             imageView.layer.removeAllAnimations()
@@ -365,7 +365,7 @@ class AnimationHelper {
     static func showLoader(in view: UIView, message: String? = nil) -> UIView {
         return view.addLoadingIndicator(text: message)
     }
-    
+
     /// Hide the loader animation
     /// - Parameter container: Container view returned by showLoader
     static func hideLoader(_ container: UIView) {
@@ -394,7 +394,7 @@ class ElegantUIComponents {
     ) -> UIButton {
         return UIButton.createGradientButton(title: title, colors: colors, cornerRadius: cornerRadius, fontSize: fontSize)
     }
-    
+
     /// Create a card view with shadow
     /// - Parameters:
     ///   - backgroundColor: Card background color
@@ -407,17 +407,17 @@ class ElegantUIComponents {
         let cardView = UIView()
         cardView.backgroundColor = backgroundColor
         cardView.layer.cornerRadius = cornerRadius
-        
+
         // Add shadow
         cardView.layer.shadowColor = UIColor.black.cgColor
         cardView.layer.shadowOffset = CGSize(width: 0, height: 4)
         cardView.layer.shadowOpacity = 0.1
         cardView.layer.shadowRadius = 6
         cardView.layer.masksToBounds = false
-        
+
         return cardView
     }
-    
+
     /// Create a beautiful text field with floating label
     /// - Parameters:
     ///   - placeholder: Placeholder text
@@ -434,20 +434,20 @@ class ElegantUIComponents {
         container.layer.cornerRadius = 8
         container.layer.borderWidth = 1
         container.layer.borderColor = borderColor.cgColor
-        
+
         let textField = UITextField()
         textField.placeholder = placeholder
         textField.borderStyle = .none
         textField.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(textField)
-        
+
         NSLayoutConstraint.activate([
             textField.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
             textField.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
             textField.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
             textField.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12)
         ])
-        
+
         return container
     }
 }

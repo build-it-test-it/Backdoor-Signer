@@ -84,7 +84,7 @@ class PersonCell: UITableViewCell {
             roleLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             roleLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
             roleLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
-            roleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
+            roleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
         ])
     }
 }
@@ -98,7 +98,7 @@ class BatchPersonCell: UITableViewCell {
         textView.isUserInteractionEnabled = true
         textView.dataDetectorTypes = .link
         textView.linkTextAttributes = [
-            .foregroundColor: UIColor.tintColor,
+            .foregroundColor: UIColor.tintColor
         ]
         textView.textContainerInset = .zero
         textView.backgroundColor = .clear
@@ -126,7 +126,7 @@ class BatchPersonCell: UITableViewCell {
 
             let personText = "\(name)"
             let attributedPersonText = NSMutableAttributedString(string: personText, attributes: [
-                .font: UIFont.systemFont(ofSize: 15, weight: .semibold),
+                .font: UIFont.systemFont(ofSize: 15, weight: .semibold)
             ])
 
             if let githubURL = URL(string: "https://github.com/\(githubUsername)") {
@@ -137,7 +137,7 @@ class BatchPersonCell: UITableViewCell {
             if index < persons.count - 1 {
                 let commaText = NSAttributedString(string: ", ", attributes: [
                     .font: UIFont.systemFont(ofSize: 15, weight: .regular),
-                    .foregroundColor: UIColor.label,
+                    .foregroundColor: UIColor.label
                 ])
                 attributedPersonText.append(commaText)
             }
@@ -155,7 +155,7 @@ class BatchPersonCell: UITableViewCell {
             textView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             textView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            textView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            textView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
         ])
     }
 }

@@ -14,21 +14,21 @@ extension UIView {
         self.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate(constraints)
     }
-    
+
     /// Set up constraints with a closure
     /// - Parameter setup: Closure that returns constraints to activate
     func setupConstraints(_ setup: (UIView) -> [NSLayoutConstraint]) {
         self.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate(setup(self))
     }
-    
+
     /// Update existing constraints
     /// - Parameter update: Closure that performs constraint updates
     func updateConstraints(_ update: () -> Void) {
         update()
         self.layoutIfNeeded()
     }
-    
+
     /// Create a stack view with standard configuration
     /// - Parameters:
     ///   - axis: Axis for the stack view
@@ -70,14 +70,14 @@ class InternalAnimationHelper {
             imageView.backgroundColor = .systemBlue.withAlphaComponent(0.2)
             imageView.layer.cornerRadius = (size?.width ?? 50) / 2
         }
-        
+
         imageView.tintColor = .systemBlue
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         // Add to parent view
         view.addSubview(imageView)
-        
+
         // Setup constraints with native AutoLayout
         if let size = size {
             NSLayoutConstraint.activate([
@@ -94,16 +94,16 @@ class InternalAnimationHelper {
                 imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
             ])
         }
-        
+
         // Add animation
         // Using animation options directly instead of creating unused repeatCount variable
         UIView.animate(withDuration: 1.5, delay: 0, options: [.autoreverse, .repeat, .curveEaseInOut], animations: {
             imageView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
         }, completion: nil)
-        
+
         return imageView
     }
-    
+
     /// Show an animated loading indicator
     /// - Parameters:
     ///   - view: View to add the loader to
@@ -115,7 +115,7 @@ class InternalAnimationHelper {
         container.backgroundColor = UIColor.black.withAlphaComponent(0.3)
         container.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(container)
-        
+
         // Set constraints for full screen
         NSLayoutConstraint.activate([
             container.topAnchor.constraint(equalTo: view.topAnchor),
@@ -123,7 +123,7 @@ class InternalAnimationHelper {
             container.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             container.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        
+
         // Create content container with blur effect
         let blurEffect = UIBlurEffect(style: .systemMaterial)
         let contentContainer = UIVisualEffectView(effect: blurEffect)
@@ -131,7 +131,7 @@ class InternalAnimationHelper {
         contentContainer.clipsToBounds = true
         contentContainer.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(contentContainer)
-        
+
         // Set up constraints for the content container
         NSLayoutConstraint.activate([
             contentContainer.centerXAnchor.constraint(equalTo: container.centerXAnchor),
@@ -139,22 +139,22 @@ class InternalAnimationHelper {
             contentContainer.widthAnchor.constraint(equalToConstant: 200),
             contentContainer.heightAnchor.constraint(equalToConstant: message != nil ? 200 : 150)
         ])
-        
+
         // Add activity indicator to the content container
         let activityIndicator = UIActivityIndicatorView(style: .large)
         activityIndicator.startAnimating()
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         contentContainer.contentView.addSubview(activityIndicator)
-        
+
         // Set up activity indicator constraints
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: contentContainer.contentView.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: contentContainer.contentView.centerYAnchor, 
+            activityIndicator.centerYAnchor.constraint(equalTo: contentContainer.contentView.centerYAnchor,
                                                      constant: message != nil ? -20 : 0),
             activityIndicator.widthAnchor.constraint(equalToConstant: 50),
             activityIndicator.heightAnchor.constraint(equalToConstant: 50)
         ])
-        
+
         // Add message label if provided
         if let message = message {
             let label = UILabel()
@@ -164,7 +164,7 @@ class InternalAnimationHelper {
             label.textColor = .label
             label.translatesAutoresizingMaskIntoConstraints = false
             contentContainer.contentView.addSubview(label)
-            
+
             // Set up label constraints
             NSLayoutConstraint.activate([
                 label.centerXAnchor.constraint(equalTo: contentContainer.contentView.centerXAnchor),
@@ -173,10 +173,10 @@ class InternalAnimationHelper {
                 label.trailingAnchor.constraint(equalTo: contentContainer.contentView.trailingAnchor, constant: -16)
             ])
         }
-        
+
         return container
     }
-    
+
     /// Hide the loader
     /// - Parameter container: Container view returned by showLoader
     static func hideLoader(_ container: UIView) {
@@ -206,31 +206,31 @@ class InternalUIComponents {
         button.titleLabel?.font = UIFont.systemFont(ofSize: fontSize, weight: .semibold)
         button.layer.cornerRadius = cornerRadius
         button.clipsToBounds = true
-        
+
         // Create gradient layer
         let gradientLayer = CAGradientLayer()
         gradientLayer.colors = colors.map { $0.cgColor }
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.startPoint = CGPoint.zero
         gradientLayer.endPoint = CGPoint(x: 1, y: 1)
         gradientLayer.cornerRadius = cornerRadius
-        
+
         // Ensure the gradient is applied after layout
         button.layer.insertSublayer(gradientLayer, at: 0)
-        
+
         // Add shadow
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOffset = CGSize(width: 0, height: 3)
         button.layer.shadowOpacity = 0.2
         button.layer.shadowRadius = 4
         button.layer.masksToBounds = false
-        
+
         // Update gradient frame when layout changes
         button.layoutIfNeeded()
         gradientLayer.frame = button.bounds
-        
+
         return button
     }
-    
+
     /// Create a card view with shadow
     /// - Parameters:
     ///   - backgroundColor: Card background color
@@ -241,17 +241,17 @@ class InternalUIComponents {
         let cardView = UIView()
         cardView.backgroundColor = backgroundColor
         cardView.layer.cornerRadius = cornerRadius
-        
+
         // Add shadow
         cardView.layer.shadowColor = UIColor.black.cgColor
         cardView.layer.shadowOffset = CGSize(width: 0, height: 4)
         cardView.layer.shadowOpacity = 0.1
         cardView.layer.shadowRadius = 6
         cardView.layer.masksToBounds = false
-        
+
         return cardView
     }
-    
+
     /// Create a beautiful text field with floating label
     /// - Parameters:
     ///   - placeholder: Placeholder text
@@ -266,20 +266,20 @@ class InternalUIComponents {
         container.layer.cornerRadius = 8
         container.layer.borderWidth = 1
         container.layer.borderColor = borderColor.cgColor
-        
+
         let textField = UITextField()
         textField.placeholder = placeholder
         textField.borderStyle = .none
         textField.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(textField)
-        
+
         NSLayoutConstraint.activate([
             textField.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
             textField.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
             textField.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
             textField.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12)
         ])
-        
+
         return container
     }
 }
@@ -290,7 +290,7 @@ extension UIView {
         case once
         case finite(count: Int)
         case infinity
-        
+
         var floatValue: Float {
             switch self {
             case .once:
@@ -301,7 +301,7 @@ extension UIView {
                 return .infinity
             }
         }
-        
+
         // Implementation of Equatable
         static func == (lhs: UIView.AnimationRepeatCount, rhs: UIView.AnimationRepeatCount) -> Bool {
             switch (lhs, rhs) {

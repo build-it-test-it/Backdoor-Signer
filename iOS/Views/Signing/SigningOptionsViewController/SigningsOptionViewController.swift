@@ -69,7 +69,7 @@ func toggleOptions(signingDataWrapper: SigningDataWrapper) -> [TogglesOption] {
             title: String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_REMOVE_DELETE_PLACEHOLDER_WATCH_APP"),
             footer: String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_REMOVE_DELETE_PLACEHOLDER_WATCH_APP_DESCRIPTION"),
             binding: signingDataWrapper.signingOptions.removeWatchPlaceHolder
-        ),
+        )
     ]
 }
 
@@ -132,15 +132,13 @@ class SigningsOptionViewController: UITableViewController {
                 if !sender.isOn {
                     signingDataWrapper.signingOptions.dynamicProtection = false
                     if let dynamicCell = tableView.cellForRow(at: IndexPath(row: 1, section: 1)),
-                       let dynamicSwitch = dynamicCell.accessoryView as? UISwitch
-                    {
+                       let dynamicSwitch = dynamicCell.accessoryView as? UISwitch {
                         dynamicSwitch.isEnabled = false
                         dynamicSwitch.isOn = false
                     }
                 } else {
                     if let dynamicCell = tableView.cellForRow(at: IndexPath(row: 1, section: 1)),
-                       let dynamicSwitch = dynamicCell.accessoryView as? UISwitch
-                    {
+                       let dynamicSwitch = dynamicCell.accessoryView as? UISwitch {
                         dynamicSwitch.isEnabled = true
                     }
                 }

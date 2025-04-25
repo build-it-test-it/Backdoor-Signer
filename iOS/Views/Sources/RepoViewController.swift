@@ -20,17 +20,17 @@ enum JSONValidationStatus {
 
 struct RepoViewController: View {
     // MARK: - Properties
-    
+
     @Environment(\.presentationMode) var presentationMode
     @State private var repoName: String = ""
     @State private var validationStatus: JSONValidationStatus = .notStarted
     @State private var debounceWorkItem: DispatchWorkItem?
     @State private var isVerifying: Bool = false
     @State private var isSyncing: Bool = false
-    @State var sources: [Source]?
+    @State private var sources: [Source]?
 
     // MARK: - Computed Properties
-    
+
     private var footerText: String {
         switch validationStatus {
         case .notStarted:
@@ -54,7 +54,7 @@ struct RepoViewController: View {
     }
 
     // MARK: - View Body
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -170,7 +170,7 @@ extension RepoViewController {
                     if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let identifier = jsonObject["identifier"] as? String,
                        !identifier.isEmpty {
-                        
+
                         DispatchQueue.main.async {
                             self.validationStatus = .validJSON
                         }
@@ -238,7 +238,7 @@ extension RepoViewController {
             var success = 0
             // Filter for http links first, then process them
             let httpLinks = repoLinks.filter { $0.starts(with: "http") }
-            
+
             for str in httpLinks {
                 let sem = DispatchSemaphore(value: 0)
                 CoreDataManager.shared.getSourceData(urlString: str) { error in
@@ -251,7 +251,7 @@ extension RepoViewController {
                 }
                 sem.wait()
             }
-            
+
             DispatchQueue.main.async {
                 Debug.shared.log(message: "Successfully imported \(success) repos", type: .success)
                 presentationMode.wrappedValue.dismiss()

@@ -8,7 +8,7 @@ import Foundation
 import UIKit
 
 class TweakLibraryViewCell: UITableViewCell {
-    public var segmentedControl: UISegmentedControl = {
+    var segmentedControl: UISegmentedControl = {
         let control = UISegmentedControl()
         control.translatesAutoresizingMaskIntoConstraints = false
         return control
@@ -30,7 +30,7 @@ class TweakLibraryViewCell: UITableViewCell {
         NSLayoutConstraint.activate([
             segmentedControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             segmentedControl.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
-            segmentedControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+            segmentedControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15)
         ])
     }
 

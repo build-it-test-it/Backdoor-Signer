@@ -21,7 +21,7 @@ class TweakHandler {
         self.app = app
     }
 
-    public func getInputFiles() throws {
+    func getInputFiles() throws {
         guard !urls.isEmpty else {
             Debug.shared.log(message: "No dylibs to inject, skipping!")
             return
@@ -40,8 +40,8 @@ class TweakHandler {
         let baseTmpDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
 
         do {
-            try TweakHandler.createDirectoryIfNeeded(at: app.appendingPathComponent("Frameworks"))
-            try TweakHandler.createDirectoryIfNeeded(at: baseTmpDir)
+            try Self.createDirectoryIfNeeded(at: app.appendingPathComponent("Frameworks"))
+            try Self.createDirectoryIfNeeded(at: baseTmpDir)
 
             // check for appropriate files, if theres debs
             // it will extract then add a url, if theres no url, i.e.
@@ -65,7 +65,6 @@ class TweakHandler {
                     try handleExtractedDirectoryContents(at: urlsToInject)
                 }
             }
-
         } catch {
             throw error
         }
@@ -81,11 +80,11 @@ class TweakHandler {
                     let destinationURL = app
                         .appendingPathComponent("Frameworks")
                         .appendingPathComponent(url.lastPathComponent)
-                    try TweakHandler.moveFile(from: url, to: destinationURL)
+                    try Self.moveFile(from: url, to: destinationURL)
                     try handleDylib(framework: destinationURL)
                 case "bundle":
                     let destinationURL = app.appendingPathComponent(url.lastPathComponent)
-                    try TweakHandler.moveFile(from: url, to: destinationURL)
+                    try Self.moveFile(from: url, to: destinationURL)
                 default:
                     Debug.shared.log(message: "Unsupported file type: \(url.lastPathComponent), skipping.")
             }
@@ -98,7 +97,7 @@ class TweakHandler {
             let destinationURL = app
                 .appendingPathComponent("Frameworks")
                 .appendingPathComponent(url.lastPathComponent)
-            try TweakHandler.moveFile(from: url, to: destinationURL)
+            try Self.moveFile(from: url, to: destinationURL)
 
             // change paths because some tweaks hardlink, which is not ideal.
             // this is not a good solution, at most this would work for basic tweaks
@@ -111,7 +110,7 @@ class TweakHandler {
             )
 
             // inject if there's a valid app main executable
-            if let exe = try TweakHandler.findExecutable(at: app) {
+            if let exe = try Self.findExecutable(at: app) {
                 let dylibPath = "@executable_path/Frameworks/\(destinationURL.lastPathComponent)"
                 _ = injectDylib(
                     filePath: exe.path,
@@ -127,7 +126,7 @@ class TweakHandler {
     // Inject imported framework dir
     private func handleDylib(framework: URL) throws {
         do {
-            if let fexe = try TweakHandler.findExecutable(at: framework) {
+            if let fexe = try Self.findExecutable(at: framework) {
                 // change paths because some tweaks hardlink, which is not ideal.
                 // this is not a good solution, at most this would work for basic tweaks
                 // we recommend you use newer theos to compile, and make sure it works
@@ -139,7 +138,7 @@ class TweakHandler {
                 )
 
                 // inject if there's a valid app main executable
-                if let appexe = try TweakHandler.findExecutable(at: app) {
+                if let appexe = try Self.findExecutable(at: app) {
                     let dylibPath = "@executable_path/Frameworks/\(framework.lastPathComponent)/\(fexe.lastPathComponent)"
                     _ = injectDylib(
                         filePath: appexe.path,
@@ -156,7 +155,7 @@ class TweakHandler {
     // Extract imported deb file
     private func handleDeb(at url: URL, baseTmpDir: URL) throws {
         let uniqueSubDir = baseTmpDir.appendingPathComponent(UUID().uuidString)
-        try TweakHandler.createDirectoryIfNeeded(at: uniqueSubDir)
+        try Self.createDirectoryIfNeeded(at: uniqueSubDir)
 
         // I don't particularly like this code
         // but it somehow works well enough,
@@ -185,11 +184,11 @@ class TweakHandler {
     // Read extracted deb file, locate all necessary contents to copy over to the .app
     private func handleDirectories(at urls: [URL]) throws {
         let directoriesToCheck = [
-            "Library/Frameworks/", 
+            "Library/Frameworks/",
             "var/jb/Library/Frameworks/",
-            "Library/MobileSubstrate/DynamicLibraries/", 
+            "Library/MobileSubstrate/DynamicLibraries/",
             "var/jb/Library/MobileSubstrate/DynamicLibraries/",
-            "Library/Application Support/", 
+            "Library/Application Support/",
             "var/jb/Library/Application Support/"
         ]
 
@@ -264,13 +263,11 @@ extension TweakHandler {
         let fileManager = FileManager.default
         let files = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: [])
 
-        let dylibFiles = files.filter { url in
+        return files.filter { url in
             let attributes = try? fileManager.attributesOfItem(atPath: url.path)
             let isSymlink = attributes?[.type] as? FileAttributeType == .typeSymbolicLink
             return url.pathExtension.lowercased() == "dylib" && !isSymlink
         }
-
-        return dylibFiles
     }
 
     private func locateFrameworkDirectories(in directory: URL) throws -> [URL] {
@@ -281,13 +278,11 @@ extension TweakHandler {
             options: [.skipsHiddenFiles]
         )
 
-        let frameworkDirectories = files.filter { url in
+        return files.filter { url in
             let attributes = try? fileManager.attributesOfItem(atPath: url.path)
             let isSymlink = attributes?[.type] as? FileAttributeType == .typeSymbolicLink
             return url.pathExtension.lowercased() == "framework" && url.hasDirectoryPath && !isSymlink
         }
-
-        return frameworkDirectories
     }
 }
 
@@ -307,8 +302,7 @@ extension TweakHandler {
         let plistData = try Data(contentsOf: infoPlistURL)
         if let plist = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any],
            let executableName = plist["CFBundleExecutable"] as? String {
-            let executableURL = frameworkURL.appendingPathComponent(executableName)
-            return executableURL
+            return frameworkURL.appendingPathComponent(executableName)
         } else {
             Debug.shared.log(message: "CFBundleExecutable not found in Info.plist")
             return nil

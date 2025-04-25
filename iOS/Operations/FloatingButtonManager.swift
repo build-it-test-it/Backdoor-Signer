@@ -545,10 +545,10 @@ final class FloatingButtonManager {
             do {
                 // First verify the context exists with a try-catch
                 guard let topVCStillValid = topVC, !topVCStillValid.isBeingDismissed else {
-                    throw NSError(domain: "com.backdoor.floatingButton", code: 1, 
+                    throw NSError(domain: "com.backdoor.floatingButton", code: 1,
                                  userInfo: [NSLocalizedDescriptionKey: "View controller no longer valid"])
                 }
-                
+
                 // Update AI context
                 AppContextManager.shared.updateContext(topVCStillValid)
                 CustomAIContextProvider.shared.refreshContext()
@@ -562,7 +562,7 @@ final class FloatingButtonManager {
 
                 // Create the session with explicit error handling
                 guard let session = try? CoreDataManager.shared.createAIChatSession(title: title) else {
-                    throw NSError(domain: "com.backdoor.floatingButton", code: 2, 
+                    throw NSError(domain: "com.backdoor.floatingButton", code: 2,
                                  userInfo: [NSLocalizedDescriptionKey: "Failed to create chat session"])
                 }
 
@@ -574,7 +574,7 @@ final class FloatingButtonManager {
                         }
                         return
                     }
-                    
+
                     // Verify view controller is still valid before presentation
                     if let validTopVC = topVCStillValid, !validTopVC.isBeingDismissed {
                         self.presentChatInterfaceSafely(with: session, from: validTopVC)
@@ -584,7 +584,7 @@ final class FloatingButtonManager {
                         self.show()
                         Debug.shared.log(message: "View controller no longer valid for chat presentation", type: .warning)
                     }
-                    
+
                     // End background task
                     if backgroundTaskID != .invalid {
                         UIApplication.shared.endBackgroundTask(backgroundTaskID)
@@ -604,7 +604,7 @@ final class FloatingButtonManager {
                     if let validTopVC = topVC, !validTopVC.isBeingDismissed {
                         self.showErrorAlert(message: "Chat initialization failed. Please try again later.", on: validTopVC)
                     }
-                    
+
                     // End background task
                     if backgroundTaskID != .invalid {
                         UIApplication.shared.endBackgroundTask(backgroundTaskID)
@@ -617,9 +617,9 @@ final class FloatingButtonManager {
 
     private func presentChatInterfaceSafely(with session: ChatSession, from presenter: UIViewController) {
         // Validate the presenter is still valid and not in transition
-        guard !presenter.isBeingDismissed, 
-              !presenter.isBeingPresented, 
-              !presenter.isMovingToParent, 
+        guard !presenter.isBeingDismissed,
+              !presenter.isBeingPresented,
+              !presenter.isMovingToParent,
               !presenter.isMovingFromParent,
               presenter.view.window != nil else {
             Debug.shared.log(message: "Cannot present chat - view controller in invalid state", type: .error)
@@ -628,7 +628,7 @@ final class FloatingButtonManager {
             show()
             return
         }
-        
+
         // Create chat view controller with the session
         let chatVC = ChatViewController(session: session)
 

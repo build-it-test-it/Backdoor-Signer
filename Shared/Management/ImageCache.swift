@@ -12,7 +12,7 @@ final class ImageCache {
 
     /// Shared instance of the image cache
     static let shared = ImageCache()
-    
+
     /// Save an image to the cache for a specific URL
     /// - Parameters:
     ///   - image: The image to save
@@ -21,7 +21,7 @@ final class ImageCache {
         // Save to memory cache
         let key = url.absoluteString as NSString
         memoryCache.setObject(image, forKey: key)
-        
+
         // Save to disk in the background
         diskQueue.async { [weak self] in
             self?.saveImageToDisk(image: image, url: url)
@@ -61,10 +61,10 @@ final class ImageCache {
 
     /// Operation queue for downloads
     private let downloadQueue = OperationQueue()
-    
+
     /// Cache for image URLs that failed to load
     private var failedURLs = Set<URL>()
-    
+
     /// Queue for synchronizing access to failed URLs
     private let failedURLsQueue = DispatchQueue(label: "com.backdoor.ImageCache.FailedURLsQueue")
 
@@ -128,8 +128,7 @@ final class ImageCache {
                    placeholder: UIImage? = nil,
                    downsampling: Bool = true,
                    targetSize: CGSize = CGSize(width: 80, height: 80),
-                   completion: @escaping (UIImage?) -> Void)
-    {
+                   completion: @escaping (UIImage?) -> Void) {
         // Return placeholder immediately if URL is nil
         guard let url = url else {
             DispatchQueue.main.async {
@@ -137,13 +136,13 @@ final class ImageCache {
             }
             return
         }
-        
+
         // Check if URL previously failed to load
         var shouldSkip = false
         failedURLsQueue.sync {
             shouldSkip = failedURLs.contains(url)
         }
-        
+
         if shouldSkip {
             Debug.shared.log(message: "Skipping previously failed URL: \(url.lastPathComponent)", type: .debug)
             DispatchQueue.main.async {
@@ -174,7 +173,7 @@ final class ImageCache {
         operationQueue.sync {
             isAlreadyInProgress = downloadOperations[url] != nil
         }
-        
+
         if isAlreadyInProgress {
             Debug.shared.log(message: "Image download already in progress: \(url.lastPathComponent)", type: .debug)
             return
@@ -208,7 +207,7 @@ final class ImageCache {
             // Download image if not in cache
             self.downloadImage(from: url, downsampling: downsampling, targetSize: targetSize) { [weak self] image in
                 guard let self = self else { return }
-                
+
                 if let image = image {
                     // Store in memory cache with cost based on image size
                     let cacheKey = NSString(string: cacheKeyString)
@@ -227,7 +226,7 @@ final class ImageCache {
                     self.failedURLsQueue.async {
                         self.failedURLs.insert(url)
                     }
-                    
+
                     DispatchQueue.main.async {
                         completion(nil)
                     }
@@ -263,7 +262,7 @@ final class ImageCache {
     func clearCache() {
         // Clear memory cache
         memoryCache.removeAllObjects()
-        
+
         // Clear failed URLs cache
         failedURLsQueue.async {
             self.failedURLs.removeAll()
@@ -296,8 +295,7 @@ final class ImageCache {
     private func downloadImage(from url: URL,
                                downsampling: Bool,
                                targetSize: CGSize,
-                               completion: @escaping (UIImage?) -> Void)
-    {
+                               completion: @escaping (UIImage?) -> Void) {
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             guard let self = self,
                   let data = data,
@@ -399,7 +397,7 @@ final class ImageCache {
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceShouldCacheImmediately: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceThumbnailMaxPixelSize: max(targetSize.width, targetSize.height) * UIScreen.main.scale,
+            kCGImageSourceThumbnailMaxPixelSize: max(targetSize.width, targetSize.height) * UIScreen.main.scale
         ] as CFDictionary
 
         guard let downsampledImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, downsamplingOptions) else {
@@ -463,7 +461,7 @@ final class ImageCache {
 
                     var currentSize = totalSize
                     let targetSize = self.maxDiskCacheSize * 80 / 100 // Target 80% of max size
-                    
+
                     for url in sortedFiles {
                         if currentSize <= targetSize {
                             break

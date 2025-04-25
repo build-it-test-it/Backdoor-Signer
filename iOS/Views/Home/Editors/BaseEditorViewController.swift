@@ -107,7 +107,7 @@ class BaseEditorViewController: UIViewController, UITextViewDelegate {
             toolbar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
             toolbar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
             toolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-            toolbar.heightAnchor.constraint(equalToConstant: 44),
+            toolbar.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
 

@@ -96,7 +96,7 @@ extension SettingsViewController {
                 }),
                 ("Reset Terminal Settings", .default, {
                     self.resetTerminalSettings()
-                }),
+                })
             ]
         ) {
             self.alertToFinish()
@@ -111,10 +111,10 @@ extension SettingsViewController {
                 ("Proceed", .destructive, {
                     // Reset all data
                     ResetDataClass.shared.resetAll()
-                    
+
                     // Also reset terminal settings
                     self.integrateTerminalReset()
-                }),
+                })
             ]
         ) {
             self.alertToFinish()

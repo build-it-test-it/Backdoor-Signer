@@ -118,7 +118,6 @@ class AppDownload: NSObject {
             } else {
                 completion(nil, NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No .app directory found in Payload"]))
             }
-
         } catch {
             Debug.shared.log(message: "\(error)")
             if fileManager.fileExists(atPath: destinationURL.path) {
@@ -142,8 +141,7 @@ class AppDownload: NSObject {
                let primaryIconsDict = iconsDict["CFBundlePrimaryIcon"] as? [String: Any],
                let iconFiles = primaryIconsDict["CFBundleIconFiles"] as? [String],
                let iconFileName = iconFiles.first,
-               let iconPath = bundle.path(forResource: iconFileName + "@2x", ofType: "png")
-            {
+               let iconPath = bundle.path(forResource: iconFileName + "@2x", ofType: "png") {
                 iconURL = "\(URL(string: iconPath)?.lastPathComponent ?? "")"
             }
 

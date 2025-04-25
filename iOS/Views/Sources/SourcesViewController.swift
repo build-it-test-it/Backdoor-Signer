@@ -11,7 +11,7 @@ import UIKit
 
 class SourcesViewController: UITableViewController {
     var sources: [Source] = []
-    public var searchController: UISearchController!
+    var searchController: UISearchController!
     let searchResultsTableViewController = SearchResultsTableViewController()
 
     init() { super.init(style: .grouped) }
@@ -28,10 +28,6 @@ class SourcesViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupNavigation()
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
     }
 
     fileprivate func setupViews() {
@@ -73,7 +69,7 @@ extension SourcesViewController {
 
     override func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if section == 1 {
-            let headerWithButton = GroupedSectionHeader(
+            return GroupedSectionHeader(
                 title: String.localized("SOURCES_VIEW_CONTROLLER_REPOSITORIES"),
                 subtitle: String.localized(sources.count > 1 ? "SOURCES_VIEW_CONTROLLER_NUMBER_OF_SOURCES_PLURAL" : "SOURCES_VIEW_CONTROLLER_NUMBER_OF_SOURCES", arguments: "\(sources.count)"),
                 buttonTitle: String.localized("SOURCES_VIEW_CONTROLLER_ADD_SOURCES"), buttonAction: {
@@ -91,8 +87,6 @@ extension SourcesViewController {
                     }
                 }
             )
-
-            return headerWithButton
         } else {
             return nil
         }
@@ -146,7 +140,7 @@ extension SourcesViewController {
         if indexPath.section == 1 {
             let source = sources[indexPath.row]
 
-            let configuration = UIContextMenuConfiguration(identifier: nil, actionProvider: { _ in
+            return UIContextMenuConfiguration(identifier: nil, actionProvider: { _ in
                 UIMenu(title: "", image: nil, identifier: nil, options: [], children: [
                     UIAction(title: String.localized("COPY"), image: UIImage(systemName: "doc.on.clipboard"), handler: { _ in
                         if source.identifier == "kh.crysalis.backdoor-repo.beta" {
@@ -154,10 +148,9 @@ extension SourcesViewController {
                         } else {
                             UIPasteboard.general.string = source.sourceURL?.absoluteString
                         }
-                    }),
+                    })
                 ])
             })
-            return configuration
         } else {
             return nil
         }

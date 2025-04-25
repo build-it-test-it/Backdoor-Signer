@@ -92,18 +92,18 @@ class InsetGroupedSectionHeader: UIView {
         get { return titleLabel.text ?? "" }
         set { titleLabel.text = newValue }
     }
-    
+
     /// Sets up the UI components and constraints
     private func setupUI() {
         addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(
-                equalTo: leadingAnchor, 
+                equalTo: leadingAnchor,
                 constant: SectionHeaderConstants.Spacing.smallSpacing
             ),
             titleLabel.trailingAnchor.constraint(
-                equalTo: trailingAnchor, 
+                equalTo: trailingAnchor,
                 constant: -SectionHeaderConstants.Spacing.mediumSpacing
             ),
             titleLabel.topAnchor.constraint(
@@ -117,7 +117,7 @@ class InsetGroupedSectionHeader: UIView {
             )
         ])
     }
-    
+
     /// Returns the intrinsic content size for this view
     override var intrinsicContentSize: CGSize {
         let titleHeight = titleLabel.intrinsicContentSize.height
@@ -226,7 +226,7 @@ class SearchAppSectionHeader: UIView {
             )
         ])
     }
-    
+
     /// Returns the intrinsic content size for this view
     override var intrinsicContentSize: CGSize {
         let titleHeight = titleLabel.intrinsicContentSize.height
@@ -315,7 +315,7 @@ class GroupedSectionHeader: UIView {
         super.init(frame: .zero)
         setupUI()
         self.title = title
-        
+
         if let title = buttonTitle {
             setupButton(title: title)
         }
@@ -443,19 +443,19 @@ class InlineButton: UIButton {
     /// - Parameter frame: The frame rectangle for the view
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         // Configure the symbol with multi-color palette
         let symbolConfig = UIImage.SymbolConfiguration(paletteColors: [.tintColor, .secondarySystemBackground])
             .applying(UIImage.SymbolConfiguration(pointSize: 23, weight: .unspecified))
-        
+
         // Create the image with the configuration
         let image = UIImage(systemName: "gearshape.circle.fill")?
             .withRenderingMode(.alwaysTemplate)
             .applyingSymbolConfiguration(symbolConfig)
-        
+
         // Set the image as the button's content
         setImage(image, for: .normal)
-        
+
         // Configure the insets based on iOS version
         if #available(iOS 15.0, *) {
             var buttonConfig = configuration ?? UIButton.Configuration.plain()
@@ -480,19 +480,19 @@ class InlineButton: UIButton {
     /// - Parameter coder: The NSCoder instance
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        
+
         // Configure the symbol with multi-color palette
         let symbolConfig = UIImage.SymbolConfiguration(paletteColors: [.tintColor, .secondarySystemBackground])
             .applying(UIImage.SymbolConfiguration(pointSize: 23, weight: .unspecified))
-        
+
         // Create the image with the configuration
         let image = UIImage(systemName: "gearshape.circle.fill")?
             .withRenderingMode(.alwaysTemplate)
             .applyingSymbolConfiguration(symbolConfig)
-        
+
         // Set the image as the button's content
         setImage(image, for: .normal)
-        
+
         // Configure the insets based on iOS version
         if #available(iOS 15.0, *) {
             var buttonConfig = configuration ?? UIButton.Configuration.plain()

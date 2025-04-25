@@ -23,7 +23,7 @@ extension BasicLayoutAnchorsHolding {
             leadingAnchor.constraint(equalTo: target.leadingAnchor),
             trailingAnchor.constraint(equalTo: target.trailingAnchor),
             bottomAnchor.constraint(equalTo: target.bottomAnchor),
-            topAnchor.constraint(equalTo: target.topAnchor),
+            topAnchor.constraint(equalTo: target.topAnchor)
         ])
     }
 

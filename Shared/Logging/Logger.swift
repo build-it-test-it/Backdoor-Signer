@@ -48,7 +48,7 @@ final class Debug {
                 fileHandle.closeFile()
             }
         } catch {
-            Debug.shared.log(message: "Error writing to logs.txt: \(error)")
+            Self.shared.log(message: "Error writing to logs.txt: \(error)")
         }
     }
 

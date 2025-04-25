@@ -7,29 +7,29 @@
 import UIKit
 
 class IconsListViewController: UITableViewController {
-    public class func altImage(_ name: String) -> UIImage {
+    class func altImage(_ name: String) -> UIImage {
         // Try multiple locations for the icon image (root first for backward compatibility)
         let possiblePaths: [URL] = [
             // Check root of bundle (original implementation)
             Bundle.main.bundleURL.appendingPathComponent(name + "@2x.png"),
-            
+
             // Check Main folder for Main icons
             Bundle.main.bundleURL.appendingPathComponent("Icons/Main/\(name)@2x.png"),
-            
+
             // Check Wing folder for Wing icon
             Bundle.main.bundleURL.appendingPathComponent("Icons/Wing/\(name)@2x.png"),
-            
+
             // Check Resources folder paths
             Bundle.main.resourceURL?.appendingPathComponent("Icons/Main/\(name)@2x.png") ?? URL(fileURLWithPath: ""),
             Bundle.main.resourceURL?.appendingPathComponent("Icons/Wing/\(name)@2x.png") ?? URL(fileURLWithPath: ""),
-            
+
             // Check path relative to bundle resources
             Bundle.main.url(forResource: name, withExtension: "png") ?? URL(fileURLWithPath: ""),
             Bundle.main.url(forResource: name + "@2x", withExtension: "png") ?? URL(fileURLWithPath: ""),
             Bundle.main.url(forResource: "Icons/Main/\(name)@2x", withExtension: "png") ?? URL(fileURLWithPath: ""),
             Bundle.main.url(forResource: "Icons/Wing/\(name)@2x", withExtension: "png") ?? URL(fileURLWithPath: "")
         ]
-        
+
         // Try each path until we find a valid image
         for path in possiblePaths {
             if let image = UIImage(contentsOfFile: path.path), !image.isEmpty {
@@ -37,7 +37,7 @@ class IconsListViewController: UITableViewController {
                 return image
             }
         }
-        
+
         // Fallback to system icon if none found
         Debug.shared.log(message: "Failed to load icon: \(name)", type: .warning)
         return UIImage(systemName: "app.dashed") ?? UIImage()
@@ -48,11 +48,11 @@ class IconsListViewController: UITableViewController {
             AltIcon(displayName: "Backdoor", author: "Samara", key: nil, image: altImage("AppIcon60x60")),
             AltIcon(displayName: "macOS Backdoor", author: "Samara", key: "Mac", image: altImage("Mac")),
             AltIcon(displayName: "Evil Backdoor", author: "Samara", key: "Evil", image: altImage("Evil")),
-            AltIcon(displayName: "Classic Backdoor", author: "Samara", key: "Early", image: altImage("Early")),
+            AltIcon(displayName: "Classic Backdoor", author: "Samara", key: "Early", image: altImage("Early"))
         ],
         "Wingio": [
-            AltIcon(displayName: "Backdoor", author: "Wingio", key: "Wing", image: altImage("Wing")),
-        ],
+            AltIcon(displayName: "Backdoor", author: "Wingio", key: "Wing", image: altImage("Wing"))
+        ]
     ]
 
     init() { super.init(style: .insetGrouped) }
@@ -93,8 +93,7 @@ extension IconsListViewController {
 
     override func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let title = sectionTitles()[section]
-        let headerView = InsetGroupedSectionHeader(title: title)
-        return headerView
+        return InsetGroupedSectionHeader(title: title)
     }
 
     override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

@@ -250,8 +250,7 @@ extension UIViewController {
         for subview in view.subviews {
             if subview.layer.shadowOpacity > 0 ||
                 subview.layer.cornerRadius > 0 ||
-                subview.layer.borderWidth > 0
-            {
+                subview.layer.borderWidth > 0 {
                 // Rasterize layers with shadows or rounded corners
                 subview.layer.shouldRasterize = true
                 subview.layer.rasterizationScale = UIScreen.main.scale

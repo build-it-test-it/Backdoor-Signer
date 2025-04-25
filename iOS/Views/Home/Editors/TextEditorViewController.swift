@@ -34,11 +34,6 @@ class TextEditorViewController: BaseEditorViewController {
         }
     }
 
-    override func loadFileContent() {
-        // Use the base implementation for loading text files
-        super.loadFileContent()
-    }
-
     // MARK: - Additional Text Editor Features
 
     @objc private func toggleLineNumbers() {

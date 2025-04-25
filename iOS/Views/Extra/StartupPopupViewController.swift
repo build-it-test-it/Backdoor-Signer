@@ -159,7 +159,7 @@ class StartupPopupViewController: UIViewController {
             progressView.topAnchor.constraint(equalTo: secondsRemainingLabel.bottomAnchor, constant: 12),
             progressView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             progressView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            progressView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24),
+            progressView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
         ])
     }
 

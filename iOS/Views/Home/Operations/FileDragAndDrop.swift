@@ -24,7 +24,7 @@ extension HomeViewController {
         let itemProvider = NSItemProvider(object: file.url as NSURL)
         let dragItem = UIDragItem(itemProvider: itemProvider)
         dragItem.localObject = file.name
-        
+
         // Store the file name in the session's localContext for later use
         session.localContext = file.name
 

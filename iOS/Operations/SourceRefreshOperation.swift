@@ -212,8 +212,7 @@ import Foundation
             """
 
             if let jsonData = jsonString.data(using: .utf8),
-               case let .success(mockSource) = SourceGET().parse(data: jsonData)
-            {
+               case let .success(mockSource) = SourceGET().parse(data: jsonData) {
                 Debug.shared.log(message: "Debug mode: Successfully created mock source", type: .info)
                 completion(mockSource)
             } else {

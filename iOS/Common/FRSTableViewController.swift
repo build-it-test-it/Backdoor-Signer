@@ -67,7 +67,6 @@ extension FRSTableViewController {
 
     override func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let title = sectionTitles[section]
-        let headerView = InsetGroupedSectionHeader(title: title)
-        return headerView
+        return InsetGroupedSectionHeader(title: title)
     }
 }

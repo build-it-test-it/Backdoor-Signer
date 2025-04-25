@@ -33,7 +33,7 @@ extension UILabel {
                 height: newValue.top + newValue.bottom)
             )
             paddingView.backgroundColor = .clear
-            
+
             self.bounds = self.bounds.inset(by: newValue.inverted())
             self.frame = CGRect(
                 x: self.frame.origin.x - newValue.left,

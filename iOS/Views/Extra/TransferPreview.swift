@@ -11,11 +11,11 @@ import UIKit
 struct TransferPreview: View {
     @Environment(\.presentationMode) var presentationMode
 
-    @StateObject var installer: Installer
+    @StateObject private var installer: Installer
 
-    @State var appPath: String
-    @State var appName: String
-    @State var isSharing: Bool = false
+    @State private var appPath: String
+    @State private var appName: String
+    @State private var isSharing: Bool = false
 
     @State private var packaging: Bool = true
     @State private var showShareSheet = false
@@ -169,13 +169,13 @@ struct TransferPreview: View {
 
 struct ActivityViewController: UIViewControllerRepresentable {
     var activityItems: [Any]
-    var applicationActivities: [UIActivity]? = nil
+    var applicationActivities: [UIActivity]?
 
-    func makeUIViewController(context _: UIViewControllerRepresentableContext<ActivityViewController>) -> UIActivityViewController {
+    func makeUIViewController(context _: UIViewControllerRepresentableContext<Self>) -> UIActivityViewController {
         return UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
     }
 
-    func updateUIViewController(_: UIActivityViewController, context _: UIViewControllerRepresentableContext<ActivityViewController>) {}
+    func updateUIViewController(_: UIActivityViewController, context _: UIViewControllerRepresentableContext<Self>) {}
 }
 
 struct SafariWebView: UIViewControllerRepresentable {

@@ -49,7 +49,7 @@ extension Installer {
         comps.path = "/"
         comps.queryItems = [
             URLQueryItem(name: "action", value: "download-manifest"),
-            URLQueryItem(name: "url", value: plistEndpoint.absoluteString),
+            URLQueryItem(name: "url", value: plistEndpoint.absoluteString)
         ]
         comps.port = port
         return comps.url!
@@ -103,25 +103,25 @@ extension Installer {
                     "assets": [
                         [
                             "kind": "software-package",
-                            "url": payloadEndpoint.absoluteString,
+                            "url": payloadEndpoint.absoluteString
                         ],
                         [
                             "kind": "display-image",
-                            "url": displayImageSmallEndpoint.absoluteString,
+                            "url": displayImageSmallEndpoint.absoluteString
                         ],
                         [
                             "kind": "full-size-image",
-                            "url": displayImageLargeEndpoint.absoluteString,
-                        ],
+                            "url": displayImageLargeEndpoint.absoluteString
+                        ]
                     ],
                     "metadata": [
                         "bundle-identifier": metadata.id,
                         "bundle-version": metadata.version,
                         "kind": "software",
-                        "title": metadata.name,
-                    ],
-                ],
-            ],
+                        "title": metadata.name
+                    ]
+                ]
+            ]
         ]
     }
 

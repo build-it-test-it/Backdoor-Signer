@@ -17,7 +17,7 @@ enum TerminalFileError: Error {
     case fileNotFound(String)
     case unknownError(String)
     case failure(String)
-    
+
     var localizedDescription: String {
         switch self {
         case .invalidURL:

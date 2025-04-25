@@ -12,6 +12,6 @@ extension BackdoorAIClient {
     var modelVersionKey: String {
         return "currentModelVersion"
     }
-    
+
     // Other utility methods can be added here
 }

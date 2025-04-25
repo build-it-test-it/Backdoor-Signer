@@ -78,8 +78,7 @@ extension CertificatesViewController {
             default: break
         }
 
-        let headerView = InsetGroupedSectionHeader(title: title)
-        return headerView
+        return InsetGroupedSectionHeader(title: title)
     }
 
     override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -124,7 +123,7 @@ extension CertificatesViewController {
             case 1:
                 let source = certs![indexPath.row]
 
-                let configuration = UIContextMenuConfiguration(identifier: nil, actionProvider: { _ in
+                return UIContextMenuConfiguration(identifier: nil, actionProvider: { _ in
                     UIMenu(title: "", image: nil, identifier: nil, options: [], children: [
                         UIAction(title: String.localized("DELETE"), image: UIImage(systemName: "trash"), attributes: .destructive, handler: { _ in
                             if Preferences.selectedCert != indexPath.row {
@@ -140,11 +139,9 @@ extension CertificatesViewController {
                                     self.present(alert, animated: true, completion: nil)
                                 }
                             }
-                        }),
+                        })
                     ])
                 })
-
-                return configuration
             default:
                 return nil
         }

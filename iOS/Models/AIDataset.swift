@@ -16,7 +16,7 @@ class AIDataset: Equatable {
     let dateAdded: Date
     let recordCount: Int
     let url: URL
-    
+
     init(id: String, name: String, fileName: String, format: String, size: Int, dateAdded: Date, recordCount: Int, url: URL) {
         self.id = id
         self.name = name
@@ -27,7 +27,7 @@ class AIDataset: Equatable {
         self.recordCount = recordCount
         self.url = url
     }
-    
+
     /// Formatted size string
     var formattedSize: String {
         let formatter = ByteCountFormatter()
@@ -35,7 +35,7 @@ class AIDataset: Equatable {
         formatter.countStyle = .file
         return formatter.string(fromByteCount: Int64(size))
     }
-    
+
     /// Formatted date string
     var formattedDate: String {
         let formatter = DateFormatter()
@@ -43,7 +43,7 @@ class AIDataset: Equatable {
         formatter.timeStyle = .short
         return formatter.string(from: dateAdded)
     }
-    
+
     static func == (lhs: AIDataset, rhs: AIDataset) -> Bool {
         return lhs.id == rhs.id
     }
@@ -56,7 +56,7 @@ struct AIDatasetInfo {
     let url: URL
     let size: Int
     let category: String
-    
+
     /// Formatted size string
     var formattedSize: String {
         let formatter = ByteCountFormatter()
@@ -72,7 +72,7 @@ enum AIDatasetError: Error, LocalizedError {
     case invalidData(String)
     case downloadFailed(String)
     case trainingFailed(String)
-    
+
     var errorDescription: String? {
         switch self {
         case .invalidFormat(let message):

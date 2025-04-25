@@ -22,7 +22,7 @@ enum SearchQueryType {
 final class CustomAIService {
     // Singleton instance for app-wide use
     static let shared = CustomAIService()
-    
+
     // Flag to track if CoreML is initialized
     private var isCoreMLInitialized = false
 
@@ -33,18 +33,18 @@ final class CustomAIService {
             self?.initializeCoreML()
         }
     }
-    
+
     /// Initialize CoreML model
     private func initializeCoreML() {
         Debug.shared.log(message: "Starting CoreML initialization for AI service", type: .info)
-        
+
         // Check if CoreML is already loaded by the manager
         if CoreMLManager.shared.isModelLoaded {
             self.isCoreMLInitialized = true
             Debug.shared.log(message: "CoreML model already loaded via manager, AI service ready", type: .info)
             return
         }
-        
+
         // Listen for CoreML model load completion
         NotificationCenter.default.addObserver(
             self,
@@ -52,7 +52,7 @@ final class CustomAIService {
             name: Notification.Name("CoreMLModelLoaded"),
             object: nil
         )
-        
+
         // Listen for AI capabilities enhancement
         NotificationCenter.default.addObserver(
             self,
@@ -60,7 +60,7 @@ final class CustomAIService {
             name: Notification.Name("AICapabilitiesEnhanced"),
             object: nil
         )
-        
+
         // Start loading the model if it's not already being loaded
         // This provides a backup initialization path
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -69,7 +69,7 @@ final class CustomAIService {
                 switch result {
                 case .success(let modelURL):
                     Debug.shared.log(message: "ML model prepared at: \(modelURL?.path ?? "unknown path")", type: .info)
-                    
+
                     // Load the model
                     CoreMLManager.shared.loadModel { success in
                         if success && !(self?.isCoreMLInitialized ?? false) {
@@ -80,7 +80,7 @@ final class CustomAIService {
                             self?.isCoreMLInitialized = false
                         }
                     }
-                    
+
                 case .failure(let error):
                     Debug.shared.log(message: "Failed to prepare ML model: \(error.localizedDescription), falling back to pattern matching", type: .error)
                     self?.isCoreMLInitialized = false
@@ -88,7 +88,7 @@ final class CustomAIService {
             }
         }
     }
-    
+
     /// Handle CoreML model load completion notification
     @objc private func handleCoreMLModelLoaded() {
         if !isCoreMLInitialized {
@@ -96,7 +96,7 @@ final class CustomAIService {
             Debug.shared.log(message: "CoreML model loaded notification received, enabling ML capabilities", type: .info)
         }
     }
-    
+
     /// Handle AI capabilities enhancement notification
     @objc private func handleAICapabilitiesEnhanced() {
         if !isCoreMLInitialized && CoreMLManager.shared.isModelLoaded {
@@ -146,20 +146,20 @@ final class CustomAIService {
                 "\\[news search:([^\\]]+)\\]",
                 "\\[specialized search:([^\\]]+)\\]"
             ]
-            
+
             for pattern in searchCommandPatterns {
                 if let range = lastUserMessage.range(of: pattern, options: .regularExpression) {
                     if let queryRange = lastUserMessage.range(of: "\\[\\w+ search:([^\\]]+)\\]", options: .regularExpression) {
                         // Extract the command type and query
                         let command = String(lastUserMessage[range]).trimmingCharacters(in: .whitespacesAndNewlines)
                         let queryMatch = lastUserMessage[queryRange]
-                        
+
                         // Extract the actual query from the command
                         if let colonIndex = queryMatch.firstIndex(of: ":"),
                            let endBracketIndex = queryMatch.lastIndex(of: "]") {
                             let startIndex = queryMatch.index(after: colonIndex)
                             let query = String(queryMatch[startIndex..<endBracketIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
-                            
+
                             // Process based on command type
                             if command.contains("web search") {
                                 // Regular web search
@@ -191,32 +191,32 @@ final class CustomAIService {
                     }
                 }
             }
-            
+
             // Get conversation history for context
             let conversationContext = self.extractConversationContext(messages: messages)
-            
+
             // Process the language of the message using our NaturalLanguageHelper
             // Identify the language of the message
             let detectedLanguage = NaturalLanguageHelper.shared.detectLanguage(in: lastUserMessage)
-            
+
             Debug.shared.log(message: "Detected message language: \(detectedLanguage)", type: .debug)
-            
+
             // Set language context for better response generation
             var contextDict: [String: Any] = [:]
             contextDict["detectedLanguage"] = detectedLanguage
-            
+
             // Also extract entities for better context understanding
             let entities = NaturalLanguageHelper.shared.extractEntities(from: lastUserMessage)
             if !entities.isEmpty {
                 contextDict["entities"] = entities
                 Debug.shared.log(message: "Detected entities: \(entities)", type: .debug)
             }
-            
+
             // Get sentiment score
             let sentimentScore = NaturalLanguageHelper.shared.analyzeSentiment(in: lastUserMessage)
             contextDict["sentiment"] = sentimentScore
             Debug.shared.log(message: "Message sentiment score: \(sentimentScore)", type: .debug)
-            
+
             // Record interaction for learning purposes
             if AILearningManager.shared.isLearningEnabled {
                 // Record this interaction for future learning
@@ -224,7 +224,7 @@ final class CustomAIService {
                     AILearningManager.shared.collectUserDataInBackground()
                 }
             }
-            
+
             // Check if we should use CoreML-enhanced analysis
             if self.isCoreMLInitialized {
                 // Use CoreML for enhanced intent analysis
@@ -248,7 +248,7 @@ final class CustomAIService {
                                 confidence: confidence
                             )
                         }
-                        
+
                         // Check if the response contains a search command
                         self.processResponseForSearchCommands(response: response) { result in
                             // Add a small delay to simulate processing time
@@ -261,7 +261,7 @@ final class CustomAIService {
             } else {
                 // Fall back to pattern matching if CoreML isn't available
                 let messageIntent = self.analyzeUserIntent(message: lastUserMessage)
-                
+
                 // Generate response based on intent and context
                 let response = self.generateResponse(
                     intent: messageIntent,
@@ -270,7 +270,7 @@ final class CustomAIService {
                     conversationContext: conversationContext,
                     appContext: context
                 )
-                
+
                 // Record the interaction for learning
                 if AILearningManager.shared.isLearningEnabled {
                     let intent = self.getIntentString(from: messageIntent)
@@ -293,7 +293,7 @@ final class CustomAIService {
             }
         }
     }
-    
+
     /// Process a response string for embedded search commands and execute them if found
     private func processResponseForSearchCommands(response: String, completion: @escaping (String) -> Void) {
         // Define the pattern to match search commands
@@ -304,23 +304,23 @@ final class CustomAIService {
             "\\[news search:([^\\]]+)\\]",
             "\\[specialized search:([^\\]]+)\\]"
         ]
-        
+
         // Check for search commands
         for pattern in patterns {
             if let range = response.range(of: pattern, options: .regularExpression),
                let queryRange = response.range(of: "\\[\\w+ search:([^\\]]+)\\]", options: .regularExpression) {
                 let command = String(response[range])
-                
+
                 // Extract the query portion
                 if let colonIndex = command.firstIndex(of: ":"),
                    let endBracketIndex = command.lastIndex(of: "]") {
                     let startIndex = command.index(after: colonIndex)
                     let query = String(command[startIndex..<endBracketIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
-                    
+
                     // Remove the command from the response
                     var cleanedResponse = response
                     cleanedResponse.removeSubrange(queryRange)
-                    
+
                     // Execute the search based on command type
                     if command.contains("web search") {
                         self.performWebSearch(query: query) { searchResult in
@@ -347,11 +347,11 @@ final class CustomAIService {
                 }
             }
         }
-        
+
         // If no search commands found, return the original response
         completion(response)
     }
-    
+
     /// Convert MessageIntent to string representation for learning
     private func getIntentString(from intent: MessageIntent) -> String {
         switch intent {
@@ -375,12 +375,12 @@ final class CustomAIService {
             return "unknown"
         }
     }
-    
+
     // Extract meaningful context from conversation history
     private func extractConversationContext(messages: [AIMessagePayload]) -> String {
         // Get the last 5 messages for context (or fewer if there aren't 5)
         let contextMessages = messages.suffix(min(5, messages.count))
-        
+
         return contextMessages.map { "\($0.role): \($0.content)" }.joined(separator: "\n")
     }
 
@@ -410,7 +410,7 @@ final class CustomAIService {
         if lowercasedMessage.contains("help") || lowercasedMessage.contains("how do i") || lowercasedMessage.contains("how to") {
             return .generalHelp
         }
-        
+
         // Check for web search requests
         if let match = lowercasedMessage.range(of: "(?:search|google|look up|find)\\s+(?:for\\s+)?(?:information\\s+about\\s+)?([^?.,]+)", options: .regularExpression) {
             let query = String(lowercasedMessage[match]).replacing(regularExpression: "(?:search|google|look up|find)\\s+(?:for\\s+)?(?:information\\s+about\\s+)?", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -456,7 +456,7 @@ final class CustomAIService {
         let contextInfo = appContext.currentScreen
         // Get available commands for use in help responses
         let commandsList = AppContextManager.shared.availableCommands()
-        
+
         // Get additional context from the app
         let additionalContext = CustomAIContextProvider.shared.getContextSummary()
 
@@ -511,7 +511,7 @@ final class CustomAIService {
             case let .webSearch(query):
                 let searchDepth = determineSearchDepth(for: query)
                 let queryType = getSearchType(from: query)
-                
+
                 switch searchDepth {
                 case .standard:
                     return "Let me search the web for information about \"\(query)\". [web search:\(query)]"
@@ -528,7 +528,7 @@ final class CustomAIService {
                         return "I'll perform a specialized search to find the most relevant information about \"\(query)\". [specialized search:\(query)]"
                     }
                 }
-                
+
             case .unknown:
                 // Extract any potential commands from the message using regex
                 let commandPattern = "(sign|navigate to|install|add source|search)\\s+([\\w\\s.:/\\-]+)"
@@ -547,7 +547,7 @@ final class CustomAIService {
                 // Check if the message contains keywords related to app functionality
                 let appKeywords = ["sign", "certificate", "source", "install", "download", "app", "library", "settings"]
                 let containsAppKeywords = appKeywords.contains { userMessage.lowercased().contains($0) }
-                
+
                 if containsAppKeywords {
                     return """
                     I understand you need assistance with Backdoor. Based on your current context (\(contextInfo)), here are some actions I can help with:
@@ -558,16 +558,16 @@ final class CustomAIService {
                     - Navigate to different sections
 
                     \(additionalContext)
-                    
+
                     Please let me know specifically what you'd like to do.
                     """
                 } else {
                     // For completely unrelated queries, provide a friendly response
                     return """
-                    I'm your Backdoor assistant, focused on helping you with app signing, installation, and management. 
-                    
+                    I'm your Backdoor assistant, focused on helping you with app signing, installation, and management.
+
                     \(additionalContext)
-                    
+
                     If you have questions about using Backdoor, I'm here to help! What would you like to know about the app?
                     """
                 }

@@ -17,7 +17,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
         let documentPickerAction = UIAlertAction(title: String.localized("LIBRARY_VIEW_CONTROLLER_IMPORT_ACTION_SHEET_FILE"), style: .default) { [weak self] _ in
             self?.presentDocumentPicker(fileExtension: [
                 UTType(filenameExtension: "ipa")!,
-                UTType(filenameExtension: "tipa")!,
+                UTType(filenameExtension: "tipa")!
             ])
         }
 
@@ -64,8 +64,8 @@ extension LibraryViewController: UIDocumentPickerDelegate {
     }
 
     @objc func textURLDidChange(_ textField: UITextField) {
-        guard let alertController = presentedViewController as? UIAlertController, 
-              let setAction = alertController.actions.first(where: { [weak self] action in 
+        guard let alertController = presentedViewController as? UIAlertController,
+              let setAction = alertController.actions.first(where: { [weak self] action in
                   guard let self = self else { return false }
                   return action.title == String.localized("IMPORT")
               }) else { return }
@@ -118,20 +118,19 @@ extension LibraryViewController: UIDocumentPickerDelegate {
                 guard FileManager.default.fileExists(atPath: selectedFileURL.path) else {
                     throw NSError(domain: "com.backdoor.import", code: 404, userInfo: [NSLocalizedDescriptionKey: "File does not exist at path"])
                 }
-                
+
                 try self.handleIPAFile(destinationURL: selectedFileURL, uuid: uuid, dl: dl)
 
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     self.loaderAlert?.dismiss(animated: true)
                 }
-
             } catch {
                 backdoor.Debug.shared.log(message: "Failed to Import: \(error)", type: LogType.error)
 
                 DispatchQueue.main.async {
                     self.loaderAlert?.dismiss(animated: true)
-                    
+
                     // Show error alert
                     let errorAlert = UIAlertController(
                         title: "Import Failed",
@@ -142,7 +141,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
                     self.present(errorAlert, animated: true)
                 }
             }
-            
+
             // End security-scoped resource access if we started it
             if didStartAccess {
                 selectedFileURL.stopAccessingSecurityScopedResource()
@@ -214,7 +213,7 @@ extension LibraryViewController {
             backdoor.Debug.shared.log(message: "Empty file path provided for installation", type: LogType.error)
             return
         }
-        
+
         UIApplication.shared.isIdleTimerDisabled = true
 
         let name = app.value(forKey: "name") as? String ?? "Unknown App"
@@ -222,9 +221,9 @@ extension LibraryViewController {
         let version = app.value(forKey: "version") as? String ?? "1.0"
 
         presentTransferPreview(
-            with: filePath, 
-            id: bundleID, 
-            version: version, 
+            with: filePath,
+            id: bundleID,
+            version: version,
             name: name
         )
     }
@@ -234,7 +233,7 @@ extension LibraryViewController {
             backdoor.Debug.shared.log(message: "Empty file path provided for sharing", type: LogType.error)
             return
         }
-        
+
         UIApplication.shared.isIdleTimerDisabled = true
 
         let name = app.value(forKey: "name") as? String ?? "Unknown App"
@@ -242,20 +241,20 @@ extension LibraryViewController {
         let version = app.value(forKey: "version") as? String ?? "1.0"
 
         presentTransferPreview(
-            with: filePath, 
-            isSharing: true, 
-            id: bundleID, 
-            version: version, 
+            with: filePath,
+            isSharing: true,
+            id: bundleID,
+            version: version,
             name: name
         )
     }
-    
+
     // MARK: - Legacy methods for backward compatibility
-    
+
     @objc func startInstallProcess(meow: NSManagedObject, filePath: String) {
         startInstallProcess(app: meow, filePath: filePath)
     }
-    
+
     @objc func shareFile(meow: NSManagedObject, filePath: String) {
         shareFile(app: meow, filePath: filePath)
     }
@@ -272,12 +271,12 @@ extension LibraryViewController {
                 backdoor.Debug.shared.log(message: "Failed to parse version number", type: LogType.error)
                 return
             }
-            
+
             let installer = try Installer(
                 path: nil,
                 metadata: AppData(id: id, version: versionNumber, name: name)
             )
-            
+
             self.installer = installer
 
             let transferPreview = TransferPreview(
@@ -307,7 +306,6 @@ extension LibraryViewController {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.present(hostingController, animated: true)
             }
-
         } catch {
             backdoor.Debug.shared.log(message: "Error creating installer: \(error)", type: LogType.error)
             installer?.shutdownServer()

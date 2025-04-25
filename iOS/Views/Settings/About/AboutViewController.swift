@@ -21,14 +21,14 @@ class AboutViewController: FRSTableViewController {
             ["Header"],
             [],
             ["", "Thanks"], // Don't translate this
-            [],
+            []
         ]
 
         sectionTitles = [
             "",
             String.localized("ABOUT_VIEW_CONTROLLER_SECTION_TITLE_CREDITS"),
             String.localized("ABOUT_VIEW_CONTROLLER_SECTION_TITLE_SPONSORS"),
-            String.localized("ABOUT_VIEW_CONTROLLER_SECTION_TITLE_ACKNOWLEDGEMENTS"),
+            String.localized("ABOUT_VIEW_CONTROLLER_SECTION_TITLE_ACKNOWLEDGEMENTS")
         ]
 
         setupCreditsSection()

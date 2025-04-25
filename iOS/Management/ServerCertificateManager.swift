@@ -13,32 +13,32 @@ import Foundation
 /// 2. Offline app signing
 class ServerCertificateManager {
     // MARK: - Shared Instance
-    
+
     static let shared = ServerCertificateManager()
-    
+
     // MARK: - Properties
-    
+
     /// Server certificate file paths
     private let serverCrtPath: URL
     private let serverPemPath: URL
-    
+
     /// Last validation time
     private var lastValidationTime: Date?
-    
+
     // MARK: - Initialization
-    
+
     private init() {
         // Get paths from documents directory - these must match the paths in Server+TLS.swift
         let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         serverCrtPath = docsDir.appendingPathComponent("server.crt")
         serverPemPath = docsDir.appendingPathComponent("server.pem")
-        
+
         // Validate certificates on initialization
         validateCertificates()
     }
-    
+
     // MARK: - Public Methods
-    
+
     /// Validate server certificates and download if missing
     @discardableResult
     func validateCertificates() -> Bool {
@@ -47,9 +47,9 @@ class ServerCertificateManager {
             Debug.shared.log(message: "Skipping certificate validation - last check was recent", type: .debug)
             return areCertificatesValid()
         }
-        
+
         let isValid = areCertificatesValid()
-        
+
         // If certificates are not valid, try to download new ones
         if !isValid {
             Debug.shared.log(message: "Server certificates missing or invalid, attempting to download", type: .warning)
@@ -57,29 +57,29 @@ class ServerCertificateManager {
         } else {
             Debug.shared.log(message: "Server certificates validated successfully", type: .info)
         }
-        
+
         // Update last validation time
         lastValidationTime = Date()
-        
+
         return areCertificatesValid()
     }
-    
+
     /// Check if server certificates are valid
     func areCertificatesValid() -> Bool {
         let fileManager = FileManager.default
-        
+
         // Check if certificate files exist
         let certExists = fileManager.fileExists(atPath: serverCrtPath.path)
         let keyExists = fileManager.fileExists(atPath: serverPemPath.path)
-        
+
         // Basic validation - check files exist and aren't empty
         var isValid = certExists && keyExists
-        
+
         if isValid {
             do {
                 let certAttributes = try fileManager.attributesOfItem(atPath: serverCrtPath.path)
                 let keyAttributes = try fileManager.attributesOfItem(atPath: serverPemPath.path)
-                
+
                 if let certSize = certAttributes[.size] as? NSNumber,
                    let keySize = keyAttributes[.size] as? NSNumber {
                     isValid = certSize.intValue > 0 && keySize.intValue > 0
@@ -88,35 +88,35 @@ class ServerCertificateManager {
                 }
             } catch {
                 Debug.shared.log(
-                    message: "Error checking certificate sizes: \(error.localizedDescription)", 
+                    message: "Error checking certificate sizes: \(error.localizedDescription)",
                     type: .error
                 )
                 isValid = false
             }
         }
-        
+
         return isValid
     }
-    
+
     /// Get server certificate paths
     /// - Returns: Tuple with paths to certificate and key files
     func getCertificatePaths() -> (cert: URL, key: URL) {
         return (serverCrtPath, serverPemPath)
     }
-    
+
     // MARK: - Private Methods
-    
+
     /// Download server certificates using the app's existing functionality
     private func downloadCertificates() {
         let semaphore = DispatchSemaphore(value: 0)
-        
+
         getCertificates {
             semaphore.signal()
         }
-        
+
         // Wait for completion with timeout
         _ = semaphore.wait(timeout: .now() + 10)
-        
+
         // Log result after download attempt
         let isValid = areCertificatesValid()
         Debug.shared.log(

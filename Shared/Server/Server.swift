@@ -11,9 +11,9 @@ import NIOTLS
 import Vapor
 
 struct AppData {
-    public var id: String
-    public var version: Int
-    public var name: String
+    var id: String
+    var version: Int
+    var name: String
 }
 
 class Installer: Identifiable, ObservableObject {
@@ -43,12 +43,12 @@ class Installer: Identifiable, ObservableObject {
         app = try Self.setupApp(port: port)
 
         configureRoutes()
-        
+
         try app.server.start()
         needsShutdown = true
         Debug.shared.log(message: "Server started: Port \(port) for \(Self.sni)")
     }
-    
+
     // Configure app routes
     private func configureRoutes() {
         app.get("*") { [weak self] req in
@@ -61,7 +61,7 @@ class Installer: Identifiable, ObservableObject {
             return self.generateInstallResponse()
         }
     }
-    
+
     // Handle request based on path
     private func handleRequest(_ req: Request) -> Response {
         switch req.url.path {
@@ -117,7 +117,7 @@ class Installer: Identifiable, ObservableObject {
             return Response(status: .notFound)
         }
     }
-    
+
     // Generate install response for the "i" endpoint
     private func generateInstallResponse() -> Response {
         let baseUrl = Preferences.onlinePath ?? Preferences.defaultInstallPath
@@ -127,10 +127,10 @@ class Installer: Identifiable, ObservableObject {
             "version=\(metadata.version)",
             "fetchurl=\(payloadEndpoint.absoluteString)"
         ].joined(separator: "&")
-        
+
         let encodedParams = urlParams.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
         let testUrl = "itms-services://?action=download-manifest&url=\(baseUrl)/genPlist?\(encodedParams)"
-        
+
         let html = """
         <script type="text/javascript">window.location="\(testUrl)"</script>
         """
@@ -182,7 +182,7 @@ extension Installer {
                 throw error
             }
         }
-        
+
         app.http.server.configuration.hostname = Self.sni
         Debug.shared.log(message: self.sni)
         app.http.server.configuration.tcpNoDelay = true

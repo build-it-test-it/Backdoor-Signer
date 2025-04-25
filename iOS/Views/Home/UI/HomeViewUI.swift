@@ -60,7 +60,7 @@ extension UIButton {
         let gradient = CAGradientLayer()
         gradient.frame = bounds
         gradient.colors = [UIColor.systemBlue.cgColor, UIColor.systemCyan.cgColor]
-        gradient.startPoint = CGPoint(x: 0, y: 0)
+        gradient.startPoint = CGPoint.zero
         gradient.endPoint = CGPoint(x: 1, y: 1)
         gradient.cornerRadius = 10
         layer.insertSublayer(gradient, at: 0)

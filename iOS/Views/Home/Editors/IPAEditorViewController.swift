@@ -155,7 +155,7 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
             toolbar.heightAnchor.constraint(equalToConstant: 44),
 
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
 
@@ -382,7 +382,7 @@ class IPAEditorViewController: UIViewController, UITableViewDelegate, UITableVie
         // Typical Info.plist paths in IPA
         let possiblePaths = [
             "Payload/*.app/Info.plist",
-            "*.app/Info.plist",
+            "*.app/Info.plist"
         ]
 
         for pattern in possiblePaths {

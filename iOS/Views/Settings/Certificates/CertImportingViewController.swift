@@ -32,7 +32,7 @@ class CertImportingViewController: UITableViewController {
         "backdoor",
         "provision",
         "certs",
-        "pass",
+        "pass"
     ]
 
     private var selectedFiles: [FileType: Any] = [:]
@@ -45,10 +45,6 @@ class CertImportingViewController: UITableViewController {
         super.viewDidLoad()
         setupNavigation()
         setupViews()
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
     }
 
     fileprivate func setupViews() {
@@ -73,17 +69,17 @@ class CertImportingViewController: UITableViewController {
         if let backdoorFile = self.backdoorFile {
             // Create temporary files for the extracted components
             let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-            
+
             do {
                 try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true, attributes: nil)
-                
+
                 // Save the p12 and mobileprovision to disk temporarily
                 let p12URL = tempDir.appendingPathComponent("backdoor.p12")
                 let provisionURL = tempDir.appendingPathComponent("backdoor.mobileprovision")
-                
+
                 try backdoorFile.saveP12(to: p12URL)
                 try backdoorFile.saveMobileProvision(to: provisionURL)
-                
+
                 // Parse mobileprovision
                 if let certData = CertData.parseMobileProvisioningFile(atPath: provisionURL) {
                     // Create files dictionary with our temporary files
@@ -92,12 +88,12 @@ class CertImportingViewController: UITableViewController {
                         .p12: p12URL,
                         .backdoor: selectedFiles[.backdoor]  // Keep the original backdoor file reference
                     ]
-                    
+
                     // Add password if available
                     if let password = selectedFiles[.password] as? String {
                         files[.password] = password
                     }
-                    
+
                     // Save the backdoor information in CoreData
                     CoreDataManager.shared.addToCertificates(cert: certData, files: files)
                     self.dismiss(animated: true)
@@ -111,18 +107,18 @@ class CertImportingViewController: UITableViewController {
             }
             return
         }
-        
+
         // Handle traditional certificate imports - now with automatic conversion to backdoor format
         guard let mobileProvisionPath = selectedFiles[.provision] as? URL else {
             Debug.shared.log(message: "Missing mobileprovision path", type: .error)
             return
         }
-        
+
         guard let p12Path = selectedFiles[.p12] as? URL else {
             Debug.shared.log(message: "Missing p12 path", type: .error)
             return
         }
-        
+
         #if !targetEnvironment(simulator)
             // Call functions from openssl_tools.hpp
             provision_file_validation(mobileProvisionPath.path)
@@ -133,43 +129,43 @@ class CertImportingViewController: UITableViewController {
                 return
             }
         #endif
-        
+
         // Parse mobileprovision content
         if let fileContent = CertData.parseMobileProvisioningFile(atPath: mobileProvisionPath) {
             // Create a temporary directory for our backdoor file
             let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-            
+
             do {
                 try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true, attributes: nil)
-                
+
                 // Create path for the backdoor file
                 let backdoorURL = tempDir.appendingPathComponent("certificate.backdoor")
-                
+
                 // Convert p12 and mobileprovision to backdoor format
                 try createBackdoorFileFromSelection(outputURL: backdoorURL)
-                
+
                 // Now load this backdoor file
                 let backdoorData = try Data(contentsOf: backdoorURL)
                 let backdoorFile = try BackdoorDecoder.decodeBackdoor(from: backdoorData)
-                
+
                 // Now create files dictionary including the backdoor file (this is crucial for proper storage)
                 var files: [FileType: Any] = [
                     .provision: mobileProvisionPath,
                     .p12: p12Path,
                     .backdoor: backdoorURL  // This ensures the .backdoor format is saved
                 ]
-                
+
                 // Add password if available
                 if let password = selectedFiles[.password] as? String {
                     files[.password] = password
                 }
-                
+
                 // Save the backdoor information in CoreData
                 CoreDataManager.shared.addToCertificates(cert: fileContent, files: files)
                 self.dismiss(animated: true)
             } catch {
                 Debug.shared.log(message: "Error creating backdoor file: \(error)", type: .error)
-                
+
                 // Fall back to traditional certificate import if backdoor creation fails
                 Debug.shared.log(message: "Falling back to traditional certificate import", type: .warning)
                 CoreDataManager.shared.addToCertificates(cert: fileContent, files: selectedFiles)
@@ -179,7 +175,7 @@ class CertImportingViewController: UITableViewController {
             Debug.shared.log(message: String.localized("ERROR_FAILED_TO_READ_MOBILEPROVISION"), type: .error)
         }
     }
-    
+
     /// Creates a backdoor file from the currently selected p12 and mobileprovision files
     /// - Parameters:
     ///   - outputURL: Where to save the resulting backdoor file
@@ -188,13 +184,13 @@ class CertImportingViewController: UITableViewController {
         guard let p12URL = selectedFiles[.p12] as? URL else {
             throw NSError(domain: "CertImporting", code: 1, userInfo: [NSLocalizedDescriptionKey: "No p12 file selected"])
         }
-        
+
         guard let mobileProvisionURL = selectedFiles[.provision] as? URL else {
             throw NSError(domain: "CertImporting", code: 2, userInfo: [NSLocalizedDescriptionKey: "No mobileprovision file selected"])
         }
-        
+
         let password = selectedFiles[.password] as? String
-        
+
         try BackdoorConverter.createBackdoorFile(
             p12URL: p12URL,
             mobileProvisionURL: mobileProvisionURL,
@@ -202,7 +198,7 @@ class CertImportingViewController: UITableViewController {
             p12Password: password,
             encrypt: encrypt
         )
-        
+
         let messageType = encrypt ? "encrypted" : "legacy"
         Debug.shared.log(message: "Successfully created \(messageType) backdoor file from p12 and mobileprovision", type: .info)
     }
@@ -214,7 +210,7 @@ class CertImportingViewController: UITableViewController {
             selectedFiles[.password] = password
         }
     }
-    
+
     private func processBackdoorFile(at url: URL) {
         // First check if the file has a .backdoor extension or appears to be in backdoor format
         if !BackdoorDecoder.isBackdoorFile(at: url) {
@@ -222,30 +218,30 @@ class CertImportingViewController: UITableViewController {
             showAlert(title: "Invalid Format", message: "The selected file is not a valid .backdoor certificate file.")
             return
         }
-        
+
         do {
             let backdoorData = try Data(contentsOf: url)
-            
+
             // Decode the backdoor file
             let backdoorFile = try BackdoorDecoder.decodeBackdoor(from: backdoorData)
             self.backdoorFile = backdoorFile
-            
+
             // Save reference in selectedFiles
             selectedFiles[.backdoor] = url
-            
+
             // Update the save button
             saveButton.isEnabled = true
-            
+
             // Update UI to show this file was selected
             tableView.reloadData()
-            
+
             Debug.shared.log(message: "Successfully processed .backdoor file: \(backdoorFile.certificateName)", type: .info)
         } catch {
             Debug.shared.log(message: "Error processing .backdoor file: \(error)", type: .error)
             showAlert(title: "Processing Error", message: "Failed to process .backdoor file: \(error.localizedDescription)")
         }
     }
-    
+
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -275,7 +271,7 @@ extension CertImportingViewController {
                 cell.textLabel?.text = "Import Backdoor Certificate"
                 cell.detailTextLabel?.text = ".backdoor file (secured certificate format)"
                 fileType = .backdoor
-                
+
                 if selectedFiles[.backdoor] != nil {
                     let checkmarkImage = UIImage(systemName: "checkmark")
                     let checkmarkImageView = UIImageView(image: checkmarkImage)
@@ -287,13 +283,13 @@ extension CertImportingViewController {
                     circleImageView.tintColor = .quaternaryLabel
                     cell.accessoryView = circleImageView
                 }
-                
+
                 return cell
             case "provision":
                 cell.textLabel?.text = String.localized("CERT_IMPORTING_VIEWCONTROLLER_CELL_IMPORT_PROV")
                 cell.detailTextLabel?.text = ".mobileprovision"
                 fileType = .provision
-                
+
                 // Disable this option if backdoor file is selected
                 if selectedFiles[.backdoor] != nil {
                     cell.isUserInteractionEnabled = false
@@ -316,7 +312,7 @@ extension CertImportingViewController {
                     circleImageView.tintColor = .quaternaryLabel
                     cell.accessoryView = circleImageView
                 }
-                
+
                 // Disable this option if backdoor file is selected
                 if selectedFiles[.backdoor] != nil {
                     cell.isUserInteractionEnabled = false
@@ -376,13 +372,13 @@ extension CertImportingViewController {
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let fileType: FileType
-        
+
         // If backdoor is already selected, don't allow selecting provision or p12
         if selectedFiles[.backdoor] != nil && (sectionData[indexPath.section] == "provision" || sectionData[indexPath.section] == "certs") {
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
-        
+
         // If provision or p12 are already selected, don't allow selecting backdoor
         if (selectedFiles[.provision] != nil || selectedFiles[.p12] != nil) && sectionData[indexPath.section] == "backdoor" {
             showAlert(title: "Selection Conflict", message: "Please clear existing certificate selections before importing a backdoor certificate.")
@@ -404,11 +400,11 @@ extension CertImportingViewController {
         guard selectedFiles[fileType] == nil else {
             // Allow deselecting a file by tapping again
             selectedFiles.removeValue(forKey: fileType)
-            
+
             if fileType == .backdoor {
                 self.backdoorFile = nil
             }
-            
+
             // Update button state
             if selectedFiles[.backdoor] != nil {
                 saveButton.isEnabled = true
@@ -417,7 +413,7 @@ extension CertImportingViewController {
             } else {
                 saveButton.isEnabled = false
             }
-            
+
             tableView.reloadData()
             return
         }
@@ -432,7 +428,7 @@ extension CertImportingViewController {
                     // Fallback to data type if the system doesn't recognize .backdoor
                     backdoorUTType = .data
                 }
-                
+
                 let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [backdoorUTType], asCopy: true)
                 documentPicker.delegate = self
                 documentPicker.allowsMultipleSelection = false

@@ -54,14 +54,14 @@ struct SigningOptions: Codable {
 
     var forceMinimumVersion: String = "Automatic"
     var forceLightDarkAppearence: String = "Automatic"
-    
+
     // Added missing properties
     var useOfflineCertificates: Bool = false
-    
+
     // Note: These properties need special handling for Codable conformance
-    private var _customEntitlements: [String: String]? = nil
-    var additionalData: [String: String]? = nil
-    
+    private var _customEntitlements: [String: String]?
+    var additionalData: [String: String]?
+
     // Use computed property for type that doesn't conform to Codable
     var customEntitlements: [String: Any]? {
         get {
@@ -83,8 +83,7 @@ extension UserDefaults {
     var signingOptions: SigningOptions {
         get {
             if let data = data(forKey: UserDefaults.signingDataKey),
-               let options = try? JSONDecoder().decode(SigningOptions.self, from: data)
-            {
+               let options = try? JSONDecoder().decode(SigningOptions.self, from: data) {
                 return options
             }
             return UserDefaults.defaultSigningData

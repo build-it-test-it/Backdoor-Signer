@@ -60,7 +60,7 @@ class AppsTableViewCell: UITableViewCell {
         contentView.addSubview(versionLabel)
         contentView.addSubview(pillsStackView)
         imageView?.translatesAutoresizingMaskIntoConstraints = true
-        
+
         // Apply modern card styling to the cell
         contentView.applyCardStyle(
             backgroundColor: UIColor.systemBackground,
@@ -68,10 +68,10 @@ class AppsTableViewCell: UITableViewCell {
             shadowEnabled: true,
             shadowIntensity: 0.1
         )
-        
+
         // Enhance the app name with better typography
         nameLabel.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        
+
         // Add subtle styling to the image view
         imageView?.layer.cornerRadius = 10
         imageView?.layer.cornerCurve = .continuous
@@ -94,11 +94,11 @@ class AppsTableViewCell: UITableViewCell {
             pillsStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
         ])
     }
-    
+
     // Add touch feedback animations
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         super.setHighlighted(highlighted, animated: animated)
-        
+
         if animated {
             UIView.animate(withDuration: 0.1, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState], animations: {
                 self.contentView.transform = highlighted ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
@@ -109,10 +109,10 @@ class AppsTableViewCell: UITableViewCell {
             contentView.alpha = highlighted ? 0.9 : 1.0
         }
     }
-    
+
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
-        
+
         if animated {
             UIView.animate(withDuration: 0.1, delay: 0, options: [.allowUserInteraction, .beginFromCurrentState], animations: {
                 self.contentView.transform = selected ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
@@ -121,10 +121,10 @@ class AppsTableViewCell: UITableViewCell {
             contentView.transform = selected ? CGAffineTransform(scaleX: 0.98, y: 0.98) : .identity
         }
     }
-    
+
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        
+
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             // Update shadow for new appearance
             contentView.layer.shadowColor = UIColor.black.cgColor
@@ -174,7 +174,7 @@ class AppsTableViewCell: UITableViewCell {
                hasUpdate,
                let currentVersion = app.value(forKey: "version") as? String,
                let updateVersion = app.value(forKey: "updateVersion") as? String {
-                
+
                 let updateText = "\(currentVersion) → \(updateVersion)"
                 let updatePill = PillView(
                     text: updateText,
@@ -182,7 +182,6 @@ class AppsTableViewCell: UITableViewCell {
                     iconName: "arrow.up.circle"
                 )
                 pillsStackView.addArrangedSubview(updatePill)
-                
             } else if let teamName: String = getValue(forKey: "teamName", from: app) {
                 let teamPill = PillView(
                     text: teamName,

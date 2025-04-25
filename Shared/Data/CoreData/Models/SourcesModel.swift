@@ -19,7 +19,7 @@ public struct SourcesData: Codable, Hashable {
     public var news: [NewsData]?
     public var apps: [StoreAppsData]
 
-    public static func == (lhs: SourcesData, rhs: SourcesData) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         return lhs.identifier == rhs.identifier
     }
 

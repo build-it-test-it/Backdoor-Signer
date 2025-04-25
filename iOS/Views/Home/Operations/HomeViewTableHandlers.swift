@@ -17,8 +17,7 @@ class HomeViewTableHandlers {
                    performDropWith coordinator: UITableViewDropCoordinator,
                    fileList: inout [File],
                    documentsDirectory _: URL,
-                   loadFiles: @escaping () -> Void)
-    {
+                   loadFiles: @escaping () -> Void) {
         let destinationIndexPath: IndexPath
         if let indexPath = coordinator.destinationIndexPath {
             destinationIndexPath = indexPath
@@ -35,8 +34,7 @@ class HomeViewTableHandlers {
         performFileReorder(tableView: tableView,
                            sourceIndex: sourceIndex,
                            destinationIndexPath: destinationIndexPath,
-                           fileList: &fileList)
-        {
+                           fileList: &fileList) {
             loadFiles()
         }
     }
@@ -45,8 +43,7 @@ class HomeViewTableHandlers {
                                     sourceIndex: Int,
                                     destinationIndexPath: IndexPath,
                                     fileList: inout [File],
-                                    completion: @escaping () -> Void)
-    {
+                                    completion: @escaping () -> Void) {
         let sourceFile = fileList[sourceIndex]
         let sourceIndexPath = IndexPath(row: sourceIndex, section: 0)
 

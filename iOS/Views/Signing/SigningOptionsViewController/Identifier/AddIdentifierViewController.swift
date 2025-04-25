@@ -77,7 +77,7 @@ class AddIdentifierViewController: UITableViewController {
                     NSLayoutConstraint.activate([
                         identifierTextField.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
                         identifierTextField.leadingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.leadingAnchor),
-                        identifierTextField.trailingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.trailingAnchor),
+                        identifierTextField.trailingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.trailingAnchor)
                     ])
                 }
 
@@ -87,7 +87,7 @@ class AddIdentifierViewController: UITableViewController {
                     NSLayoutConstraint.activate([
                         replacementTextField.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
                         replacementTextField.leadingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.leadingAnchor),
-                        replacementTextField.trailingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.trailingAnchor),
+                        replacementTextField.trailingAnchor.constraint(equalTo: cell.contentView.layoutMarginsGuide.trailingAnchor)
                     ])
                 }
 
@@ -107,8 +107,7 @@ class AddIdentifierViewController: UITableViewController {
     @objc private func addButtonTapped() {
         if let identifier = identifierTextField.text,
            let replacement = replacementTextField.text,
-           !identifier.isEmpty, !replacement.isEmpty
-        {
+           !identifier.isEmpty, !replacement.isEmpty {
             onAdd?(identifier, replacement)
             navigationController?.popViewController(animated: true)
         }

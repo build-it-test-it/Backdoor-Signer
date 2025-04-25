@@ -54,7 +54,7 @@ extension SourceAppViewController {
 
         setupCellForDownload(cell)
         let animationView = showDownloadAnimation(in: cell)
-        
+
         // Add to task manager
         DownloadTaskManager.shared.addTask(uuid: appUUID, cell: cell, dl: cell.appDownload!)
 
@@ -63,7 +63,7 @@ extension SourceAppViewController {
             do {
                 let downloadedURL = try await downloadFile(downloadURL: downloadURL, appUUID: appUUID, indexPath: indexPath)
                 try verifyDownloadedFile(at: downloadedURL)
-                
+
                 // Extract and process the bundle
                 await processDownloadedBundle(
                     cell: cell,
@@ -77,16 +77,16 @@ extension SourceAppViewController {
             }
         }
     }
-    
+
     // MARK: - Private Download Helper Methods
-    
+
     private func setupCellForDownload(_ cell: AppTableViewCell) {
         if cell.appDownload == nil {
             cell.appDownload = AppDownload()
             cell.appDownload?.dldelegate = self
         }
     }
-    
+
     private func showDownloadAnimation(in cell: AppTableViewCell) -> UIView {
         // Show download animation in cell
         let animationView = cell.addAnimatedIcon(
@@ -94,7 +94,7 @@ extension SourceAppViewController {
             tintColor: .systemBlue,
             size: CGSize(width: 40, height: 40)
         )
-        
+
         // Position animation in the cell
         animationView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -103,32 +103,32 @@ extension SourceAppViewController {
             animationView.widthAnchor.constraint(equalToConstant: 40),
             animationView.heightAnchor.constraint(equalToConstant: 40)
         ])
-        
+
         return animationView
     }
-    
+
     private func downloadFile(downloadURL: URL, appUUID: String, indexPath: IndexPath) async throws -> URL {
         // Create a temporary file path for the download
         let tempDir = FileManager.default.temporaryDirectory
         let filePath = tempDir.appendingPathComponent("app_\(appUUID).ipa")
-        
+
         // Start download and show progress
         self.startDownload(uuid: appUUID, indexPath: indexPath)
-        
+
         // Download file with URLSession
         let request = URLRequest(url: downloadURL)
         let (tempFileURL, _) = try await URLSession.shared.download(for: request)
         try FileManager.default.moveItem(at: tempFileURL, to: filePath)
-        
+
         return filePath
     }
-    
+
     private func verifyDownloadedFile(at url: URL) throws {
         let fileData = try Data(contentsOf: url)
         let checksum = CryptoHelper.shared.crc32(of: fileData)
         Debug.shared.log(message: "Download completed with checksum: \(checksum)", type: .info)
     }
-    
+
     private func processDownloadedBundle(
         cell: AppTableViewCell,
         animationView: UIView,
@@ -141,12 +141,12 @@ extension SourceAppViewController {
             DispatchQueue.main.async {
                 animationView.removeFromSuperview()
             }
-            
+
             if let error = error {
                 self.handleExtractionError(error, cell: cell, appUUID: appUUID)
             } else if let targetBundle = targetBundle {
                 self.processExtractedBundle(
-                    targetBundle: targetBundle, 
+                    targetBundle: targetBundle,
                     cell: cell,
                     appUUID: appUUID,
                     sourceLocation: sourceLocation
@@ -154,18 +154,18 @@ extension SourceAppViewController {
             }
         }
     }
-    
+
     private func handleExtractionError(_ error: Error, cell: AppTableViewCell, appUUID: String) {
         DownloadTaskManager.shared.updateTask(uuid: appUUID, state: .failed(error: error))
         Debug.shared.log(message: "Extraction error: \(error.localizedDescription)", type: .error)
-        
+
         showStatusAnimation(
             in: cell,
             systemName: "exclamationmark.circle",
             tintColor: .systemRed
         )
     }
-    
+
     private func processExtractedBundle(
         targetBundle: String,
         cell: AppTableViewCell,
@@ -179,18 +179,18 @@ extension SourceAppViewController {
             } else {
                 DownloadTaskManager.shared.updateTask(uuid: appUUID, state: .completed)
                 Debug.shared.log(message: "Done", type: .success)
-                
+
                 self.showStatusAnimation(
                     in: cell,
                     systemName: "checkmark.circle",
                     tintColor: .systemGreen
                 )
-                
+
                 self.handleImmediateInstallIfNeeded(appUUID: appUUID)
             }
         }
     }
-    
+
     private func handleImmediateInstallIfNeeded(appUUID: String) {
         // Check if immediate install is enabled
         if UserDefaults.standard.signingOptions.immediatelyInstallFromSource {
@@ -206,7 +206,7 @@ extension SourceAppViewController {
             }
         }
     }
-    
+
     private func handleDownloadError(
         _ error: Error,
         cell: AppTableViewCell,
@@ -216,15 +216,15 @@ extension SourceAppViewController {
     ) async {
         // Handle download errors with enhanced error reporting
         DownloadTaskManager.shared.updateTask(uuid: appUUID, state: .failed(error: error))
-        
+
         // Remove animation
         await MainActor.run {
             animationView.removeFromSuperview()
         }
-        
+
         // Log detailed error information
         logDownloadError(error, downloadURL: downloadURL)
-        
+
         // Show error animation
         showStatusAnimation(
             in: cell,
@@ -232,7 +232,7 @@ extension SourceAppViewController {
             tintColor: .systemRed
         )
     }
-    
+
     private func logDownloadError(_ error: Error, downloadURL: URL) {
         // Handle error logging based on error type
         // Note: Removed unnecessary cast since all Error objects can be treated as NSError
@@ -241,7 +241,7 @@ extension SourceAppViewController {
             message: "Download error: \(nsError.localizedDescription) (code: \(nsError.code))",
             type: .error
         )
-        
+
         // Add detailed error diagnostics
         if nsError.domain == "NetworkManager" {
             Debug.shared.log(message: "HTTP error status: \(nsError.code)", type: .error)
@@ -253,7 +253,7 @@ extension SourceAppViewController {
             )
         }
     }
-    
+
     private func showStatusAnimation(
         in cell: AppTableViewCell,
         systemName: String,
@@ -264,7 +264,7 @@ extension SourceAppViewController {
             tintColor: tintColor,
             size: CGSize(width: 40, height: 40)
         )
-        
+
         animation.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             animation.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
@@ -272,7 +272,7 @@ extension SourceAppViewController {
             animation.widthAnchor.constraint(equalToConstant: 40),
             animation.heightAnchor.constraint(equalToConstant: 40)
         ])
-        
+
         // Remove animation after delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             animation.removeFromSuperview()

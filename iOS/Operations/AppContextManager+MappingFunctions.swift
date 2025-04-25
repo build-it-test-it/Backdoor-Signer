@@ -314,8 +314,7 @@ extension AppContextManager {
 
         // Apply theme to current window
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first
-        {
+           let window = windowScene.windows.first {
             window.overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: themeMode) ?? .unspecified
         }
 

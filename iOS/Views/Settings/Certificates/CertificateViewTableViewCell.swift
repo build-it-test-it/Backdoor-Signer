@@ -85,7 +85,7 @@ class CertificateViewTableViewCell: UITableViewCell {
             checkmarkImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
             checkmarkImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             checkmarkImageView.widthAnchor.constraint(equalToConstant: 20),
-            checkmarkImageView.heightAnchor.constraint(equalToConstant: 20),
+            checkmarkImageView.heightAnchor.constraint(equalToConstant: 20)
         ])
     }
 
@@ -202,7 +202,7 @@ class CertificateViewAddTableViewCell: UITableViewCell {
             descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             descriptionLabel.bottomAnchor.constraint(equalTo: roundedBackgroundView.bottomAnchor, constant: -30),
             descriptionLabel.leadingAnchor.constraint(greaterThanOrEqualTo: roundedBackgroundView.leadingAnchor, constant: padding),
-            descriptionLabel.trailingAnchor.constraint(lessThanOrEqualTo: roundedBackgroundView.trailingAnchor, constant: -padding),
+            descriptionLabel.trailingAnchor.constraint(lessThanOrEqualTo: roundedBackgroundView.trailingAnchor, constant: -padding)
         ])
     }
 
@@ -236,7 +236,7 @@ class CertificateViewAddTableViewCell: UITableViewCell {
 
 class PillView: UIView {
     // MARK: - UI Components
-    
+
     private let pillStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -245,7 +245,7 @@ class PillView: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     private let iconImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
@@ -262,74 +262,74 @@ class PillView: UIView {
     }()
 
     // MARK: - Properties
-    
+
     private let padding: UIEdgeInsets
     private let gradientLayer = CAGradientLayer()
     private let accentColor: UIColor // Store the color for theme changes
-    
+
     // MARK: - Initialization
 
     init(text: String, backgroundColor: UIColor, iconName: String? = nil, padding: UIEdgeInsets = .init(top: 6, left: 10, bottom: 6, right: 10)) {
         self.padding = padding
         self.accentColor = backgroundColor
         super.init(frame: .zero)
-        
+
         // Set up visual appearance
         layer.cornerRadius = 13
         layer.cornerCurve = .continuous
         clipsToBounds = true
-        
+
         // Add subtle border
         layer.borderWidth = 0.5
         layer.borderColor = backgroundColor.withAlphaComponent(0.3).cgColor
-        
+
         // Set up gradient background
         setupGradientBackground(with: backgroundColor)
-        
+
         // Add stack view for better layout
         addSubview(pillStackView)
-        
+
         // Configure icon if provided
         if let iconName = iconName {
             configureIcon(iconName: iconName, tintColor: backgroundColor)
             pillStackView.addArrangedSubview(iconImageView)
         }
-        
+
         // Configure label
         configureLabel(text: text, textColor: backgroundColor)
         pillStackView.addArrangedSubview(label)
-        
+
         // Set up constraints
         setupConstraints()
-        
+
         // Add subtle animation on appearance
         addAppearanceAnimation()
     }
-    
+
     private func setupGradientBackground(with color: UIColor) {
         gradientLayer.colors = [
             color.withAlphaComponent(0.15).cgColor,
             color.withAlphaComponent(0.08).cgColor
         ]
         gradientLayer.locations = [0.0, 1.0]
-        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0)
+        gradientLayer.startPoint = CGPoint.zero
         gradientLayer.endPoint = CGPoint(x: 1.0, y: 1.0)
         layer.insertSublayer(gradientLayer, at: 0)
     }
-    
+
     private func configureIcon(iconName: String, tintColor: UIColor) {
         // Use symbol configuration for better rendering
         let symbolConfig = UIImage.SymbolConfiguration(pointSize: 12, weight: .medium)
         iconImageView.image = UIImage(systemName: iconName, withConfiguration: symbolConfig)
         iconImageView.tintColor = tintColor
-        
+
         // Set size constraints
         NSLayoutConstraint.activate([
             iconImageView.widthAnchor.constraint(equalToConstant: 14),
             iconImageView.heightAnchor.constraint(equalToConstant: 14)
         ])
     }
-    
+
     private func configureLabel(text: String, textColor: UIColor) {
         label.text = text
         label.textColor = textColor
@@ -343,29 +343,29 @@ class PillView: UIView {
             pillStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding.right)
         ])
     }
-    
+
     private func addAppearanceAnimation() {
         // Start slightly scaled down and transparent
         transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
         alpha = 0.8
-        
+
         // Animate to full size with slight bounce
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.3, options: [], animations: {
             self.transform = .identity
             self.alpha = 1.0
         })
     }
-    
+
     // MARK: - Lifecycle
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer.frame = bounds
     }
-    
+
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        
+
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             // Update border and gradient for new appearance
             layer.borderColor = accentColor.withAlphaComponent(0.3).cgColor

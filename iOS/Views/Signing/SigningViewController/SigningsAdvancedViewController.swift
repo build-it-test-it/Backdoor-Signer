@@ -28,34 +28,34 @@ class SigningsAdvancedViewController: FRSITableViewController {
             [String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE")],
             [String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_MINIMUM_APP_VERSION")],
             ["Custom Entitlements"],
-            [],
+            []
         ]
 
         sectionTitles = [
             String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_APPEARENCE"),
             String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_MINIMUM_APP_VERSION"),
             "Entitlements",
-            String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_PROPERTIES"),
+            String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_PROPERTIES")
         ]
 
         self.title = String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_PROPERTIES")
         self.tableData[3] = toggleOptions.map { $0.title }
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+
         // Add LED effects to important cells
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             self?.addLEDEffectsToImportantCells()
         }
     }
-    
+
     /// Add LED effects to highlight important settings cells
     private func addLEDEffectsToImportantCells() {
         // Get visible cells to apply effects only to what the user can see
         let visibleCells = tableView.visibleCells
-        
+
         for cell in visibleCells {
             // Apply LED effects based on cell content
             if let textLabel = cell.textLabel, let text = textLabel.text {
@@ -95,7 +95,7 @@ extension SigningsAdvancedViewController {
                 forceLightDarkAppearence.segmentedControl.addTarget(self, action: #selector(forceLightDarkAppearenceDidChange(_:)), for: .valueChanged)
 
                 return forceLightDarkAppearence
-                
+
             case String.localized("APP_SIGNING_INPUT_VIEW_CONTROLLER_SECTION_TITLE_MINIMUM_APP_VERSION"):
                 let forceMinimumVersion = TweakLibraryViewCell()
                 forceMinimumVersion.selectionStyle = .none
@@ -106,12 +106,12 @@ extension SigningsAdvancedViewController {
                 forceMinimumVersion.segmentedControl.addTarget(self, action: #selector(forceMinimumVersionDidChange(_:)), for: .valueChanged)
 
                 return forceMinimumVersion
-                
+
             case "Custom Entitlements":
                 // Create cell for custom entitlements with disclosure indicator
                 cell.accessoryType = .disclosureIndicator
                 cell.selectionStyle = .default
-                
+
                 // Add count of current entitlements as detail text if any exist
                 if let entitlements = signingDataWrapper.signingOptions.customEntitlements, !entitlements.isEmpty {
                     cell.detailTextLabel?.text = "\(entitlements.count) entitlement(s)"
@@ -120,9 +120,9 @@ extension SigningsAdvancedViewController {
                     cell.detailTextLabel?.text = "Not configured"
                     cell.detailTextLabel?.textColor = .secondaryLabel
                 }
-                
+
                 return cell
-            
+
             default:
                 break
         }
@@ -139,10 +139,10 @@ extension SigningsAdvancedViewController {
 
         return cell
     }
-    
+
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let cellText = tableData[indexPath.section][indexPath.row]
-        
+
         if cellText == "Custom Entitlements" {
             // Navigate to entitlements editor
             let entitlementsVC = EntitlementsEditorViewController(
@@ -151,7 +151,7 @@ extension SigningsAdvancedViewController {
             )
             navigationController?.pushViewController(entitlementsVC, animated: true)
         }
-        
+
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }

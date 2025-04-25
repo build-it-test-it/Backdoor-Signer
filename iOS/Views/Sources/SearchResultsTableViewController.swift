@@ -15,7 +15,7 @@ class SearchResultsTableViewController: UIViewController,
                                         UITableViewDataSource,
                                         UITableViewDelegate {
     // MARK: - Properties
-    
+
     var tableView: UITableView!
     var sources: [Source] = []
     var fetchedSources: [URL: SourcesData] = [:]
@@ -25,7 +25,7 @@ class SearchResultsTableViewController: UIViewController,
     private var activityIndicator: UIActivityIndicatorView!
 
     // MARK: - Lifecycle
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
@@ -36,27 +36,27 @@ class SearchResultsTableViewController: UIViewController,
         super.viewDidAppear(animated)
         fetchAppsForSources()
     }
-    
+
     // MARK: - UI Setup
-    
+
     private func setupTableView() {
         tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.backgroundColor = .background
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        
+
         tableView.dataSource = self
         tableView.delegate = self
     }
-    
+
     private func setupActivityIndicator() {
         activityIndicator = UIActivityIndicatorView(style: .medium)
         activityIndicator.center = CGPoint(x: view.center.x, y: view.center.y)
@@ -66,28 +66,28 @@ class SearchResultsTableViewController: UIViewController,
     }
 
     // MARK: - UITableViewDataSource
-    
-    func numberOfSections(in _: UITableView) -> Int { 
-        return filteredSources.keys.count 
+
+    func numberOfSections(in _: UITableView) -> Int {
+        return filteredSources.keys.count
     }
-    
+
     func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         let source = Array(filteredSources.keys)[section]
         return filteredSources[source]?.count ?? 0
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "Cell")
         configureCell(cell, at: indexPath, in: tableView)
         return cell
     }
-    
+
     // MARK: - UITableViewDelegate
-    
-    func tableView(_: UITableView, heightForHeaderInSection _: Int) -> CGFloat { 
-        return 40 
+
+    func tableView(_: UITableView, heightForHeaderInSection _: Int) -> CGFloat {
+        return 40
     }
-    
+
     func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let source = Array(filteredSources.keys)[section]
         let header = SearchAppSectionHeader(title: source.name ?? "Unknown", icon: UIImage(named: "unknown"))
@@ -95,14 +95,14 @@ class SearchResultsTableViewController: UIViewController,
         loadAndSetImage(from: iconURL, for: header)
         return header
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         presentAppDetail(for: indexPath)
         tableView.deselectRow(at: indexPath, animated: true)
     }
-    
+
     // MARK: - Cell Configuration
-    
+
     private func configureCell(_ cell: UITableViewCell, at indexPath: IndexPath, in tableView: UITableView) {
         let source = Array(filteredSources.keys)[indexPath.section]
         let app = filteredSources[source]?[indexPath.row]
@@ -116,7 +116,7 @@ class SearchResultsTableViewController: UIViewController,
 
         // Configure subtitle
         let appVersion = (app?.versions?.first?.version ?? app?.version) ?? "1.0"
-        let appSubtitle = app?.subtitle ?? 
+        let appSubtitle = app?.subtitle ??
                          (app?.localizedDescription ?? String.localized("SOURCES_CELLS_DEFAULT_SUBTITLE"))
         let displayText = appVersion + " • " + appSubtitle
 
@@ -127,7 +127,7 @@ class SearchResultsTableViewController: UIViewController,
         // Configure image
         configureImageView(for: cell, with: app, at: indexPath, in: tableView)
     }
-    
+
     private func configureImageView(
         for cell: UITableViewCell,
         with app: StoreAppsData?,
@@ -161,15 +161,15 @@ class SearchResultsTableViewController: UIViewController,
             }
         }
     }
-    
+
     // MARK: - App Detail Presentation
-    
+
     private func presentAppDetail(for indexPath: IndexPath) {
         let source = Array(filteredSources.keys)[indexPath.section]
         let app = filteredSources[source]?[indexPath.row]
 
         guard let url = sourceURLMapping[source] else { return }
-        
+
         let savc = SourceAppViewController()
         savc.name = source.name
         savc.uri = [url]
@@ -190,7 +190,7 @@ class SearchResultsTableViewController: UIViewController,
     }
 
     // MARK: - Header Setup
-    
+
     private func loadAndSetImage(from url: URL?, for header: SearchAppSectionHeader) {
         guard let url = url else {
             header.setIcon(with: UIImage(named: "unknown"))
@@ -202,12 +202,12 @@ class SearchResultsTableViewController: UIViewController,
     }
 
     // MARK: - UISearchResultsUpdating
-    
+
     func updateSearchResults(for searchController: UISearchController) {
         let searchText = searchController.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
-        if !dataFetched { 
-            fetchAppsForSources() 
+        if !dataFetched {
+            fetchAppsForSources()
         }
 
         filteredSources.removeAll()
@@ -230,7 +230,7 @@ class SearchResultsTableViewController: UIViewController,
     }
 
     // MARK: - Data Fetching
-    
+
     private func fetchAppsForSources() {
         let dispatchGroup = DispatchGroup()
         var allSources: [URL: SourcesData] = [:]
@@ -262,7 +262,7 @@ class SearchResultsTableViewController: UIViewController,
         dispatchGroup.notify(queue: .main) {
             self.fetchedSources = allSources
             self.dataFetched = true
-            
+
             UIView.transition(
                 with: self.tableView,
                 duration: 0.3,

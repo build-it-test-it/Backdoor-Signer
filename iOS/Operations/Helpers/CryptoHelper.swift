@@ -11,11 +11,11 @@ import CommonCrypto
 class CryptoHelper {
     // Singleton instance
     static let shared = CryptoHelper()
-    
+
     private init() {}
-    
+
     // MARK: - Encryption Methods
-    
+
     /// Encrypt data using AES with a password
     /// - Parameters:
     ///   - data: Data to encrypt
@@ -27,23 +27,23 @@ class CryptoHelper {
             Debug.shared.log(message: "Key derivation failed for encryption", type: .error)
             return nil
         }
-        
+
         // Generate random IV
         let iv = generateRandomBytes(length: 16)
-        
+
         // Create a mutable data to store the cipher text
         let cipherData = NSMutableData()
-        
+
         // Reserve space for the IV at the beginning
         cipherData.append(iv)
-        
+
         // Create a buffer for the ciphertext
         var bufferSize = data.count + kCCBlockSizeAES128
         var buffer = [UInt8](repeating: 0, count: bufferSize)
-        
+
         // Perform the encryption
         var numBytesEncrypted = 0
-        
+
         let cryptStatus = key.withUnsafeBytes { keyBytes in
             iv.withUnsafeBytes { ivBytes in
                 data.withUnsafeBytes { dataBytes in
@@ -60,12 +60,12 @@ class CryptoHelper {
                 }
             }
         }
-        
+
         // Check encryption status
         if cryptStatus == kCCSuccess {
             // Append the encrypted data to the IV
             cipherData.append(buffer, length: numBytesEncrypted)
-            
+
             // Return as base64 string
             return cipherData.base64EncodedString()
         } else {
@@ -73,7 +73,7 @@ class CryptoHelper {
             return nil
         }
     }
-    
+
     /// Decrypt data using AES with a password
     /// - Parameters:
     ///   - encryptedBase64: Base64 encoded encrypted data with IV prepended
@@ -85,30 +85,30 @@ class CryptoHelper {
             Debug.shared.log(message: "Failed to decode base64 data", type: .error)
             return nil
         }
-        
+
         // Ensure we have at least the IV
         guard encryptedData.count > kCCBlockSizeAES128 else {
             Debug.shared.log(message: "Encrypted data too short", type: .error)
             return nil
         }
-        
+
         // Extract IV (first 16 bytes for AES)
         let iv = encryptedData.prefix(kCCBlockSizeAES128)
         let dataToDecrypt = encryptedData.suffix(from: kCCBlockSizeAES128)
-        
+
         // Generate key from password
         guard let key = deriveKeyData(from: password, salt: "backdoorsalt", keyLength: 32) else {
             Debug.shared.log(message: "Key derivation failed for decryption", type: .error)
             return nil
         }
-        
+
         // Create a buffer for the decrypted data
         let bufferSize = dataToDecrypt.count + kCCBlockSizeAES128
         var buffer = [UInt8](repeating: 0, count: bufferSize)
-        
+
         // Perform the decryption
         var numBytesDecrypted = 0
-        
+
         let cryptStatus = key.withUnsafeBytes { keyBytes in
             iv.withUnsafeBytes { ivBytes in
                 dataToDecrypt.withUnsafeBytes { dataBytes in
@@ -125,7 +125,7 @@ class CryptoHelper {
                 }
             }
         }
-        
+
         // Check decryption status
         if cryptStatus == kCCSuccess {
             return Data(bytes: buffer, count: numBytesDecrypted)
@@ -134,9 +134,9 @@ class CryptoHelper {
             return nil
         }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     /// Generate random bytes
     /// - Parameter length: Number of bytes to generate
     /// - Returns: Data containing random bytes
@@ -145,7 +145,7 @@ class CryptoHelper {
         _ = SecRandomCopyBytes(kSecRandomDefault, length, &randomBytes)
         return Data(randomBytes)
     }
-    
+
     /// Derive a key from a password using PBKDF2
     /// - Parameters:
     ///   - password: Source password
@@ -158,10 +158,10 @@ class CryptoHelper {
               let saltData = salt.data(using: .utf8) else {
             return nil
         }
-        
+
         // Create a temporary buffer to avoid overlapping access
         var keyBuffer = [UInt8](repeating: 0, count: keyLength)
-        
+
         // Call PBKDF2 function with temporary buffer
         let result = saltData.withUnsafeBytes { saltBytes in
             passwordData.withUnsafeBytes { passwordBytes in
@@ -175,13 +175,13 @@ class CryptoHelper {
                 )
             }
         }
-        
+
         // Convert buffer to Data only if successful
         return result == kCCSuccess ? Data(keyBuffer) : nil
     }
-    
+
     // MARK: - Hashing Methods
-    
+
     /// Calculate SHA-256 hash of a string
     /// - Parameter input: String to hash
     /// - Returns: Hex string of the hash
@@ -189,16 +189,16 @@ class CryptoHelper {
         guard let data = input.data(using: .utf8) else {
             return ""
         }
-        
+
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
-        
+
         data.withUnsafeBytes { buffer in
             _ = CC_SHA256(buffer.baseAddress, CC_LONG(data.count), &hash)
         }
-        
+
         return hash.map { String(format: "%02x", $0) }.joined()
     }
-    
+
     /// Calculate SHA-512 hash of a string
     /// - Parameter input: String to hash
     /// - Returns: Hex string of the hash
@@ -206,16 +206,16 @@ class CryptoHelper {
         guard let data = input.data(using: .utf8) else {
             return ""
         }
-        
+
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA512_DIGEST_LENGTH))
-        
+
         data.withUnsafeBytes { buffer in
             _ = CC_SHA512(buffer.baseAddress, CC_LONG(data.count), &hash)
         }
-        
+
         return hash.map { String(format: "%02x", $0) }.joined()
     }
-    
+
     /// Calculate HMAC using SHA-256
     /// - Parameters:
     ///   - input: Data to authenticate
@@ -226,9 +226,9 @@ class CryptoHelper {
               let keyData = key.data(using: .utf8) else {
             return ""
         }
-        
+
         var macOut = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
-        
+
         keyData.withUnsafeBytes { keyBytes in
             inputData.withUnsafeBytes { dataBytes in
                 CCHmac(
@@ -239,10 +239,10 @@ class CryptoHelper {
                 )
             }
         }
-        
+
         return macOut.map { String(format: "%02x", $0) }.joined()
     }
-    
+
     /// Derive a key from a password
     /// - Parameters:
     ///   - password: Source password
@@ -254,12 +254,12 @@ class CryptoHelper {
         guard let keyData = deriveKeyData(from: password, salt: salt, keyLength: keyLength, iterations: iterations) else {
             return nil
         }
-        
+
         return keyData.map { String(format: "%02x", $0) }.joined()
     }
-    
+
     // MARK: - Certificate Utilities
-    
+
     /// Generate a random symmetric key
     /// - Parameter length: Key length in bytes
     /// - Returns: Random key as hex string
@@ -267,7 +267,7 @@ class CryptoHelper {
         let randomData = generateRandomBytes(length: length)
         return randomData.map { String(format: "%02x", $0) }.joined()
     }
-    
+
     /// Compute the CRC32 checksum of data
     /// - Parameter data: Input data
     /// - Returns: CRC32 checksum
@@ -307,14 +307,14 @@ class CryptoHelper {
             0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf,
             0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
         ]
-        
+
         var crc: UInt32 = 0xffffffff
-        
+
         data.forEach { byte in
             let index = Int((crc ^ UInt32(byte)) & 0xff)
             crc = (crc >> 8) ^ table[index]
         }
-        
+
         return crc ^ 0xffffffff
     }
 }

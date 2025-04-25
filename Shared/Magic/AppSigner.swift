@@ -64,7 +64,7 @@ func signInitialApp(
     completion: @escaping (Result<(URL, NSManagedObject), Error>) -> Void
 ) {
     UIApplication.shared.isIdleTimerDisabled = true
-    
+
     DispatchQueue(label: "Signing").async {
         let fileManager = FileManager.default
         let tmpDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -78,7 +78,7 @@ func signInitialApp(
             Debug.shared.log(message: "============================================")
             Debug.shared.log(message: "\(signingOptions.signingOptions)")
             Debug.shared.log(message: "============================================")
-            
+
             // Create working directories and copy app
             try fileManager.createDirectory(at: tmpDir, withIntermediateDirectories: true)
             try fileManager.copyItem(at: appPath, to: tmpDirApp)
@@ -87,7 +87,7 @@ func signInitialApp(
             let infoPlistURL = tmpDirApp.appendingPathComponent("Info.plist")
             if let infoPlistDict = NSDictionary(contentsOf: infoPlistURL),
                let info = infoPlistDict.mutableCopy() as? NSMutableDictionary {
-                
+
                 try updateInfoPlist(
                     infoDict: info,
                     main: mainOptions,
@@ -127,7 +127,7 @@ func signInitialApp(
             let certPaths = try CoreDataManager.shared.getCertificateFilePaths(
                 source: mainOptions.mainOptions.certificate
             )
-            
+
             // Sign the app
             Debug.shared.log(message: "🦋 Start Signing 🦋")
             try signAppWithZSign(
@@ -149,7 +149,7 @@ func signInitialApp(
             // Update database and UI on main thread
             DispatchQueue.main.async {
                 var signedAppObject: NSManagedObject?
-                
+
                 // Create core data entry
                 CoreDataManager.shared.addToSignedApps(
                     version: (mainOptions.mainOptions.version ?? bundle.version) ?? "",
@@ -179,7 +179,7 @@ func signInitialApp(
                 Debug.shared.log(message: "============================================")
 
                 UIApplication.shared.isIdleTimerDisabled = false
-                
+
                 if let signedApp = signedAppObject {
                     completion(.success((signedPath, signedApp)))
                 } else {
@@ -203,7 +203,7 @@ func signInitialApp(
 
 func resignApp(certificate: Certificate, appPath: URL, completion: @escaping (Bool) -> Void) {
     UIApplication.shared.isIdleTimerDisabled = true
-    
+
     DispatchQueue(label: "Resigning").async {
         do {
             // Prepare certificate paths - handle backdoor files automatically
@@ -220,12 +220,12 @@ func resignApp(certificate: Certificate, appPath: URL, completion: @escaping (Bo
             )
 
             Debug.shared.log(message: "🦋 End Resigning 🦋")
-            
+
             DispatchQueue.main.async {
                 UIApplication.shared.isIdleTimerDisabled = false
                 Debug.shared.log(message: String.localized("SUCCESS_RESIGN"), type: .success)
             }
-            
+
             Debug.shared.log(message: "============================================")
             completion(true)
         } catch {
@@ -255,7 +255,7 @@ private func signAppWithZSign(
         main?.mainOptions.version ?? "",
         options?.signingOptions.removeProvisioningFile ?? true
     )
-    
+
     if result != 0 {
         throw NSError(
             domain: "AppSigningErrorDomain",
@@ -293,15 +293,15 @@ func updateMobileProvision(app: URL) throws {
 func listDylibs(filePath: String) -> [String]? {
     // Call listDylibs function using the Swift wrapper
     let dylibPathsArray = NSMutableArray()
-    
+
     let success = getDylibsList(filePath, dylibPathsArray)
-    
+
     if success {
         if let dylibPaths = dylibPathsArray as? [String] {
             return dylibPaths
         }
     }
-    
+
     Debug.shared.log(message: "Failed to list dylibs.")
     return nil
 }
@@ -315,7 +315,7 @@ func updatePlugIns(options: SigningDataWrapper, app: URL) throws {
     if options.signingOptions.removePlugins {
         let fileManager = FileManager.default
         let pluginsPath = app.appendingPathComponent("PlugIns")
-        
+
         if fileManager.fileExists(atPath: pluginsPath.path) {
             do {
                 try fileManager.removeItem(at: pluginsPath)
@@ -333,7 +333,7 @@ func removeWatchPlaceholderExtension(options: SigningDataWrapper, app: URL) thro
     if options.signingOptions.removeWatchPlaceHolder {
         let fileManager = FileManager.default
         let placeholderPath = app.appendingPathComponent("com.apple.WatchPlaceholder")
-        
+
         if fileManager.fileExists(atPath: placeholderPath.path) {
             do {
                 try fileManager.removeItem(at: placeholderPath)
@@ -412,42 +412,42 @@ func updateInfoPlist(
     if options.signingOptions.forceFileSharing {
         infoDict.setObject(true, forKey: "UISupportsDocumentBrowser" as NSCopying)
     }
-    
+
     if options.signingOptions.forceiTunesFileSharing {
         infoDict.setObject(true, forKey: "UIFileSharingEnabled" as NSCopying)
     }
-    
+
     if options.signingOptions.removeSupportedDevices {
         infoDict.removeObject(forKey: "UISupportedDevices")
     }
-    
+
     if options.signingOptions.removeURLScheme {
         infoDict.removeObject(forKey: "CFBundleURLTypes")
     }
-    
+
     if options.signingOptions.forceProMotion {
         infoDict.setObject(true, forKey: "CADisableMinimumFrameDurationOnPhone" as NSCopying)
     }
-    
+
     if options.signingOptions.forceGameMode {
         infoDict.setObject(true, forKey: "GCSupportsGameMode" as NSCopying)
     }
-    
+
     if options.signingOptions.forceForceFullScreen {
         infoDict.setObject(true, forKey: "UIRequiresFullScreen" as NSCopying)
     }
-    
+
     if options.signingOptions.forceMinimumVersion != "Automatic" {
         infoDict.setObject(options.signingOptions.forceMinimumVersion, forKey: "MinimumOSVersion" as NSCopying)
     }
-    
+
     if options.signingOptions.forceLightDarkAppearence != "Automatic" {
         infoDict.setObject(
             options.signingOptions.forceLightDarkAppearence,
             forKey: "UIUserInterfaceStyle" as NSCopying
         )
     }
-    
+
     // Write updated plist back to disk
     try infoDict.write(to: app.appendingPathComponent("Info.plist"))
 }
@@ -473,11 +473,11 @@ func updateLocalizedInfoPlist(in appDirectory: URL, newDisplayName: String) {
 
             if fileManager.fileExists(atPath: infoPlistStringsURL.path) {
                 var localizedStrings = try String(contentsOf: infoPlistStringsURL, encoding: .utf8)
-                
+
                 if let localizedDict = NSDictionary(contentsOf: infoPlistStringsURL) as? [String: String],
                    let currentDisplayName = localizedDict["CFBundleDisplayName"],
                    currentDisplayName != newDisplayName {
-                    
+
                     localizedStrings = localizedStrings.replacingOccurrences(
                         of: currentDisplayName,
                         with: newDisplayName

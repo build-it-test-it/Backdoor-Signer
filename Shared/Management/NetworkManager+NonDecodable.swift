@@ -22,7 +22,7 @@ extension NetworkManager {
     ) -> URLSessionTask? {
         // Determine whether to use caching
         let useCache = caching ?? (configuration.useCache && request.httpMethod?.uppercased() == "GET")
-        
+
         // Check if request is already in progress
         let existingTask = self.operationQueueAccessQueue.sync { () -> URLSessionTask? in
             return self.activeOperations[request]
@@ -31,14 +31,14 @@ extension NetworkManager {
             Debug.shared.log(message: "Request already in progress: \(request.url?.absoluteString ?? "Unknown URL")", type: .debug)
             return existingTask
         }
-        
+
         // Check cache if caching is enabled
         if useCache, let url = request.url {
             let cacheKey = NSString(string: url.absoluteString)
             if let cachedResponse = self.responseCache.object(forKey: cacheKey) {
                 if !self.isCacheExpired(cachedResponse) {
                     Debug.shared.log(message: "Cache hit for non-decodable request: \(url.absoluteString)", type: .debug)
-                    
+
                     do {
                         if let jsonObject = try JSONSerialization.jsonObject(with: cachedResponse.data) as? [String: Any] {
                             DispatchQueue.main.async {
@@ -58,17 +58,17 @@ extension NetworkManager {
                 }
             }
         }
-        
+
         // Create a task using the configured session
         let task = self.session.dataTask(with: request) { [weak self] (data: Data?, response: URLResponse?, error: Error?) in
             guard let self = self else { return }
-            
+
             // Remove from active operations if it was tracked
             // Explicitly return the removed value to silence the unused result warning
             _ = self.operationQueueAccessQueue.sync { () -> URLSessionTask? in
                 return self.activeOperations.removeValue(forKey: request)
             }
-            
+
             // Handle network error
             if let error = error {
                 Debug.shared.log(message: "Network request failed: \(error.localizedDescription)", type: .error)
@@ -103,7 +103,7 @@ extension NetworkManager {
                 }
                 return
             }
-            
+
             // Cache the response if needed
             if useCache, request.url != nil {
                 self.cacheResponse(data: data, for: request)
@@ -121,7 +121,7 @@ extension NetworkManager {
                     } else {
                         jsonObject = try JSONSerialization.jsonObject(with: data)
                     }
-                    
+
                     DispatchQueue.main.async {
                         completion(.success(jsonObject))
                     }
@@ -133,7 +133,7 @@ extension NetworkManager {
                 }
             }
         }
-        
+
         // Add to active operations
         _ = self.operationQueueAccessQueue.sync { () -> URLSessionTask in
             self.activeOperations[request] = task

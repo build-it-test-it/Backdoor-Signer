@@ -85,8 +85,7 @@ extension SettingsAltIconView {
         var icons: [String: String] = [:]
         for (name, details) in alternateIcons {
             if let files = details["CFBundleIconFiles"] as? [String],
-               let iconPath = files.first
-            {
+               let iconPath = files.first {
                 icons[name] = iconPath
             }
         }
