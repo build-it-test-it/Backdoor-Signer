@@ -81,11 +81,92 @@ jobs:
           WORKFLOW_FILE=".github/workflows/main.yml"
           
           if [ -f "$WORKFLOW_FILE" ]; then
-            # Fix the SCHEME parameter syntax in the workflow file
-            sed -i '' 's/SCHEME='\''backdoor (Release)'\''/SCHEME="backdoor \(Release\)"/' "$WORKFLOW_FILE" || \
-            sed -i 's/SCHEME='\''backdoor (Release)'\''/SCHEME="backdoor \(Release\)"/' "$WORKFLOW_FILE"
-            
-            echo "Updated SCHEME parameter in $WORKFLOW_FILE"
+            # Check for syntax error near unexpected token '(' in the build log
+            if grep -q "syntax error near unexpected token" build_log.txt && grep -q "(" build_log.txt; then
+              echo "Detected parentheses issue in scheme name"
+              
+              # Replace the Make-based build with direct xcodebuild
+              cat > workflow_fix.patch << 'EOL'
+--- a/.github/workflows/main.yml
++++ b/.github/workflows/main.yml
+@@ -180,12 +180,43 @@
+           # Clean any previous builds first
+           make clean || true
+           
+-          # Build with appropriate scheme format - with properly escaped parentheses
+-          # The scheme name needs special handling due to parentheses
+-          SCHEME_NAME="backdoor (Release)"
+-          
+-          # Use tee to capture output for diagnostics while piping to xcpretty
+-          make package "SCHEME=${SCHEME_NAME}" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
++          # We need to handle the scheme name specially to deal with spaces and parentheses
++          # This approach avoids shell syntax errors by escaping in multiple ways
++          
++          # Create a safe scheme name with escaped parentheses for the make command
++          echo "Using direct compilation approach to avoid scheme name issues..."
++          
++          # Skip using the make command and use xcodebuild directly
++          mkdir -p packages
++          set -o pipefail && xcodebuild \
++            -jobs $(sysctl -n hw.ncpu) \
++            -project 'backdoor.xcodeproj' \
++            -scheme 'backdoor (Release)' \
++            -configuration Release \
++            -arch arm64 -sdk iphoneos \
++            CODE_SIGNING_ALLOWED=NO \
++            CFLAGS="-Onone" \
++            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
++            SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
++            
++          # Create IPA directly
++          echo "Creating IPA package..."
++          mkdir -p Payload
++          cp -r $(find ~/Library/Developer/Xcode/DerivedData -name "backdoor.app" -type d | head -n 1) Payload/ || echo "No app found, using alternative method"
++          
++          # If app wasn't found, try Build directory
++          if [ ! -d "Payload/backdoor.app" ]; then
++            find . -name "backdoor.app" -type d | head -n 1 | xargs -I{} cp -r {} Payload/ || echo "Warning: Could not find app bundle"
++          fi
++          
++          # Package only if app exists
++          if [ -d "Payload/backdoor.app" ]; then
++            zip -r9 packages/backdoor.ipa Payload
++            echo "Package created successfully"
++          else
++            echo "::error::Failed to create IPA - app bundle not found"
++            exit 1
++          fi
+EOL
+              
+              # Apply the patch while handling different sed versions
+              if patch -p1 "$WORKFLOW_FILE" < workflow_fix.patch; then
+                echo "Successfully applied direct xcodebuild fix"
+              else
+                # Try a simpler approach if the patch fails
+                sed -i '' '/SCHEME_NAME=.*backdoor/,+5d' "$WORKFLOW_FILE" 2>/dev/null || \
+                sed -i '/SCHEME_NAME=.*backdoor/,+5d' "$WORKFLOW_FILE"
+                
+                # Insert the direct xcodebuild approach
+                sed -i '' '/make clean || true/a\
+          # Skip using make and use xcodebuild directly\
+          mkdir -p packages\
+          set -o pipefail && xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release CODE_SIGNING_ALLOWED=NO | tee build_log.txt | xcpretty\
+          ' "$WORKFLOW_FILE" 2>/dev/null || \
+                sed -i '/make clean || true/a\
+          # Skip using make and use xcodebuild directly\
+          mkdir -p packages\
+          set -o pipefail && xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release CODE_SIGNING_ALLOWED=NO | tee build_log.txt | xcpretty\
+          ' "$WORKFLOW_FILE"
+              fi
+              
+              echo "Updated build command in $WORKFLOW_FILE to use direct xcodebuild"
+            else
+              # Generic SCHEME parameter fix if it's not the parentheses issue
+              sed -i '' 's/SCHEME='\''backdoor (Release)'\''/SCHEME="backdoor \(Release\)"/' "$WORKFLOW_FILE" 2>/dev/null || \
+              sed -i 's/SCHEME='\''backdoor (Release)'\''/SCHEME="backdoor \(Release\)"/' "$WORKFLOW_FILE"
+              
+              echo "Updated SCHEME parameter in $WORKFLOW_FILE"
+            fi
             
             # Display changes made
             git diff "$WORKFLOW_FILE"
