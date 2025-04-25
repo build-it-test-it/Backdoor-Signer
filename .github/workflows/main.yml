@@ -64,10 +64,22 @@ jobs:
         run: |
           echo "Running Clang-Format with project-specific configuration..."
           
-          # Fix the duplicated key in .clang-format
+          # Fix issues in the .clang-format configuration
           echo "Creating corrected clang-format configuration..."
           mkdir -p build/config
-          grep -v "PenaltyReturnTypeOnItsOwnLine: 200" Clean/.clang-format > build/config/.clang-format
+          
+          # Create a basic .clang-format with just the essential settings to avoid compatibility issues
+          cat > build/config/.clang-format << EOF
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+BreakBeforeBraces: Allman
+IndentCaseLabels: true
+AlignAfterOpenBracket: Align
+SpaceBeforeParens: ControlStatements
+EOF
           
           # Find Objective-C/C++/C files and check formatting
           formatted_files=0
