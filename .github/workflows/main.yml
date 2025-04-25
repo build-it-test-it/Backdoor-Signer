@@ -132,6 +132,8 @@ jobs:
         (github.event_name == 'pull_request') || 
         (github.event_name == 'push' && github.ref == 'refs/heads/main')
       )
+    outputs:
+      build_has_errors: ${{ steps.set_status.outputs.build_has_errors }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -182,9 +184,12 @@ jobs:
           # Clean any previous builds first
           make clean || true
           
-          # Build with appropriate scheme format (using single quotes as in Makefile)
+          # Build with appropriate scheme format - with properly escaped parentheses
+          # The scheme name needs special handling due to parentheses
+          SCHEME_NAME="backdoor (Release)"
+          
           # Use tee to capture output for diagnostics while piping to xcpretty
-          make package SCHEME='backdoor (Release)' CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
+          make package "SCHEME=${SCHEME_NAME}" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
           
           # Check if build was successful
           if [ ! -d "packages" ] || [ -z "$(ls -A packages 2>/dev/null)" ]; then
@@ -196,6 +201,15 @@ jobs:
           
           # Move packages to upload directory
           mv packages/* upload/ || { echo "::error::No build output to move"; exit 1; }
+          
+      - name: Set Build Status
+        id: set_status
+        run: |
+          if [ -f "build_log.txt" ] && grep -q "error:" build_log.txt; then
+            echo "build_has_errors=true" >> $GITHUB_OUTPUT
+          else
+            echo "build_has_errors=false" >> $GITHUB_OUTPUT
+          fi
 
       # Store artifacts for both PRs and main branch
       - name: Upload Build Artifacts
