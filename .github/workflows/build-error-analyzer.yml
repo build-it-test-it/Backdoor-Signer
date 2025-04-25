@@ -1,0 +1,234 @@
+name: Build Error Analysis Report
+
+on:
+  # Trigger on workflow completions for better artifact handling
+  workflow_run:
+    workflows: ["Create New Release"]
+    types:
+      - completed
+  
+  # Also trigger directly on pull requests
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # Job for analyzing artifacts from a failed workflow
+  analyze_workflow_artifacts:
+    name: Analyze Workflow Artifacts
+    runs-on: macos-15
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+          git lfs pull
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download Workflow Artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // List artifacts from the failed workflow
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            
+            console.log(`Found ${artifacts.data.artifacts.length} artifacts`);
+            
+            // Download all artifacts to analyze
+            for (const artifact of artifacts.data.artifacts) {
+              console.log(`Downloading: ${artifact.name} (${artifact.id})`);
+              
+              const download = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id,
+                archive_format: 'zip'
+              });
+              
+              // Save with artifact name to keep track of everything
+              const filename = `${artifact.name.replace(/[
+^
+a-zA-Z0-9]/g, '_')}.zip`;
+              fs.writeFileSync(filename, Buffer.from(download.data));
+              console.log(`Saved to ${filename}`);
+            }
+
+      - name: Process Artifacts and Find Build Logs
+        id: process_artifacts
+        run: |
+          # Make artifact manager script executable
+          chmod +x scripts/ci/artifact-manager.sh
+          
+          # Process artifacts to find build logs
+          ./scripts/ci/artifact-manager.sh
+          
+          # Check if a valid build log was found
+          if [ -f "build_log.txt" ] && [ -s "build_log.txt" ]; then
+            echo "build_log_found=true" >> $GITHUB_OUTPUT
+            echo "✅ Build log found and ready for analysis"
+          else
+            echo "build_log_found=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No valid build logs found in artifacts"
+          fi
+
+      - name: Analyze Build Errors
+        if: steps.process_artifacts.outputs.build_log_found == 'true'
+        id: analysis
+        run: |
+          # Run the error analysis script
+          python3 scripts/ci/auto-fix-build-errors.py build_log.txt || echo "Analysis completed with warnings"
+          
+          # Check if reports were generated
+          if [ -f "build_error_report.html" ]; then
+            echo "report_generated=true" >> $GITHUB_OUTPUT
+            echo "✅ Build error report generated successfully"
+          else
+            echo "report_generated=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No error report was generated"
+          fi
+
+      - name: Upload Error Reports
+        if: steps.analysis.outputs.report_generated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-error-reports
+          path: |
+            build_error_report.html
+            build_error_report.txt
+            build_error_report.json
+            build-logs/
+          retention-days: 30
+
+      - name: Generate Summary
+        if: steps.analysis.outputs.report_generated == 'true'
+        run: |
+          # Use script to generate GitHub step summary
+          ./scripts/ci/generate-report-summary.sh
+
+      - name: Determine PR Number
+        id: pr-finder
+        if: steps.analysis.outputs.report_generated == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get PR number from the workflow run
+            const run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            
+            // Extract PR number from the run data
+            const prNumber = run.data.pull_requests[0]?.number;
+            if (prNumber) {
+              console.log(`Found PR number: ${prNumber}`);
+              return prNumber;
+            } else {
+              console.log("Could not determine PR number from workflow run");
+              return '';
+            }
+          result-encoding: string
+
+      - name: Create Comment on PR
+        if: steps.analysis.outputs.report_generated == 'true' && steps.pr-finder.outputs.result != ''
+        run: |
+          # Use script to create PR comment
+          ./scripts/ci/create-pr-comment.sh "${{ steps.pr-finder.outputs.result }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Direct analysis job for pull requests
+  analyze_pr_build:
+    name: Analyze PR Build
+    runs-on: macos-15
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Build Project for Analysis
+        id: build
+        continue-on-error: true
+        run: |
+          # Create a logs directory
+          mkdir -p build-logs
+          
+          # Try to build the project, capturing output to a log file
+          set +e
+          xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release CODE_SIGNING_ALLOWED=NO | tee build-logs/xcodebuild.log
+          BUILD_RESULT=$?
+          set -e
+          
+          # Check if build failed (we want to analyze failures)
+          if [ $BUILD_RESULT -ne 0 ]; then
+            echo "build_failed=true" >> $GITHUB_OUTPUT
+            echo "✅ Build failed as expected, logs captured for analysis"
+          else
+            echo "build_failed=false" >> $GITHUB_OUTPUT
+            echo "Build succeeded, no errors to analyze"
+          fi
+          
+          # Always link the log file to the expected location
+          cp build-logs/xcodebuild.log build_log.txt
+
+      - name: Analyze Build Errors
+        if: steps.build.outputs.build_failed == 'true'
+        id: analysis
+        run: |
+          # Run the error analysis script
+          python3 scripts/ci/auto-fix-build-errors.py build_log.txt || echo "Analysis completed with warnings"
+          
+          # Check if reports were generated
+          if [ -f "build_error_report.html" ]; then
+            echo "report_generated=true" >> $GITHUB_OUTPUT
+            echo "✅ Build error report generated successfully"
+          else
+            echo "report_generated=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No error report was generated"
+          fi
+
+      - name: Upload Error Reports
+        if: steps.build.outputs.build_failed == 'true' && steps.analysis.outputs.report_generated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-build-error-reports
+          path: |
+            build_error_report.html
+            build_error_report.txt
+            build_error_report.json
+            build-logs/
+          retention-days: 30
+
+      - name: Generate Summary
+        if: steps.build.outputs.build_failed == 'true' && steps.analysis.outputs.report_generated == 'true'
+        run: |
+          # Use script to generate GitHub step summary
+          ./scripts/ci/generate-report-summary.sh
+
+      - name: Create Comment on PR
+        if: steps.build.outputs.build_failed == 'true' && steps.analysis.outputs.report_generated == 'true'
+        run: |
+          # Use script to create PR comment
+          ./scripts/ci/create-pr-comment.sh "${{ github.event.pull_request.number }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
