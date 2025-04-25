@@ -66,12 +66,25 @@ jobs:
           git config user.email "actions@github.com"
 
       - name: Auto-Fix Code Issues
+        id: auto_fix
         run: |
           chmod +x scripts/ci/*.sh
+          # Run with error checking
+          set +e
           ./scripts/ci/auto-fix.sh
+          RESULT=$?
+          set -e
+          
+          if [ $RESULT -ne 0 ]; then
+            echo "::error::Auto-fix script failed with error code $RESULT"
+            echo "fix_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "fix_status=success" >> $GITHUB_OUTPUT
+          fi
 
       - name: Check for Changes and Commit
         id: check_changes
+        if: steps.auto_fix.outputs.fix_status != 'failed'
         run: |
           if git status --porcelain | grep .; then
             echo "changes_detected=true" >> $GITHUB_OUTPUT
@@ -85,6 +98,12 @@ jobs:
             echo "changes_detected=false" >> $GITHUB_OUTPUT
             echo "No changes detected after auto-fixing code issues"
           fi
+          
+      - name: Report Auto-Fix Failure
+        if: steps.auto_fix.outputs.fix_status == 'failed'
+        run: |
+          echo "::error::The auto-fix process encountered critical errors. Please check the logs for details."
+          exit 1
 
       - name: Create Fix Summary
         if: steps.check_changes.outputs.changes_detected == 'true'
