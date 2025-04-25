@@ -63,13 +63,19 @@ jobs:
       - name: Run Clang-Format with Custom Configuration
         run: |
           echo "Running Clang-Format with project-specific configuration..."
+          
+          # Fix the duplicated key in .clang-format
+          echo "Creating corrected clang-format configuration..."
+          mkdir -p build/config
+          grep -v "PenaltyReturnTypeOnItsOwnLine: 200" Clean/.clang-format > build/config/.clang-format
+          
           # Find Objective-C/C++/C files and check formatting
           formatted_files=0
           find . -type f \( -name "*.m" -o -name "*.mm" -o -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp" \) -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | while read file; do
             echo "Checking $file" >> build/reports/clang-format/checked_files.txt
             # Check if file would be reformatted
             original=$(cat "$file")
-            formatted=$(cat "$file" | clang-format -style=file:Clean/.clang-format)
+            formatted=$(cat "$file" | clang-format -style=file:build/config/.clang-format)
             
             if [ "$original" != "$formatted" ]; then
               echo "$file needs formatting" >> build/reports/clang-format/needs_formatting.txt
@@ -85,6 +91,10 @@ jobs:
           else
             echo "No formatting issues found" >> build/reports/clang-format/summary.md
           fi
+          
+          # Add a note about the duplicated key
+          echo -e "\n## Note" >> build/reports/clang-format/summary.md
+          echo "The original .clang-format configuration file has a duplicated key 'PenaltyReturnTypeOnItsOwnLine'. This was automatically fixed for this check." >> build/reports/clang-format/summary.md
       
       - name: Run xcpretty Project Analysis
         run: |
