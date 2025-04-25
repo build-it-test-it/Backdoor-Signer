@@ -340,22 +340,22 @@ private extension FloatingAIButton {
     struct PositionData: Codable {
         let x: CGFloat
         let y: CGFloat
-        
+
         var asPoint: CGPoint {
             return CGPoint(x: x, y: y)
         }
-        
+
         init(from point: CGPoint) {
-            self.x = point.x
-            self.y = point.y
+            x = point.x
+            y = point.y
         }
     }
-    
+
     func encodePosition(_ point: CGPoint) -> Data? {
         let positionData = PositionData(from: point)
         return try? JSONEncoder().encode(positionData)
     }
-    
+
     func decodePosition(from data: Data) -> CGPoint? {
         if let positionData = try? JSONDecoder().decode(PositionData.self, from: data) {
             return positionData.asPoint
