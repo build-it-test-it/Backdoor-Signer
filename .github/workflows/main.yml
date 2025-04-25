@@ -10,12 +10,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  xcpretty_check:
-    name: XCPretty Code Quality Check
+  code_quality_check:
+    name: Code Quality Check
     runs-on: macos-15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # Updated to latest version
+        uses: actions/checkout@v4
 
       - name: Install Git LFS
         run: |
@@ -25,119 +25,13 @@ jobs:
       - name: Install Dependencies
         run: |
           gem install xcpretty xcpretty-json-formatter
-          brew install swiftlint swiftformat clang-format
-          mkdir -p build/reports/{xcpretty,swiftlint,swiftformat,clang-format}
+          brew install swiftlint swiftformat clang-format jq
+          mkdir -p build/reports
 
-      - name: Run SwiftLint with Custom Configuration
+      - name: Run Code Quality Checks
         run: |
-          echo "Running SwiftLint with project-specific configuration..."
-          swiftlint lint --config Clean/.swiftlint.yml --reporter json > build/reports/swiftlint/swiftlint.json || true
-          swiftlint lint --config Clean/.swiftlint.yml --reporter html > build/reports/swiftlint/swiftlint.html || true
-          swiftlint lint --config Clean/.swiftlint.yml --strict || echo "WARNING: SwiftLint found issues that should be addressed"
-          
-          echo "# SwiftLint Issues Summary" > build/reports/swiftlint/summary.md
-          echo "## Critical Issues" >> build/reports/swiftlint/summary.md
-          jq -r '.[] | select(.severity == "Error") | "Rule: \(.rule_id)\nReason: \(.reason)\nLine: \(.line)\nCharacter: \(.character)\n---"' build/reports/swiftlint/swiftlint.json >> build/reports/swiftlint/summary.md || echo "No critical issues found" >> build/reports/swiftlint/summary.md
-
-      - name: Run SwiftFormat with Custom Configuration
-        run: |
-          echo "Running SwiftFormat with project-specific configuration..."
-          find . -name "*.swift" -type f -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | xargs swiftformat --config Clean/.swiftformat --dryrun > build/reports/swiftformat/changes.txt 2>&1 || true
-          
-          echo "# SwiftFormat Issues Summary" > build/reports/swiftformat/summary.md
-          echo "## Files with formatting issues:" >> build/reports/swiftformat/summary.md
-          grep "would have formatted" build/reports/swiftformat/changes.txt | sort | uniq >> build/reports/swiftformat/summary.md || echo "No formatting issues found" >> build/reports/swiftformat/summary.md
-          
-          swiftformat --config Clean/.swiftformat --lint . > build/reports/swiftformat/lint_results.txt 2>&1 || echo "SwiftFormat found issues that should be addressed"
-
-      - name: Run Clang-Format with Custom Configuration
-        run: |
-          echo "Running Clang-Format with project-specific configuration..."
-          mkdir -p build/config
-          
-          cat > build/config/.clang-format << EOF
-BasedOnStyle: LLVM
-IndentWidth: 4
-TabWidth: 4
-UseTab: Never
-ColumnLimit: 120
-BreakBeforeBraces: Allman
-IndentCaseLabels: true
-AlignAfterOpenBracket: Align
-SpaceBeforeParens: ControlStatements
-EOF
-          
-          formatted_files=0
-          while IFS= read -r file; do
-            echo "Checking $file" >> build/reports/clang-format/checked_files.txt
-            original=$(cat "$file")
-            formatted=$(clang-format -style=file:build/config/.clang-format "$file")
-            
-            if [ "$original" != "$formatted" ]; then
-              echo "$file needs formatting" >> build/reports/clang-format/needs_formatting.txt
-              formatted_files=$((formatted_files+1))
-            fi
-          done < <(find . -type f \( -name "*.m" -o -name "*.mm" -o -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp" \) -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*")
-          
-          echo "# Clang-Format Issues Summary" > build/reports/clang-format/summary.md
-          echo "## Files with formatting issues:" >> build/reports/clang-format/summary.md
-          [ -f build/reports/clang-format/ne Biblicalyzer/formatter.py
-
-          if [ -f build/reports/clang-format/needs_formatting.txt ]; then
-            cat build/reports/clang-format/needs_formatting.txt >> build/reports/clang-format/summary.md
-          else
-            echo "No formatting issues found" >> build/reports/clang-format/summary.md
-          fi
-          
-          echo -e "\n## Note" >> build/reports/clang-format/summary.md
-          echo "The original .clang-format configuration file had a duplicated key 'PenaltyReturnTypeOnItsOwnLine'. This was automatically fixed for this check." >> build/reports/clang-format/summary.md
-
-      - name: Run xcpretty Project Analysis
-        run: |
-          echo "Running XCPretty project analysis..."
-          xcodebuild -project backdoor.xcodeproj -list | tee build/reports/xcpretty/project_info.txt | xcpretty --color
-
-      - name: Run Basic Build Check
-        run: |
-          echo "Running basic build check with warnings as errors..."
-          xcodebuild clean build \
-            -project backdoor.xcodeproj \
-            -scheme 'backdoor (Debug)' \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
-            GCC_TREAT_WARNINGS_AS_ERRORS=YES \
-            | tee build/reports/xcpretty/build_check.txt | xcpretty --color || echo "::warning::Build check found issues that need to be fixed"
-
-      - name: Run Deep Code Analysis
-        run: |
-          echo "Running deep code analysis with xcpretty..."
-          mkdir -p build/reports/analyzer
-          xcodebuild analyze \
-            -project backdoor.xcodeproj \
-            -scheme 'backdoor (Debug)' \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            CLANG_ANALYZER_OUTPUT=html \
-            CLANG_ANALYZER_OUTPUT_DIR=build/reports/analyzer \
-            RUN_CLANG_STATIC_ANALYZER=YES \
-            | tee build/reports/xcpretty/analyzer_output.txt | xcpretty --color --report html --output build/reports/xcpretty/analysis.html
-          
-          ERROR_COUNT=$(grep -c "error:" build/reports/xcpretty/analyzer_output.txt || echo 0)
-          WARNING_COUNT=$(grep -c "warning:" build/reports/xcpretty/analyzer_output.txt || echo 0)
-          
-          echo "Analysis found $ERROR_COUNT errors and $WARNING_COUNT warnings"
-          
-          echo "# XCPretty Analysis Results" > build/reports/xcpretty/summary.md
-          echo "## Issues Found" >> build/reports/xcpretty/summary.md
-          echo "* Errors: $ERROR_COUNT" >> build/reports/xcpretty/summary.md
-          echo "* Warnings: $WARNING_COUNT" >> build/reports/xcpretty/summary.md
-          
-          echo "## Error Details" >> build/reports/xcpretty/summary.md
-          grep "error:" build/reports/xcpretty/analyzer_output.txt | sort -u >> build/reports/xcpretty/summary.md || echo "No errors found"
-          
-          echo "## Warning Details" >> build/reports/xcpretty/summary.md
-          grep "warning:" build/reports/xcpretty/analyzer_output.txt | sort -u >> build/reports/xcpretty/summary.md || echo "No warnings found"
+          chmod +x scripts/ci/*.sh
+          ./scripts/ci/run-all-checks.sh
 
       - name: Upload Code Analysis Reports
         uses: actions/upload-artifact@v4
@@ -147,7 +41,7 @@ EOF
 
   auto_fix:
     name: Auto-Fix Code Issues
-    needs: xcpretty_check
+    needs: code_quality_check
     runs-on: macos-15
     if: github.event_name == 'pull_request'
     steps:
@@ -162,9 +56,8 @@ EOF
           git lfs install
           git lfs pull
 
-      - name: Install Formatter Tools
+      - name: Install Dependencies
         run: |
-          gem install xcpretty xcpretty-json-formatter
           brew install swiftlint swiftformat clang-format
 
       - name: Configure Git
@@ -172,35 +65,10 @@ EOF
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
-      - name: Auto-Fix SwiftLint Issues
+      - name: Auto-Fix Code Issues
         run: |
-          echo "Automatically fixing SwiftLint issues..."
-          swiftlint autocorrect --config Clean/.swiftlint.yml || true
-
-      - name: Auto-Fix SwiftFormat Issues
-        run: |
-          echo "Automatically fixing SwiftFormat issues..."
-          swiftformat . --config Clean/.swiftformat || true
-
-      - name: Auto-Fix Clang-Format Issues
-        run: |
-          echo "Creating basic .clang-format configuration..."
-          cat > .clang-format << EOF
-BasedOnStyle: LLVM
-IndentWidth: 4
-TabWidth: 4
-UseTab: Never
-ColumnLimit: 120
-BreakBeforeBraces: Allman
-IndentCaseLabels: true
-AlignAfterOpenBracket: Align
-SpaceBeforeParens: ControlStatements
-EOF
-          
-          echo "Automatically fixing Clang-Format issues..."
-          find . -type f \( -name "*.m" -o -name "*.mm" -o -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp" \) -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" -exec clang-format -i -style=file {} \;
-          
-          rm -f .clang-format
+          chmod +x scripts/ci/*.sh
+          ./scripts/ci/auto-fix.sh
 
       - name: Check for Changes and Commit
         id: check_changes
@@ -239,7 +107,7 @@ EOF
     name: Build and Package
     needs: auto_fix
     runs-on: macos-15
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: always() && (github.event_name == 'push' && github.ref == 'refs/heads/main')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -259,7 +127,7 @@ EOF
       - name: Compile
         run: |
           mkdir -p upload
-          make package SCHEME="backdoor (Release)" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile"
+          make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile"
           mv packages/* upload/
 
       - name: Get Version Number
