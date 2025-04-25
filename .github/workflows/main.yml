@@ -25,9 +25,11 @@ jobs:
       - name: Install dependencies
         run: |
           gem install xcpretty xcpretty-json-formatter
-          brew install swiftlint
+          brew install swiftlint swiftformat clang-format
           mkdir -p build/reports/xcpretty
           mkdir -p build/reports/swiftlint
+          mkdir -p build/reports/swiftformat
+          mkdir -p build/reports/clang-format
 
       - name: Run SwiftLint with Custom Configuration
         run: |
@@ -41,6 +43,48 @@ jobs:
           echo "# SwiftLint Issues Summary" > build/reports/swiftlint/summary.md
           echo "## Critical Issues" >> build/reports/swiftlint/summary.md
           cat build/reports/swiftlint/swiftlint.json | grep -A 3 '"severity":"error"' | grep -E '"rule"|"reason"|"line"|"character"' | grep -v "Linting Swift files" >> build/reports/swiftlint/summary.md || echo "No critical issues found" >> build/reports/swiftlint/summary.md
+          
+      - name: Run SwiftFormat with Custom Configuration
+        run: |
+          echo "Running SwiftFormat with project-specific configuration..."
+          # First, create a report of what would be changed (dry run)
+          find . -name "*.swift" -type f -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | while read file; do
+            swiftformat --config Clean/.swiftformat --dryrun "$file" >> build/reports/swiftformat/changes.txt 2>&1 || true
+          done
+          
+          # Create a summary report
+          echo "# SwiftFormat Issues Summary" > build/reports/swiftformat/summary.md
+          echo "## Files with formatting issues:" >> build/reports/swiftformat/summary.md
+          grep "would have formatted" build/reports/swiftformat/changes.txt | sort | uniq >> build/reports/swiftformat/summary.md || echo "No formatting issues found" >> build/reports/swiftformat/summary.md
+          
+          # Run in lint mode to generate a more structured report
+          swiftformat --config Clean/.swiftformat --lint . > build/reports/swiftformat/lint_results.txt 2>&1 || echo "SwiftFormat found issues that should be addressed"
+          
+      - name: Run Clang-Format with Custom Configuration
+        run: |
+          echo "Running Clang-Format with project-specific configuration..."
+          # Find Objective-C/C++/C files and check formatting
+          formatted_files=0
+          find . -type f \( -name "*.m" -o -name "*.mm" -o -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp" \) -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | while read file; do
+            echo "Checking $file" >> build/reports/clang-format/checked_files.txt
+            # Check if file would be reformatted
+            original=$(cat "$file")
+            formatted=$(cat "$file" | clang-format -style=file:Clean/.clang-format)
+            
+            if [ "$original" != "$formatted" ]; then
+              echo "$file needs formatting" >> build/reports/clang-format/needs_formatting.txt
+              formatted_files=$((formatted_files+1))
+            fi
+          done
+          
+          # Create a summary report
+          echo "# Clang-Format Issues Summary" > build/reports/clang-format/summary.md
+          echo "## Files with formatting issues:" >> build/reports/clang-format/summary.md
+          if [ -f build/reports/clang-format/needs_formatting.txt ]; then
+            cat build/reports/clang-format/needs_formatting.txt >> build/reports/clang-format/summary.md
+          else
+            echo "No formatting issues found" >> build/reports/clang-format/summary.md
+          fi
       
       - name: Run xcpretty Project Analysis
         run: |
