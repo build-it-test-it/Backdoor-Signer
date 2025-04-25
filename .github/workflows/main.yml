@@ -10,7 +10,42 @@ on:
   workflow_dispatch:
 
 jobs:
+  xcpretty_check:
+    name: XCPretty Code Check
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+          git lfs pull
+
+      - name: Install xcpretty
+        run: |
+          gem install xcpretty
+
+      - name: Run xcpretty Project Analysis
+        run: |
+          echo "Running XCPretty code analysis..."
+          xcodebuild -project 'backdoor.xcodeproj' -list | xcpretty
+          
+      - name: Run xcpretty Code Check
+        run: |
+          echo "Running XCPretty Swift code check..."
+          xcodebuild clean -project 'backdoor.xcodeproj' -scheme 'backdoor (Debug)' | xcpretty --color
+          xcodebuild analyze -project 'backdoor.xcodeproj' -scheme 'backdoor (Debug)' -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO | xcpretty --color --report html
+          
+      - name: Upload XCPretty Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: xcpretty-report
+          path: build/reports/
+
   build:
+    name: Build and Package
+    needs: xcpretty_check
     runs-on: macos-15
     steps:
       - name: Checkout
