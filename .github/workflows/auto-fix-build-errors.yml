@@ -1,4 +1,4 @@
-name: Auto-Fix Build Errors
+name: Build Error Analysis Report
 
 on:
   workflow_run:
@@ -7,8 +7,8 @@ on:
       - completed
 
 jobs:
-  auto_fix_build_errors:
-    name: Auto-Fix Build Errors
+  analyze_build_errors:
+    name: Analyze Build Errors
     runs-on: macos-15
     if: github.event.workflow_run.conclusion == 'failure'
     steps:
@@ -66,201 +66,130 @@ jobs:
 
       - name: Install Python Dependencies
         run: |
-          pip3 install requests
-      
-      - name: Configure Git
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
+          pip3 install html
 
-      - name: Fix Build Error - SCHEME Parameter
+      - name: Run Build Error Analysis
+        id: analysis
         run: |
-          echo "Fixing build error with SCHEME parameter in workflow..."
+          chmod +x scripts/ci/auto-fix-build-errors.py
           
-          # Find the workflow file
-          WORKFLOW_FILE=".github/workflows/main.yml"
-          
-          if [ -f "$WORKFLOW_FILE" ]; then
-            # Check for syntax error near unexpected token '(' in the build log
-            if grep -q "syntax error near unexpected token" build_log.txt && grep -q "(" build_log.txt; then
-              echo "Detected parentheses issue in scheme name"
-              
-              # Replace the Make-based build with direct xcodebuild
-              cat > workflow_fix.patch << 'EOL'
---- a/.github/workflows/main.yml
-+++ b/.github/workflows/main.yml
-@@ -180,12 +180,43 @@
-           # Clean any previous builds first
-           make clean || true
-           
--          # Build with appropriate scheme format - with properly escaped parentheses
--          # The scheme name needs special handling due to parentheses
--          SCHEME_NAME="backdoor (Release)"
--          
--          # Use tee to capture output for diagnostics while piping to xcpretty
--          make package "SCHEME=${SCHEME_NAME}" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
-+          # We need to handle the scheme name specially to deal with spaces and parentheses
-+          # This approach avoids shell syntax errors by escaping in multiple ways
-+          
-+          # Create a safe scheme name with escaped parentheses for the make command
-+          echo "Using direct compilation approach to avoid scheme name issues..."
-+          
-+          # Skip using the make command and use xcodebuild directly
-+          mkdir -p packages
-+          set -o pipefail && xcodebuild \
-+            -jobs $(sysctl -n hw.ncpu) \
-+            -project 'backdoor.xcodeproj' \
-+            -scheme 'backdoor (Release)' \
-+            -configuration Release \
-+            -arch arm64 -sdk iphoneos \
-+            CODE_SIGNING_ALLOWED=NO \
-+            CFLAGS="-Onone" \
-+            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
-+            SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
-+            
-+          # Create IPA directly
-+          echo "Creating IPA package..."
-+          mkdir -p Payload
-+          cp -r $(find ~/Library/Developer/Xcode/DerivedData -name "backdoor.app" -type d | head -n 1) Payload/ || echo "No app found, using alternative method"
-+          
-+          # If app wasn't found, try Build directory
-+          if [ ! -d "Payload/backdoor.app" ]; then
-+            find . -name "backdoor.app" -type d | head -n 1 | xargs -I{} cp -r {} Payload/ || echo "Warning: Could not find app bundle"
-+          fi
-+          
-+          # Package only if app exists
-+          if [ -d "Payload/backdoor.app" ]; then
-+            zip -r9 packages/backdoor.ipa Payload
-+            echo "Package created successfully"
-+          else
-+            echo "::error::Failed to create IPA - app bundle not found"
-+            exit 1
-+          fi
-EOL
-              
-              # Apply the patch while handling different sed versions
-              if patch -p1 "$WORKFLOW_FILE" < workflow_fix.patch; then
-                echo "Successfully applied direct xcodebuild fix"
-              else
-                # Try a simpler approach if the patch fails
-                sed -i '' '/SCHEME_NAME=.*backdoor/,+5d' "$WORKFLOW_FILE" 2>/dev/null || \
-                sed -i '/SCHEME_NAME=.*backdoor/,+5d' "$WORKFLOW_FILE"
-                
-                # Insert the direct xcodebuild approach
-                sed -i '' '/make clean || true/a\
-          # Skip using make and use xcodebuild directly\
-          mkdir -p packages\
-          set -o pipefail && xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release CODE_SIGNING_ALLOWED=NO | tee build_log.txt | xcpretty\
-          ' "$WORKFLOW_FILE" 2>/dev/null || \
-                sed -i '/make clean || true/a\
-          # Skip using make and use xcodebuild directly\
-          mkdir -p packages\
-          set -o pipefail && xcodebuild -project backdoor.xcodeproj -scheme "backdoor (Release)" -configuration Release CODE_SIGNING_ALLOWED=NO | tee build_log.txt | xcpretty\
-          ' "$WORKFLOW_FILE"
-              fi
-              
-              echo "Updated build command in $WORKFLOW_FILE to use direct xcodebuild"
-            else
-              # Generic SCHEME parameter fix if it's not the parentheses issue
-              sed -i '' 's/SCHEME='\''backdoor (Release)'\''/SCHEME="backdoor \(Release\)"/' "$WORKFLOW_FILE" 2>/dev/null || \
-              sed -i 's/SCHEME='\''backdoor (Release)'\''/SCHEME="backdoor \(Release\)"/' "$WORKFLOW_FILE"
-              
-              echo "Updated SCHEME parameter in $WORKFLOW_FILE"
-            fi
+          if [ -f "build_log.txt" ]; then
+            echo "Analyzing build log..."
+            python3 scripts/ci/auto-fix-build-errors.py build_log.txt || echo "Analysis completed with errors"
             
-            # Display changes made
-            git diff "$WORKFLOW_FILE"
+            # Check if reports were generated
+            if [ -f "build_error_report.html" ]; then
+              echo "report_generated=true" >> $GITHUB_OUTPUT
+              echo "✅ Build error report generated successfully"
+            else
+              echo "report_generated=false" >> $GITHUB_OUTPUT
+              echo "⚠️ No error report was generated"
+            fi
           else
-            echo "::error::Workflow file not found at $WORKFLOW_FILE"
+            echo "::error::Build log not found!"
+            echo "report_generated=false" >> $GITHUB_OUTPUT
             exit 1
           fi
 
-      - name: Check for Makefile Issues
-        run: |
-          echo "Checking Makefile for potential issues..."
-          
-          if [ -f "Makefile" ]; then
-            # Check if there might be issues with the SCHEME variable handling
-            if grep -q "SCHEME" "Makefile"; then
-              echo "Found SCHEME references in Makefile:"
-              grep -n "SCHEME" "Makefile"
-              
-              # Create a fix for the Makefile if necessary
-              cat > makefile_fix.patch << 'EOL'
-          --- a/Makefile
-          +++ b/Makefile
-          @@ -5,7 +5,7 @@
-           PLATFORM = iphoneos
-           NAME = backdoor
-          -SCHEME ?= 'backdoor (Debug)'
-          +SCHEME ?= backdoor\ \(Debug\)
-           RELEASE = Release-iphoneos
-           CONFIGURATION = Release
-          EOL
-              
-              # Apply the patch if the pattern matches
-              if grep -q "SCHEME ?= 'backdoor (Debug)'" "Makefile"; then
-                patch -p1 < makefile_fix.patch
-                echo "Applied fix to Makefile"
-              else
-                echo "Makefile has a different format, skipping automatic patch"
-              fi
-            fi
-          else
-            echo "::warning::Makefile not found"
-          fi
+      - name: Upload Error Reports
+        if: steps.analysis.outputs.report_generated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-error-reports
+          path: |
+            build_error_report.html
+            build_error_report.txt
+            build_error_report.json
+          retention-days: 30
 
-      - name: Create Python Auto-Fix Script
+      - name: Generate Summary
+        if: steps.analysis.outputs.report_generated == 'true'
         run: |
-          mkdir -p scripts/ci
-          cat > scripts/ci/auto-fix-build-errors.py << 'EOL'
-          #!/usr/bin/env python3
-          """
-          Automatic Build Error Analysis and Correction Tool
-          """
-          import os
-          import re
-          import sys
+          echo "## 📊 Build Error Analysis Report" > $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "A detailed analysis of the build errors has been generated." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           
-          def main():
-              print("Analyzing build logs for errors...")
-              if len(sys.argv) > 1 and os.path.exists(sys.argv[1]):
-                  with open(sys.argv[1], 'r') as f:
-                      content = f.read()
-                  
-                  # Look for specific errors
-                  if "syntax error near unexpected token `('" in content:
-                      print("Detected parenthesis escaping issue in build command")
-                      print("This issue has been fixed in the workflow file")
-                      return 0
-                  
-                  print("No specific fixable errors identified in the logs")
-                  return 1
-              else:
-                  print("No log file provided or file not found")
-                  return 1
-          
-          if __name__ == "__main__":
-              sys.exit(main())
-          EOL
-          
-          chmod +x scripts/ci/auto-fix-build-errors.py
-          
-          # Test the script
-          if [ -f "build_log.txt" ]; then
-            python3 scripts/ci/auto-fix-build-errors.py build_log.txt
-          fi
-
-      - name: Commit and Push Fixes
-        run: |
-          # Check if there are any changes to commit
-          if git status --porcelain | grep .; then
-            echo "Changes detected from auto-fix, committing..."
+          # Extract summary information from the JSON report
+          if [ -f "build_error_report.json" ]; then
+            ERROR_COUNT=$(grep -o '"error_count":[0-9]*' build_error_report.json | cut -d ":" -f2)
+            WARNING_COUNT=$(grep -o '"warning_count":[0-9]*' build_error_report.json | cut -d ":" -f2)
             
-            git add -A
-            git commit -m "Auto-fix build errors [skip ci]" -m "Automatically fixed build command issues with SCHEME parameter."
-            git push
-            echo "✅ Successfully fixed build errors and pushed changes"
-          else
-            echo "No changes to commit after auto-fix"
+            echo "### Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "* 🛑 **Errors**: ${ERROR_COUNT:-0}" >> $GITHUB_STEP_SUMMARY
+            echo "* ⚠️ **Warnings**: ${WARNING_COUNT:-0}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
           fi
+          
+          echo "### Common Issues" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Include top issues from the report
+          if [ -f "build_error_report.txt" ]; then
+            # Extract top error types
+            echo "#### Top Error Types" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            grep -A 5 "ERROR TYPES:" build_error_report.txt >> $GITHUB_STEP_SUMMARY || echo "No error types found"
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please download the full HTML report from the artifacts for a comprehensive analysis." >> $GITHUB_STEP_SUMMARY
+
+      - name: Create Comment on PR
+        if: github.event.workflow_run.event == 'pull_request' && steps.analysis.outputs.report_generated == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Get PR number from the workflow run
+            const run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            
+            // Extract PR number from the run data
+            const prNumber = run.data.pull_requests[0]?.number;
+            if (!prNumber) {
+              console.log("Could not determine PR number from workflow run");
+              return;
+            }
+            
+            // Read summary information from the JSON report
+            if (fs.existsSync('build_error_report.json')) {
+              const reportData = JSON.parse(fs.readFileSync('build_error_report.json', 'utf8'));
+              const errorCount = reportData.summary.error_count;
+              const warningCount = reportData.summary.warning_count;
+              
+              // Create a comment on the PR
+              const body = `## 🔍 Build Error Analysis Report
+              
+This PR contains:
+- 🛑 **${errorCount} errors**
+- ⚠️ **${warningCount} warnings**
+
+<details>
+<summary>Click to see error type breakdown</summary>
+
+\`\`\`
+${Object.entries(reportData.summary.error_types)
+  .map(([type, count]) => `${type}: ${count}`)
+  .join('\n')}
+\`\`\`
+</details>
+
+Please check the workflow run for the full HTML report with error details and suggestions for fixing them.
+              `;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body.replace(/^\s+/gm, '')  // Remove leading spaces
+              });
+              
+              console.log(`Created comment on PR #${prNumber}`);
+            }
