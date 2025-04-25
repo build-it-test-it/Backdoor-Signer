@@ -29,12 +29,18 @@ jobs:
           mkdir -p build/reports/xcpretty
           mkdir -p build/reports/swiftlint
 
-      - name: Run SwiftLint
+      - name: Run SwiftLint with Custom Configuration
         run: |
-          echo "Running SwiftLint to check Swift best practices..."
-          swiftlint lint --reporter json > build/reports/swiftlint/swiftlint.json || true
-          swiftlint lint --reporter html > build/reports/swiftlint/swiftlint.html || true
-          swiftlint lint --strict || echo "WARNING: SwiftLint found issues that should be addressed"
+          echo "Running SwiftLint with project-specific configuration..."
+          # Use the custom SwiftLint configuration from Clean folder
+          swiftlint lint --config Clean/.swiftlint.yml --reporter json > build/reports/swiftlint/swiftlint.json || true
+          swiftlint lint --config Clean/.swiftlint.yml --reporter html > build/reports/swiftlint/swiftlint.html || true
+          swiftlint lint --config Clean/.swiftlint.yml --strict || echo "WARNING: SwiftLint found issues that should be addressed"
+          
+          # Extract key issues for quick review
+          echo "# SwiftLint Issues Summary" > build/reports/swiftlint/summary.md
+          echo "## Critical Issues" >> build/reports/swiftlint/summary.md
+          cat build/reports/swiftlint/swiftlint.json | grep -A 3 '"severity":"error"' | grep -E '"rule"|"reason"|"line"|"character"' | grep -v "Linting Swift files" >> build/reports/swiftlint/summary.md || echo "No critical issues found" >> build/reports/swiftlint/summary.md
       
       - name: Run xcpretty Project Analysis
         run: |
