@@ -35,7 +35,13 @@ jobs:
         run: |
           echo "Running XCPretty Swift code check..."
           xcodebuild clean -project 'backdoor.xcodeproj' -scheme 'backdoor (Debug)' | xcpretty --color
-          xcodebuild analyze -project 'backdoor.xcodeproj' -scheme 'backdoor (Debug)' -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO | xcpretty --color
+          xcodebuild analyze -project 'backdoor.xcodeproj' -scheme 'backdoor (Debug)' -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO | xcpretty --color --report html
+          
+      - name: Upload XCPretty Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcpretty-report
+          path: build/reports/
 
   build:
     name: Build and Package
