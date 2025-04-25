@@ -11,7 +11,7 @@ on:
 
 jobs:
   xcpretty_check:
-    name: XCPretty Code Check
+    name: XCPretty Code Quality Check
     runs-on: macos-15
     steps:
       - name: Checkout
@@ -22,25 +22,80 @@ jobs:
           git lfs install
           git lfs pull
 
-      - name: Install xcpretty
+      - name: Install dependencies
         run: |
-          gem install xcpretty
+          gem install xcpretty xcpretty-json-formatter
+          brew install swiftlint
+          mkdir -p build/reports/xcpretty
+          mkdir -p build/reports/swiftlint
 
+      - name: Run SwiftLint
+        run: |
+          echo "Running SwiftLint to check Swift best practices..."
+          swiftlint lint --reporter json > build/reports/swiftlint/swiftlint.json || true
+          swiftlint lint --reporter html > build/reports/swiftlint/swiftlint.html || true
+          swiftlint lint --strict || echo "WARNING: SwiftLint found issues that should be addressed"
+      
       - name: Run xcpretty Project Analysis
         run: |
-          echo "Running XCPretty code analysis..."
-          xcodebuild -project 'backdoor.xcodeproj' -list | xcpretty
+          echo "Running XCPretty project analysis..."
+          xcodebuild -project 'backdoor.xcodeproj' -list | tee build/reports/xcpretty/project_info.txt | xcpretty --color
           
-      - name: Run xcpretty Code Check
+      - name: Run Basic Build Check
         run: |
-          echo "Running XCPretty Swift code check..."
-          xcodebuild clean -project 'backdoor.xcodeproj' -scheme 'backdoor (Debug)' | xcpretty --color
-          xcodebuild analyze -project 'backdoor.xcodeproj' -scheme 'backdoor (Debug)' -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO | xcpretty --color --report html
+          echo "Running basic build check with warnings as errors..."
+          set +e
+          xcodebuild clean build \
+            -project 'backdoor.xcodeproj' \
+            -scheme 'backdoor (Debug)' \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+            GCC_TREAT_WARNINGS_AS_ERRORS=YES \
+            2>&1 | tee build/reports/xcpretty/build_check.txt | xcpretty --color
           
-      - name: Upload XCPretty Report
+          if [ $? -ne 0 ]; then
+            echo "::warning::Build check found issues that need to be fixed"
+          fi
+          
+      - name: Run Deep Code Analysis
+        run: |
+          echo "Running deep code analysis with xcpretty..."
+          
+          # Run analyzer and capture both regular and JSON output
+          xcodebuild analyze \
+            -project 'backdoor.xcodeproj' \
+            -scheme 'backdoor (Debug)' \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CLANG_ANALYZER_OUTPUT=html \
+            CLANG_ANALYZER_OUTPUT_DIR=build/reports/analyzer \
+            RUN_CLANG_STATIC_ANALYZER=YES \
+            2>&1 | tee build/reports/xcpretty/analyzer_output.txt | xcpretty --color --report html --output build/reports/xcpretty/analysis.html
+          
+          # Count issues found in the output
+          ERROR_COUNT=$(grep -c "error:" build/reports/xcpretty/analyzer_output.txt || echo 0)
+          WARNING_COUNT=$(grep -c "warning:" build/reports/xcpretty/analyzer_output.txt || echo 0)
+          
+          echo "Analysis found $ERROR_COUNT errors and $WARNING_COUNT warnings"
+          
+          # Create a summary report
+          echo "# XCPretty Analysis Results" > build/reports/xcpretty/summary.md
+          echo "## Issues Found" >> build/reports/xcpretty/summary.md
+          echo "* Errors: $ERROR_COUNT" >> build/reports/xcpretty/summary.md
+          echo "* Warnings: $WARNING_COUNT" >> build/reports/xcpretty/summary.md
+          
+          # Extract actual errors and warnings
+          echo "## Error Details" >> build/reports/xcpretty/summary.md
+          grep "error:" build/reports/xcpretty/analyzer_output.txt | sort | uniq >> build/reports/xcpretty/summary.md || echo "No errors found"
+          
+          echo "## Warning Details" >> build/reports/xcpretty/summary.md
+          grep "warning:" build/reports/xcpretty/analyzer_output.txt | sort | uniq >> build/reports/xcpretty/summary.md || echo "No warnings found"
+          
+      - name: Upload Code Analysis Reports
         uses: actions/upload-artifact@v4
         with:
-          name: xcpretty-report
+          name: code-quality-reports
           path: build/reports/
 
   build:
