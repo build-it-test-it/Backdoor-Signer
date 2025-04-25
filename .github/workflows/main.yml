@@ -15,60 +15,46 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Updated to latest version
 
       - name: Install Git LFS
         run: |
           git lfs install
           git lfs pull
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           gem install xcpretty xcpretty-json-formatter
           brew install swiftlint swiftformat clang-format
-          mkdir -p build/reports/xcpretty
-          mkdir -p build/reports/swiftlint
-          mkdir -p build/reports/swiftformat
-          mkdir -p build/reports/clang-format
+          mkdir -p build/reports/{xcpretty,swiftlint,swiftformat,clang-format}
 
       - name: Run SwiftLint with Custom Configuration
         run: |
           echo "Running SwiftLint with project-specific configuration..."
-          # Use the custom SwiftLint configuration from Clean folder
           swiftlint lint --config Clean/.swiftlint.yml --reporter json > build/reports/swiftlint/swiftlint.json || true
           swiftlint lint --config Clean/.swiftlint.yml --reporter html > build/reports/swiftlint/swiftlint.html || true
           swiftlint lint --config Clean/.swiftlint.yml --strict || echo "WARNING: SwiftLint found issues that should be addressed"
           
-          # Extract key issues for quick review
           echo "# SwiftLint Issues Summary" > build/reports/swiftlint/summary.md
           echo "## Critical Issues" >> build/reports/swiftlint/summary.md
-          cat build/reports/swiftlint/swiftlint.json | grep -A 3 '"severity":"error"' | grep -E '"rule"|"reason"|"line"|"character"' | grep -v "Linting Swift files" >> build/reports/swiftlint/summary.md || echo "No critical issues found" >> build/reports/swiftlint/summary.md
-          
+          jq -r '.[] | select(.severity == "Error") | "Rule: \(.rule_id)\nReason: \(.reason)\nLine: \(.line)\nCharacter: \(.character)\n---"' build/reports/swiftlint/swiftlint.json >> build/reports/swiftlint/summary.md || echo "No critical issues found" >> build/reports/swiftlint/summary.md
+
       - name: Run SwiftFormat with Custom Configuration
         run: |
           echo "Running SwiftFormat with project-specific configuration..."
-          # First, create a report of what would be changed (dry run)
-          find . -name "*.swift" -type f -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | while read file; do
-            swiftformat --config Clean/.swiftformat --dryrun "$file" >> build/reports/swiftformat/changes.txt 2>&1 || true
-          done
+          find . -name "*.swift" -type f -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | xargs swiftformat --config Clean/.swiftformat --dryrun > build/reports/swiftformat/changes.txt 2>&1 || true
           
-          # Create a summary report
           echo "# SwiftFormat Issues Summary" > build/reports/swiftformat/summary.md
           echo "## Files with formatting issues:" >> build/reports/swiftformat/summary.md
           grep "would have formatted" build/reports/swiftformat/changes.txt | sort | uniq >> build/reports/swiftformat/summary.md || echo "No formatting issues found" >> build/reports/swiftformat/summary.md
           
-          # Run in lint mode to generate a more structured report
           swiftformat --config Clean/.swiftformat --lint . > build/reports/swiftformat/lint_results.txt 2>&1 || echo "SwiftFormat found issues that should be addressed"
-          
+
       - name: Run Clang-Format with Custom Configuration
         run: |
           echo "Running Clang-Format with project-specific configuration..."
-          
-          # Fix issues in the .clang-format configuration
-          echo "Creating corrected clang-format configuration..."
           mkdir -p build/config
           
-          # Create a basic .clang-format with just the essential settings to avoid compatibility issues
           cat > build/config/.clang-format << EOF
 BasedOnStyle: LLVM
 IndentWidth: 4
@@ -81,89 +67,78 @@ AlignAfterOpenBracket: Align
 SpaceBeforeParens: ControlStatements
 EOF
           
-          # Find Objective-C/C++/C files and check formatting
           formatted_files=0
-          find . -type f \( -name "*.m" -o -name "*.mm" -o -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp" \) -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | while read file; do
+          while IFS= read -r file; do
             echo "Checking $file" >> build/reports/clang-format/checked_files.txt
-            # Check if file would be reformatted
             original=$(cat "$file")
-            formatted=$(cat "$file" | clang-format -style=file:build/config/.clang-format)
+            formatted=$(clang-format -style=file:build/config/.clang-format "$file")
             
             if [ "$original" != "$formatted" ]; then
               echo "$file needs formatting" >> build/reports/clang-format/needs_formatting.txt
               formatted_files=$((formatted_files+1))
             fi
-          done
+          done < <(find . -type f \( -name "*.m" -o -name "*.mm" -o -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp" \) -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*")
           
-          # Create a summary report
           echo "# Clang-Format Issues Summary" > build/reports/clang-format/summary.md
           echo "## Files with formatting issues:" >> build/reports/clang-format/summary.md
+          [ -f build/reports/clang-format/ne Biblicalyzer/formatter.py
+
           if [ -f build/reports/clang-format/needs_formatting.txt ]; then
             cat build/reports/clang-format/needs_formatting.txt >> build/reports/clang-format/summary.md
           else
             echo "No formatting issues found" >> build/reports/clang-format/summary.md
           fi
           
-          # Add a note about the duplicated key
           echo -e "\n## Note" >> build/reports/clang-format/summary.md
-          echo "The original .clang-format configuration file has a duplicated key 'PenaltyReturnTypeOnItsOwnLine'. This was automatically fixed for this check." >> build/reports/clang-format/summary.md
-      
+          echo "The original .clang-format configuration file had a duplicated key 'PenaltyReturnTypeOnItsOwnLine'. This was automatically fixed for this check." >> build/reports/clang-format/summary.md
+
       - name: Run xcpretty Project Analysis
         run: |
           echo "Running XCPretty project analysis..."
-          xcodebuild -project 'backdoor.xcodeproj' -list | tee build/reports/xcpretty/project_info.txt | xcpretty --color
-          
+          xcodebuild -project backdoor.xcodeproj -list | tee build/reports/xcpretty/project_info.txt | xcpretty --color
+
       - name: Run Basic Build Check
         run: |
           echo "Running basic build check with warnings as errors..."
-          set +e
           xcodebuild clean build \
-            -project 'backdoor.xcodeproj' \
+            -project backdoor.xcodeproj \
             -scheme 'backdoor (Debug)' \
             -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             GCC_TREAT_WARNINGS_AS_ERRORS=YES \
-            2>&1 | tee build/reports/xcpretty/build_check.txt | xcpretty --color
-          
-          if [ $? -ne 0 ]; then
-            echo "::warning::Build check found issues that need to be fixed"
-          fi
-          
+            | tee build/reports/xcpretty/build_check.txt | xcpretty --color || echo "::warning::Build check found issues that need to be fixed"
+
       - name: Run Deep Code Analysis
         run: |
           echo "Running deep code analysis with xcpretty..."
-          
-          # Run analyzer and capture both regular and JSON output
+          mkdir -p build/reports/analyzer
           xcodebuild analyze \
-            -project 'backdoor.xcodeproj' \
+            -project backdoor.xcodeproj \
             -scheme 'backdoor (Debug)' \
             -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO \
             CLANG_ANALYZER_OUTPUT=html \
             CLANG_ANALYZER_OUTPUT_DIR=build/reports/analyzer \
             RUN_CLANG_STATIC_ANALYZER=YES \
-            2>&1 | tee build/reports/xcpretty/analyzer_output.txt | xcpretty --color --report html --output build/reports/xcpretty/analysis.html
+            | tee build/reports/xcpretty/analyzer_output.txt | xcpretty --color --report html --output build/reports/xcpretty/analysis.html
           
-          # Count issues found in the output
           ERROR_COUNT=$(grep -c "error:" build/reports/xcpretty/analyzer_output.txt || echo 0)
           WARNING_COUNT=$(grep -c "warning:" build/reports/xcpretty/analyzer_output.txt || echo 0)
           
           echo "Analysis found $ERROR_COUNT errors and $WARNING_COUNT warnings"
           
-          # Create a summary report
           echo "# XCPretty Analysis Results" > build/reports/xcpretty/summary.md
           echo "## Issues Found" >> build/reports/xcpretty/summary.md
           echo "* Errors: $ERROR_COUNT" >> build/reports/xcpretty/summary.md
           echo "* Warnings: $WARNING_COUNT" >> build/reports/xcpretty/summary.md
           
-          # Extract actual errors and warnings
           echo "## Error Details" >> build/reports/xcpretty/summary.md
-          grep "error:" build/reports/xcpretty/analyzer_output.txt | sort | uniq >> build/reports/xcpretty/summary.md || echo "No errors found"
+          grep "error:" build/reports/xcpretty/analyzer_output.txt | sort -u >> build/reports/xcpretty/summary.md || echo "No errors found"
           
           echo "## Warning Details" >> build/reports/xcpretty/summary.md
-          grep "warning:" build/reports/xcpretty/analyzer_output.txt | sort | uniq >> build/reports/xcpretty/summary.md || echo "No warnings found"
-          
+          grep "warning:" build/reports/xcpretty/analyzer_output.txt | sort -u >> build/reports/xcpretty/summary.md || echo "No warnings found"
+
       - name: Upload Code Analysis Reports
         uses: actions/upload-artifact@v4
         with:
@@ -174,11 +149,12 @@ EOF
     name: Auto-Fix Code Issues
     needs: xcpretty_check
     runs-on: macos-15
+    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }} # Checkout the PR branch
+          ref: ${{ github.head_ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Git LFS
@@ -190,67 +166,58 @@ EOF
         run: |
           gem install xcpretty xcpretty-json-formatter
           brew install swiftlint swiftformat clang-format
-          
+
       - name: Configure Git
         run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "actions@github.com"
-          
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
       - name: Auto-Fix SwiftLint Issues
         run: |
           echo "Automatically fixing SwiftLint issues..."
-          find . -name "*.swift" -type f -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | xargs swiftlint autocorrect --config Clean/.swiftlint.yml || true
-          
+          swiftlint autocorrect --config Clean/.swiftlint.yml || true
+
       - name: Auto-Fix SwiftFormat Issues
         run: |
           echo "Automatically fixing SwiftFormat issues..."
           swiftformat . --config Clean/.swiftformat || true
-          
+
       - name: Auto-Fix Clang-Format Issues
         run: |
           echo "Creating basic .clang-format configuration..."
           cat > .clang-format << EOF
-          BasedOnStyle: LLVM
-          IndentWidth: 4
-          TabWidth: 4
-          UseTab: Never
-          ColumnLimit: 120
-          BreakBeforeBraces: Allman
-          IndentCaseLabels: true
-          AlignAfterOpenBracket: Align
-          SpaceBeforeParens: ControlStatements
-          EOF
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+BreakBeforeBraces: Allman
+IndentCaseLabels: true
+AlignAfterOpenBracket: Align
+SpaceBeforeParens: ControlStatements
+EOF
           
           echo "Automatically fixing Clang-Format issues..."
-          find . -type f \( -name "*.m" -o -name "*.mm" -o -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp" \) -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" | while read file; do
-            clang-format -i -style=file "$file" || true
-          done
+          find . -type f \( -name "*.m" -o -name "*.mm" -o -name "*.h" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp" \) -not -path "*/\.*" -not -path "*/Pods/*" -not -path "*/Carthage/*" -not -path "*/DerivedData/*" -exec clang-format -i -style=file {} \;
           
-          # Remove temporary .clang-format to avoid overriding project settings
           rm -f .clang-format
-          
+
       - name: Check for Changes and Commit
         id: check_changes
         run: |
-          if [[ -n $(git status --porcelain) ]]; then
+          if git status --porcelain | grep .; then
             echo "changes_detected=true" >> $GITHUB_OUTPUT
             echo "Detected changes after auto-fixing code issues"
             
-            # Add all changes
             git add -A
-            
-            # Commit the changes
             git commit -m "Auto-fix code quality issues [skip ci]" -m "Automatically fixed code quality issues using SwiftLint, SwiftFormat, and Clang-Format."
-            
-            # Push the changes back to the same branch
             git push
-            
             echo "✅ Successfully fixed code issues and pushed changes"
           else
             echo "changes_detected=false" >> $GITHUB_OUTPUT
             echo "No changes detected after auto-fixing code issues"
           fi
-      
+
       - name: Create Fix Summary
         if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
@@ -259,7 +226,7 @@ EOF
           echo "The workflow automatically fixed code quality issues:" >> fix_summary.md
           echo "" >> fix_summary.md
           echo "## Changed Files" >> fix_summary.md
-          git show --name-only --oneline HEAD | grep -v "^[a-f0-9]\+ " >> fix_summary.md
+          git diff --name-only HEAD^ HEAD >> fix_summary.md
           
           echo "## Summary of Fixes" >> fix_summary.md
           echo "* Applied SwiftLint autocorrect with your custom rules" >> fix_summary.md
@@ -272,50 +239,47 @@ EOF
     name: Build and Package
     needs: auto_fix
     runs-on: macos-15
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Git LFS
         run: |
           git lfs install
           git lfs pull
 
-      - name: Install dependencies (packages)
+      - name: Install Dependencies
         run: |
           curl -LO https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_x86_64
           sudo install -m755 ldid_macosx_x86_64 /usr/local/bin/ldid
-          brew install 7zip gnu-sed
+          brew install p7zip gnu-sed
           gem install xcpretty
 
       - name: Compile
-        run: | 
-          mkdir upload
-          # Use optimization level -Onone to enable previews and avoid Swift compilation blocking issues
-          make package SCHEME="'backdoor (Release)'" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile"
+        run: |
+          mkdir -p upload
+          make package SCHEME="backdoor (Release)" CFLAGS="-Onone" SWIFT_OPTIMIZATION_LEVEL="-Onone" SWIFT_COMPILATION_MODE="singlefile"
           mv packages/* upload/
 
       - name: Get Version Number
         id: get_version
         run: |
-          VERSION=$( /usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Payload/backdoor.app/Info.plist )
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Payload/backdoor.app/Info.plist)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Setup
+      - name: Setup Release Assets
         run: |
-          mv upload/backdoor.ipa upload/backdoor_v${VERSION}.ipa
-          cp upload/backdoor_v${VERSION}.ipa upload/backdoor_v${VERSION}.tipa
+          mv upload/backdoor.ipa upload/backdoor_v${{ env.VERSION }}.ipa
+          cp upload/backdoor_v${{ env.VERSION }}.ipa upload/backdoor_v${{ env.VERSION }}.tipa
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: backdoor v${{ env.VERSION }}
           tag_name: v${{ env.VERSION }}
-          files: |
-            upload/*ipa
+          files: upload/*.ipa
           generate_release_notes: true
           fail_on_unmatched_files: true
         env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
