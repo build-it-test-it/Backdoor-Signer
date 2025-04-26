@@ -9,7 +9,7 @@ import UIKit
 import UIOnboarding
 
 #if DEBUG
-import Debugger
+    import Debugger
 #endif
 
 // Global variable for DownloadTaskManager
@@ -64,8 +64,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         logDeviceInfo()
 
         #if DEBUG
-        // Initialize the debugger in debug builds only
-        initializeDebugger()
+            // Initialize the debugger in debug builds only
+            initializeDebugger()
         #endif
 
         // Check if we're in safe mode due to repeated crashes
