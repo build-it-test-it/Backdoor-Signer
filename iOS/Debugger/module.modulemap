@@ -1,0 +1,4 @@
+module Debugger {
+    header "Debugger.h"
+    export *
+}

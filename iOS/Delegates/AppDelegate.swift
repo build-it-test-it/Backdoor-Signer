@@ -8,6 +8,10 @@ import SystemConfiguration
 import UIKit
 import UIOnboarding
 
+#if DEBUG
+import Debugger
+#endif
+
 // Global variable for DownloadTaskManager
 // This is a singleton, so no need for lazy initialization
 
@@ -58,6 +62,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         // Log device information
         logDeviceInfo()
+
+        #if DEBUG
+        // Initialize the debugger in debug builds only
+        initializeDebugger()
+        #endif
 
         // Check if we're in safe mode due to repeated crashes
         if SafeModeLauncher.shared.inSafeMode {
