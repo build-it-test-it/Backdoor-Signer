@@ -1,0 +1,175 @@
+name: Build Debug with Debugger Enabled
+
+on:
+  workflow_dispatch:
+    inputs:
+      scheme:
+        description: 'Build scheme to use (Debug/Release)'
+        default: 'backdoor (Debug)'
+        required: true
+        type: choice
+        options:
+          - 'backdoor (Debug)'
+          - 'backdoor (Release)'
+      debug_flags:
+        description: 'Additional debug flags'
+        default: '-DDEBUG=1'
+        required: false
+        type: string
+      enable_debugger:
+        description: 'Enable the custom debugger'
+        default: true
+        required: true
+        type: boolean
+      enable_logging:
+        description: 'Enable enhanced logging'
+        default: true
+        required: true
+        type: boolean
+
+jobs:
+  build_debug:
+    name: Build Debug Version
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Dependencies
+        run: |
+          # Install ldid for iOS app signing
+          curl -LO https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_x86_64
+          sudo install -m755 ldid_macosx_x86_64 /usr/local/bin/ldid
+          
+          # Install other dependencies
+          brew install p7zip gnu-sed
+          
+          # Install xcpretty for nicer build output
+          gem install xcpretty
+          
+          # Create build directory 
+          mkdir -p build
+          
+          # Verify ldid installation
+          which ldid
+          ldid -v || echo "ldid version check not supported"
+
+      - name: Build with Debug Configuration
+        run: |
+          # Create upload directory
+          mkdir -p upload
+          
+          # Output environment information for debugging
+          echo "Xcode version:"
+          xcodebuild -version
+          
+          echo "Available schemes:"
+          xcodebuild -project backdoor.xcodeproj -list
+          
+          echo "=== Building Debug Version with Make ==="
+          # Prepare conditional flags based on inputs
+          DEBUGGER_FLAGS=""
+          if [[ "${{ github.event.inputs.enable_debugger }}" == "true" ]]; then
+            DEBUGGER_FLAGS="DEBUGGER_ENABLED=1 INCLUDE_DEBUGGER=1"
+            echo "Custom debugger has been enabled"
+          fi
+          
+          LOGGING_FLAGS=""
+          if [[ "${{ github.event.inputs.enable_logging }}" == "true" ]]; then
+            LOGGING_FLAGS="ENABLE_ENHANCED_LOGGING=1 VERBOSE_LOGGING=1"
+            echo "Enhanced logging has been enabled"
+          fi
+          
+          # Define Swift compilation conditions
+          SWIFT_CONDITIONS="DEBUG"
+          if [[ "${{ github.event.inputs.enable_debugger }}" == "true" ]]; then
+            SWIFT_CONDITIONS="$SWIFT_CONDITIONS DEBUGGER_ENABLED"
+          fi
+          
+          # Use make with debug scheme and flags - enhanced for debugger support
+          make package SCHEME="${{ github.event.inputs.scheme }}" \
+            CONFIGURATION="Debug" \
+            CFLAGS="${{ github.event.inputs.debug_flags }} -Onone" \
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS="$SWIFT_CONDITIONS" \
+            OTHER_SWIFT_FLAGS="${{ github.event.inputs.debug_flags }}" \
+            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
+            SWIFT_COMPILATION_MODE="singlefile" \
+            GCC_PREPROCESSOR_DEFINITIONS="DEBUG=1" \
+            GCC_OPTIMIZATION_LEVEL=0 \
+            COPY_PHASE_STRIP=NO \
+            ENABLE_TESTABILITY=YES \
+            $DEBUGGER_FLAGS \
+            $LOGGING_FLAGS | tee build_log.txt
+            
+          # Check if build was successful
+          if [ ! -d "packages" ] || [ -z "$(ls -A packages 2>/dev/null)" ]; then
+            echo "::error::Build failed - no package files were created"
+            echo "=== Build Log Tail ===" 
+            tail -n 50 build_log.txt
+            exit 1
+          fi
+          
+          # Move packages to upload directory
+          mv packages/* upload/ || { echo "::error::No build output to move"; exit 1; }
+          
+      - name: Verify Debug Flags
+        run: |
+          echo "Verifying debug information in the built app..."
+          
+          # IPAs are zip files, extract first to check the binary
+          mkdir -p extracted
+          unzip -q upload/*.ipa -d extracted
+          
+          # Find the main executable
+          APP_BINARY=$(find extracted/Payload -name "backdoor" -type f)
+          
+          if [ -z "$APP_BINARY" ]; then
+            echo "Main executable not found, using app bundle for checks"
+            APP_PATH=$(find extracted/Payload -name "*.app" -type d | head -1)
+          else
+            echo "Found main executable at $APP_BINARY"
+          fi
+          
+          # Check for DEBUG flag in the binary
+          if [ -n "$APP_BINARY" ]; then
+            echo "Checking for DEBUG symbols in binary..."
+            otool -l "$APP_BINARY" | grep -i debug || true
+            nm "$APP_BINARY" | grep -i debug || true
+          fi
+          
+          # Check for debugger Swift files
+          echo "Checking for Debugger Swift files..."
+          find extracted/Payload -name "*Debug*.swift" | sort
+          
+          # Check Info.plist for debug configuration
+          PLIST_PATH=$(find extracted/Payload -name "Info.plist" | head -1)
+          if [ -n "$PLIST_PATH" ]; then
+            echo "Checking Info.plist for debug configuration..."
+            plutil -p "$PLIST_PATH" | grep -i debug || true
+          fi
+          
+          # Rename the IPA to indicate debug build
+          mv upload/backdoor.ipa upload/backdoor-debug.ipa || true
+          if [ -f "upload/backdoor-ts.tipa" ]; then
+            mv upload/backdoor-ts.tipa upload/backdoor-debug.tipa
+          fi
+          
+          # Add details about debugger activation
+          echo -e "\n=== Debugger Information ===\n"
+          echo "The debugger is integrated and can be activated by:"
+          echo "1. The floating debugger button in the app UI"
+          echo "2. Triple tapping in empty areas of the app"
+          echo "3. Shake gesture on device"
+
+      - name: Upload Debug Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-build
+          path: |
+            upload/*.ipa
+            upload/*.tipa
+            build_log.txt
+          retention-days: 7
+          if-no-files-found: warn
