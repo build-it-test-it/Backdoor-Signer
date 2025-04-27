@@ -293,15 +293,14 @@ final class CoreDataManager {
                           userInfo: [NSLocalizedDescriptionKey: "App has no UUID even after attempted creation"])
         }
 
-        // Handle different UUID types (String or UUID)
+        // Handle different UUID formats to ensure we get a string representation
         let uuidString: String
-        if let uuidObj = uuid as? UUID {
-            uuidString = uuidObj.uuidString
-        } else if let stringUUID = uuid as? String {
-            uuidString = stringUUID
+        if uuid is UUID {
+            // If it's already a UUID object, get its string representation
+            uuidString = (uuid as! UUID).uuidString
         } else {
-            throw NSError(domain: "CoreDataManager", code: 1008,
-                          userInfo: [NSLocalizedDescriptionKey: "Invalid UUID type: \(type(of: uuid))"])
+            // Otherwise treat it as a string (the common case)
+            uuidString = String(describing: uuid)
         }
 
         let url = getuuidonly ? documentsDirectory.appendingPathComponent(uuidString)

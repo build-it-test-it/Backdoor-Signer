@@ -29,9 +29,10 @@ extension AILearningManager {
 
         // Trigger the learning process in background
         DispatchQueue.global(qos: .utility).async { [weak self] in
-            // Log the training result for proper use of return value
-            if let result = self?.trainNewModel() {
-                Debug.shared.log(message: "Deep learning model training completed: \(result)", type: .info)
+            // Need to unwrap self first since trainNewModel returns a non-optional value
+            if let strongSelf = self {
+                let result = strongSelf.trainNewModel()
+                Debug.shared.log(message: "Deep learning model training completed with success: \(result.success)", type: .info)
             }
         }
     }
