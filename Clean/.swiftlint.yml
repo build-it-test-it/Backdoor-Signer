@@ -151,9 +151,6 @@ opt_in_rules:
   - switch_case_alignment
   - syntactic_sugar
   - test_case_accessibility
-  - trailing_comma
-  - trailing_newline
-  - trailing_semicolon
   - unavailable_function
   - unneeded_break_in_switch
   - unneeded_override
