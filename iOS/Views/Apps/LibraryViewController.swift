@@ -866,6 +866,7 @@ private func handleResignApp(app: NSManagedObject, fullPath: URL, indexPath: Ind
     )
 }
 
+}
 // MARK: - Fetch Data Extension
 
 extension LibraryViewController {
