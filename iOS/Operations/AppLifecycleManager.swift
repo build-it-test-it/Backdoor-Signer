@@ -344,8 +344,10 @@ final class AppLifecycleManager {
     /// Prepares UI for restoration
     private func prepareUIForRestoration() {
         DispatchQueue.main.async {
-            // Ensure root view controller is ready
-            if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+            // Ensure root view controller is ready using iOS 15+ compatible approach
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let rootVC = window.rootViewController {
                 rootVC.view.isUserInteractionEnabled = true
 
                 // Apply theme
@@ -357,8 +359,10 @@ final class AppLifecycleManager {
     /// Completes UI restoration
     private func completeUIRestoration() {
         DispatchQueue.main.async {
-            // Find the root view controller
-            if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+            // Find the root view controller using iOS 15+ compatible approach
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let rootVC = window.rootViewController {
                 // Refresh the entire view hierarchy
                 self.refreshViewHierarchy(rootVC)
             }
@@ -408,11 +412,9 @@ final class AppLifecycleManager {
         viewController.view.setNeedsLayout()
         viewController.view.layoutIfNeeded()
 
-        // If the view controller supports refresh, refresh it
-        if let refreshable = viewController as? ViewControllerRefreshable {
-            // The cast always succeeds if viewController conforms to ViewControllerRefreshable
-            refreshable.refreshContent()
-        }
+        // Check if the view controller conforms to our refreshable protocol
+        // and call the refresh method directly if it does
+        (viewController as? ViewControllerRefreshable)?.refreshContent()
 
         // Recursively refresh child view controllers
         for child in viewController.children {

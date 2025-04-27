@@ -70,8 +70,8 @@ extension ModelServerIntegrationViewController {
 
     /// Safe wrapper for model uploads using proper async/await
     func uploadModelSafely(completion: @escaping (Bool, String) -> Void) {
-        performAsyncSafely { [weak self] in
-            // No need to unwrap self since it's not used in this method
+        performAsyncSafely {
+            // No capture of self needed as it's not used in this method
             let result = await AILearningManager.shared.uploadTrainedModelToServer()
 
             DispatchQueue.main.async {
