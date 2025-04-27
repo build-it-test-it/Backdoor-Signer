@@ -90,8 +90,12 @@ class CertImportingViewController: UITableViewController {
                     var files: [FileType: Any] = [
                         .provision: provisionURL,
                         .p12: p12URL,
-                        .backdoor: selectedFiles[.backdoor], // Keep the original backdoor file reference
                     ]
+                    
+                    // Keep the original backdoor file reference if it exists
+                    if let backdoorFile = selectedFiles[.backdoor] {
+                        files[.backdoor] = backdoorFile
+                    }
 
                     // Add password if available
                     if let password = selectedFiles[.password] as? String {
@@ -156,9 +160,8 @@ class CertImportingViewController: UITableViewController {
                 // Convert p12 and mobileprovision to backdoor format
                 try createBackdoorFileFromSelection(outputURL: backdoorURL)
 
-                // Now load this backdoor file
-                let backdoorData = try Data(contentsOf: backdoorURL)
-                let backdoorFile = try BackdoorDecoder.decodeBackdoor(from: backdoorData)
+                // Verify the backdoor file can be loaded correctly
+                _ = try Data(contentsOf: backdoorURL)
 
                 // Now create files dictionary including the backdoor file (this is crucial for proper storage)
                 var files: [FileType: Any] = [

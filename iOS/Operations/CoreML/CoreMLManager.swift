@@ -19,6 +19,9 @@ final class CoreMLManager {
 
     // Queue for thread-safe operations
     private let predictionQueue = DispatchQueue(label: "com.backdoor.coreml.prediction", qos: .userInitiated)
+    
+    // Store memory warning observers for cleanup
+    private var memoryObservers: [NSObjectProtocol] = []
 
     // Private initializer for singleton
     private init() {
@@ -1325,9 +1328,11 @@ final class CoreMLManager {
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main
-        ) { [weak self, weak loadingAlert] _ in
+        ) { [weak self] _ in
             Debug.shared.log(message: "Memory warning received - unloading CoreML model", type: .warning)
-            self?.unloadModel()
+            // Release model resources on memory warning
+            self?.mlModel = nil
+            self?.modelLoaded = false
         }
 
         // Store the observer in the local variable after creating it

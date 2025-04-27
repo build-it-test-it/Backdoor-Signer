@@ -414,7 +414,10 @@ class AILearningManager {
 
                 // Try to train an initial model with reduced requirements
                 DispatchQueue.global(qos: .background).async { [weak self] in
-                    self?.trainModelWithAllInteractions(minimumInteractions: 3)
+                    if let strongSelf = self {
+                        let trainResult = strongSelf.trainModelWithAllInteractions(minimumInteractions: 3)
+                        Debug.shared.log(message: "Initial model training result: \(trainResult)", type: .info)
+                    }
                 }
             }
         }

@@ -45,7 +45,7 @@ class ActivityIndicatorButton: UIButton {
     // MARK: - Properties
 
     private var normalBackgroundColor: UIColor {
-        return UIColor(hex: "#FF6482") ?? Preferences.appTintColor.uiColor
+        return UIColor(hex: "#FF6482")
     }
 
     // MARK: - Initialization

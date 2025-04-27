@@ -22,7 +22,7 @@ extension LibraryViewController {
         DispatchQueue(label: "AppImport").async {
             // 1. Extract the IPA file
             dl.extractCompressedBundle(packageURL: destinationURL.path) { [weak self] extractedBundlePath, error in
-                guard let self = self else {
+                guard self != nil else {
                     semaphore.signal()
                     return
                 }

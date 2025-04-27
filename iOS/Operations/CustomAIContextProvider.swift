@@ -60,7 +60,7 @@ class CustomAIContextProvider {
         context["preferences"] = [
             "tintColor": Preferences.appTintColor.uiColor.toHexString(),
             "interfaceStyle": Preferences.preferredInterfaceStyle,
-            "language": Preferences.preferredLanguageCode,
+            "language": Preferences.preferredLanguageCode ?? "en",
         ]
 
         // Add certificate information
@@ -116,7 +116,7 @@ class CustomAIContextProvider {
         if let certificates = context["certificates"] as? [String: Any],
            let count = certificates["count"] as? Int
         {
-            if !isEmpty {
+            if count > 0 {
                 summary += " You have \(count) certificate(s) available."
                 if let currentCert = certificates["currentCertificate"] as? String, currentCert != "None" {
                     summary += " Currently using '\(currentCert)'."

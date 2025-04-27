@@ -105,7 +105,7 @@ class SettingsViewController: FRSTableViewController {
                 case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ABOUT", arguments: "Backdoor"):
                     // About section gets brand color glow
                     cell.contentView.addLEDEffect(
-                        color: UIColor(hex: "#FF6482") ?? .systemPink,
+                        color: UIColor(hex: "#FF6482"),
                         intensity: 0.3,
                         spread: 10,
                         animated: true,
@@ -181,7 +181,7 @@ class SettingsViewController: FRSTableViewController {
             switch text {
             case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ABOUT", arguments: "Backdoor"):
                 cell.contentView.addLEDEffect(
-                    color: UIColor(hex: "#FF6482") ?? .systemPink,
+                    color: UIColor(hex: "#FF6482"),
                     intensity: 0.3,
                     spread: 10,
                     animated: true,
@@ -209,16 +209,11 @@ class SettingsViewController: FRSTableViewController {
 
     private func safeInitialize() throws {
         // Initialize settings with error handling
-        do {
-            initializeTableData()
-            setupNavigation()
+        initializeTableData()
+        setupNavigation()
 
-            // Mark as initialized only if everything succeeds
-            isInitialized = true
-        } catch {
-            isInitialized = false
-            throw error
-        }
+        // Mark as initialized only if everything succeeds
+        isInitialized = true
     }
 
     // Separate method for initialization to make error handling clearer
@@ -273,7 +268,7 @@ class SettingsViewController: FRSTableViewController {
 
     override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         // Safety check to prevent crashes
-        guard isInitialized, section < tableData.count, tableData[section] != nil else {
+        guard isInitialized, section < tableData.count else {
             return 0
         }
         return tableData[section].count
@@ -281,7 +276,7 @@ class SettingsViewController: FRSTableViewController {
 
     override func numberOfSections(in _: UITableView) -> Int {
         // Safety check to prevent crashes
-        guard isInitialized, tableData != nil else {
+        guard isInitialized else {
             return 0
         }
         return tableData.count

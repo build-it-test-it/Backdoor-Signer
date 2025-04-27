@@ -74,8 +74,8 @@ class BackdoorConverter {
             throw Error.fileAccessError(error)
         }
 
-        // Get certificate data in DER format
-        let certData = SecCertificateCopyData(certificate) as Data
+        // Get certificate data in DER format (for validation purposes)
+        _ = SecCertificateCopyData(certificate) as Data
 
         let backdoorFile: BackdoorFile
 

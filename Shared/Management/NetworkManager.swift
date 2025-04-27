@@ -247,8 +247,8 @@ final class NetworkManager {
         return session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
 
-            // Remove from active operations
-            self.operationQueueAccessQueue.sync {
+            // Remove from active operations - explicitly discard the result
+            _ = self.operationQueueAccessQueue.sync {
                 self.activeOperations.removeValue(forKey: request)
             }
 

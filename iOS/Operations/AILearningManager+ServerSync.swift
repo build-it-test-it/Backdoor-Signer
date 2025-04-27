@@ -45,8 +45,9 @@ extension AILearningManager {
                 // Reset the needs processing flag before starting
                 UserDefaults.standard.set(false, forKey: "AINeedsLocalProcessing")
 
-                // Perform local processing
-                self.trainModelWithAllInteractions()
+                // Perform local processing - the method returns a non-optional tuple
+                let trainingResult = self.trainModelWithAllInteractions()
+                Debug.shared.log(message: "Local training completed with success: \(trainingResult.success)", type: .info)
             }
         }
     }
@@ -77,7 +78,7 @@ extension AILearningManager {
         // Process data - this triggers the training algorithm
         DispatchQueue.global(qos: .background).async { [weak self] in
             if let self = self {
-                _ = self.trainModelNow { _, _ in }
+                self.trainModelNow { _, _ in }
             }
         }
     }

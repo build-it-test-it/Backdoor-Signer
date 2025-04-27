@@ -281,9 +281,8 @@ extension PopupViewController {
                         presentationController.invalidateDetents()
                     } else {
                         // Fall back for iOS 15
-                        if let sheet = presentationController as? UISheetPresentationController {
-                            sheet.detents = [.medium(), .large()]
-                        }
+                        // No need to check again, we already know it's UISheetPresentationController
+                        presentationController.detents = [.medium(), .large()]
                     }
                 }
 
@@ -302,9 +301,7 @@ extension PopupViewController {
                 presentationController.invalidateDetents()
             } else {
                 // Fall back for iOS 15
-                if let sheet = presentationController as? UISheetPresentationController {
-                    sheet.detents = [.medium(), .large()]
-                }
+                presentationController.detents = [.medium(), .large()]
             }
 
             // Ensure buttons are still correctly displayed

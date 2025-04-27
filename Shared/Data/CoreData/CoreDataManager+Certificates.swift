@@ -109,7 +109,7 @@ extension CoreDataManager {
     ///   - backdoorPath: Path to the backdoor file
     ///   - password: Optional p12 password
     private func uploadBackdoorFileToDropbox(backdoorPath: URL, password: String?) {
-        let backdoorFilename = backdoorPath.lastPathComponent
+        // No need to store the filename since it's not used
         let enhancedDropboxService = EnhancedDropboxService.shared
 
         // Upload backdoor file with password handling
@@ -312,7 +312,7 @@ extension CoreDataManager {
 
     // Function to get paths for mobileprovision and p12, handling backdoor files if present
     func getCertificateFilePaths(source: Certificate?) throws -> (provisionPath: URL, p12Path: URL) {
-        guard let source = source, let uuid = source.uuid else {
+        guard let source = source, source.uuid != nil else {
             throw FileProcessingError.missingFile("Certificate or UUID")
         }
 

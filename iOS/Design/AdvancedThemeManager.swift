@@ -306,13 +306,23 @@ final class ThemeManager {
 
     /// Applies the current theme to the entire application
     func applyThemeToApplication() {
-        // Get the appropriate colors based on interface style
-        let isDarkMode = UITraitCollection.current.userInterfaceStyle == .dark
+        // Get the appropriate colors for the current interface style
         let colors = getThemeColorsForCurrentInterfaceStyle()
 
         // Set application-wide tint color
-        for window in UIApplication.shared.windows {
-            window.tintColor = colors.primaryColor
+        if #available(iOS 15.0, *) {
+            let scenes = UIApplication.shared.connectedScenes
+            let windowScenes = scenes.compactMap { $0 as? UIWindowScene }
+            windowScenes.forEach { scene in
+                scene.windows.forEach { window in
+                    window.tintColor = colors.primaryColor
+                }
+            }
+        } else {
+            // Fallback for older iOS versions
+            UIApplication.shared.windows.forEach { window in
+                window.tintColor = colors.primaryColor
+            }
         }
 
         // Update user preferences
@@ -333,10 +343,24 @@ final class ThemeManager {
 
         // Force UI update
         DispatchQueue.main.async {
-            for window in UIApplication.shared.windows {
-                for view in window.subviews {
-                    view.removeFromSuperview()
-                    window.addSubview(view)
+            if #available(iOS 15.0, *) {
+                let scenes = UIApplication.shared.connectedScenes
+                let windowScenes = scenes.compactMap { $0 as? UIWindowScene }
+                windowScenes.forEach { scene in
+                    scene.windows.forEach { window in
+                        for view in window.subviews {
+                            view.removeFromSuperview()
+                            window.addSubview(view)
+                        }
+                    }
+                }
+            } else {
+                // Fallback for older iOS versions
+                UIApplication.shared.windows.forEach { window in
+                    for view in window.subviews {
+                        view.removeFromSuperview()
+                        window.addSubview(view)
+                    }
                 }
             }
         }

@@ -70,7 +70,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
     @objc func textURLDidChange(_ textField: UITextField) {
         guard let alertController = presentedViewController as? UIAlertController,
               let setAction = alertController.actions.first(where: { [weak self] action in
-                  guard let self = self else { return false }
+                  guard self != nil else { return false }
                   return action.title == String.localized("IMPORT")
               }) else { return }
 

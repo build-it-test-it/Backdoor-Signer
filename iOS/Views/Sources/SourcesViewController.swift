@@ -77,7 +77,8 @@ extension SourcesViewController {
                     arguments: "\(sources.count)"
                 ),
                 buttonTitle: String.localized("SOURCES_VIEW_CONTROLLER_ADD_SOURCES"), buttonAction: {
-                    let transferPreview = RepoViewController(sources: self.sources)
+                    let transferPreview = RepoViewController()
+                    transferPreview.sources = self.sources
 
                     let hostingController = UIHostingController(rootView: transferPreview)
                     hostingController.modalPresentationStyle = .formSheet

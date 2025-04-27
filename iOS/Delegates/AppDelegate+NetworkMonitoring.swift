@@ -88,7 +88,7 @@ extension AppDelegate {
                     object: nil,
                     userInfo: [
                         "isConnected": isConnected,
-                        "connectionType": connectionTypeToString(connectionType),
+                        "connectionType": self.connectionTypeToString(connectionType),
                         "isOfflineSigningAvailable": offlineManager.isOfflineSigningEnabled,
                     ]
                 )

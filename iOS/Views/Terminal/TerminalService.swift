@@ -65,7 +65,7 @@ class TerminalService {
             return
         }
 
-        var request = URLRequest(url: url)
+        let request = URLRequest(url: url)
 
         logger.log(message: "Setting up WebSocket connection to \(url.absoluteString)", type: .info)
         webSocketTask = session.webSocketTask(with: request)
@@ -133,7 +133,7 @@ class TerminalService {
                     }
 
                 case "joined":
-                    if let sessionData = json["session"] as? [String: Any],
+                    if let _ = json["session"] as? [String: Any],
                        let joinedSessionId = json["session_id"] as? String
                     {
                         logger.log(message: "Joined session: \(joinedSessionId)", type: .info)
