@@ -19,6 +19,9 @@ final class CoreMLManager {
 
     // Queue for thread-safe operations
     private let predictionQueue = DispatchQueue(label: "com.backdoor.coreml.prediction", qos: .userInitiated)
+    
+    // Store memory warning observers for cleanup
+    private var memoryObservers: [NSObjectProtocol] = []
 
     // Private initializer for singleton
     private init() {

@@ -57,8 +57,6 @@ extension AppDelegate {
 
         // These operations are moved to background to avoid blocking app launch
         backgroundQueue.async { [weak self] in
-            guard let self = self else { return }
-
             // Store AI settings in local variables to avoid redundant checks
             let aiLearningEnabled = UserDefaults.standard.bool(forKey: "AILearningEnabled")
             let aiPromptShown = UserDefaults.standard.bool(forKey: "AIPromptShown")
@@ -67,21 +65,18 @@ extension AppDelegate {
             if aiLearningEnabled {
                 // Initialize AI in background thread with delay to ensure UI stability
                 DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 1.0) { [weak self] in
-                    guard let self = self else { return }
-                    self.initializeAILearning()
+                    self?.initializeAILearning()
                 }
             } else if !aiPromptShown {
                 // First time - ask for user consent
                 DispatchQueue.main.async { [weak self] in
-                    guard let self = self else { return }
-                    self.promptForAIInitializationSafely()
+                    self?.promptForAIInitializationSafely()
                 }
             }
 
             // Setup AI integration if enabled (but only after a delay)
             if aiLearningEnabled {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-                    guard let self = self else { return }
                     AppContextManager.shared.setupAIIntegration()
                 }
             }
@@ -106,8 +101,7 @@ extension AppDelegate {
         }
 
         // Post initialization complete notification after all phases
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [weak self] in
-            guard let self = self else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
             NotificationCenter.default.post(name: .appInitializationCompleted, object: nil)
             Debug.shared.log(message: "App initialization complete", type: .success)
         }

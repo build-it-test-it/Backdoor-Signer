@@ -98,23 +98,18 @@ extension AppDelegate {
             preferredStyle: .alert
         )
 
-        alert.addAction(UIAlertAction(title: "Restart Now", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: "Restart Now", style: .destructive) { _ in
             // Store the safe mode disabled state before restarting
             UserDefaults.standard.synchronize()
 
             // Use proper app termination technique with fallback options
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                do {
-                    // Try the primary method using URLSessionTask.suspend selector
-                    UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
+                // Try the primary method using URLSessionTask.suspend selector
+                UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
 
-                    // If we're still here after a second, try alternative exit methods
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        // Alternate method 1: exit(0)
-                        exit(0)
-                    }
-                } catch {
-                    Debug.shared.log(message: "Primary app termination failed, using fallback", type: .error)
+                // If we're still here after a second, try alternative exit methods
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    // Alternate method 1: exit(0)
                     exit(0)
                 }
             }
@@ -185,12 +180,9 @@ extension AppDelegate {
             // Skip floating button in safe mode
 
             // These operations are moved to background to avoid blocking app launch
-            // Using weak self to prevent potential memory leaks
-            appDelegate.backgroundQueue.async { [weak self] in
-                guard let self = self else { return }
-
+            appDelegate.backgroundQueue.async {
                 // Initialize only essential background tasks
-                self.setupCriticalBackgroundTasks()
+                appDelegate.setupCriticalBackgroundTasks()
             }
         } else {
             Debug.shared.log(message: "Failed to access AppDelegate instance", type: .error)
@@ -224,7 +216,7 @@ extension AppDelegate {
                 preferredStyle: .alert
             )
 
-            alert.addAction(UIAlertAction(title: "Enable", style: .default) { [weak self] _ in
+            alert.addAction(UIAlertAction(title: "Enable", style: .default) { _ in
                 // Save preference
                 UserDefaults.standard.set(true, forKey: "AILearningEnabled")
 

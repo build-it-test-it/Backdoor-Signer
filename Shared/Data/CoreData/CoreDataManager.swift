@@ -297,8 +297,8 @@ final class CoreDataManager {
         let uuidString: String
         if let uuidObj = uuid as? UUID {
             uuidString = uuidObj.uuidString
-        } else if uuid is String {
-            uuidString = uuid as! String
+        } else if let stringUUID = uuid as? String {
+            uuidString = stringUUID
         } else {
             throw NSError(domain: "CoreDataManager", code: 1008,
                           userInfo: [NSLocalizedDescriptionKey: "Invalid UUID type: \(type(of: uuid))"])

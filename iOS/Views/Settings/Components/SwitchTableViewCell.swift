@@ -44,7 +44,7 @@ class SwitchTableViewCell: UITableViewCell {
         accessoryView = switchControl
 
         // Set the accent color to match app theme
-        let accentColor = UIColor(hex: "#FF6482") ?? .systemPink
+        let accentColor = UIColor(hex: "#FF6482")
         switchControl.onTintColor = accentColor
     }
 
@@ -127,7 +127,7 @@ class SwitchTableViewCell: UITableViewCell {
 
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             // Update appearance for theme changes
-            switchControl.onTintColor = UIColor(hex: "#FF6482") ?? .systemPink
+            switchControl.onTintColor = UIColor(hex: "#FF6482")
         }
     }
 
