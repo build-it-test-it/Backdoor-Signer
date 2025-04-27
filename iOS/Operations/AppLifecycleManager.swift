@@ -371,9 +371,8 @@ final class AppLifecycleManager {
     private func saveTabState() {
         if let selectedTab = UserDefaults.standard.string(forKey: "selectedTab") {
             // Find the active view controller for this tab
-            if let rootVC = UIApplication.shared.windows.first?.rootViewController,
-               let topVC = UIApplication.shared.topMostViewController()
-            {
+            // Use UIScene-based approach for iOS 15+ compatibility
+            if let topVC = UIApplication.shared.topMostViewController() {
                 // Check if view controller supports state saving
                 if let stateSavable = topVC as? StateSavable {
                     let state = stateSavable.saveState()
@@ -389,15 +388,14 @@ final class AppLifecycleManager {
         // Check if we have saved state for this tab
         if let tabState = viewStates["\(tab)_viewState"] {
             // Find the active view controller for this tab
-            if let rootVC = UIApplication.shared.windows.first?.rootViewController {
-                // Post notification with the state to restore
-                NotificationCenter.default.post(
+            // No need to check for root view controller here, just post the notification
+            // Post notification with the state to restore
+            NotificationCenter.default.post(
                     name: .restoreTabState,
                     object: nil,
                     userInfo: ["tab": tab, "state": tabState]
                 )
                 Debug.shared.log(message: "Restored state for tab: \(tab)", type: .debug)
-            }
         }
     }
 
@@ -412,6 +410,7 @@ final class AppLifecycleManager {
 
         // If the view controller supports refresh, refresh it
         if let refreshable = viewController as? ViewControllerRefreshable {
+            // The cast always succeeds if viewController conforms to ViewControllerRefreshable
             refreshable.refreshContent()
         }
 

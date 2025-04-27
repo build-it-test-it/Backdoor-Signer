@@ -60,7 +60,7 @@ class CustomAIContextProvider {
         context["preferences"] = [
             "tintColor": Preferences.appTintColor.uiColor.toHexString(),
             "interfaceStyle": Preferences.preferredInterfaceStyle,
-            "language": Preferences.preferredLanguageCode,
+            "language": Preferences.preferredLanguageCode ?? "en",
         ]
 
         // Add certificate information

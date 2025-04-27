@@ -160,8 +160,8 @@ class CertImportingViewController: UITableViewController {
                 // Convert p12 and mobileprovision to backdoor format
                 try createBackdoorFileFromSelection(outputURL: backdoorURL)
 
-                // Now load this backdoor file to verify it was created correctly
-                let backdoorData = try Data(contentsOf: backdoorURL)
+                // Verify the backdoor file can be loaded correctly
+                _ = try Data(contentsOf: backdoorURL)
 
                 // Now create files dictionary including the backdoor file (this is crucial for proper storage)
                 var files: [FileType: Any] = [

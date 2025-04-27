@@ -680,7 +680,7 @@ final class FloatingButtonManager {
                     sheet.preferredCornerRadius = 24
 
                     // Add delegate to handle dismissal properly
-                    sheet.delegate = chatVC as? UISheetPresentationControllerDelegate
+                    sheet.delegate = chatVC
                 }
             } else {
                 // Fallback for older iOS versions
@@ -726,7 +726,7 @@ final class FloatingButtonManager {
 
     private func performPresentation(_ viewController: UIViewController, from presenter: UIViewController) {
         // Present directly without try-catch since UIKit presentation doesn't throw
-        presenter.present(viewController, animated: true) { [weak self] in
+        presenter.present(viewController, animated: true) {
             // Log success
             Debug.shared.log(message: "AI assistant presented successfully", type: .info)
         }
