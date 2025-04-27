@@ -1331,8 +1331,8 @@ final class CoreMLManager {
         ) { [weak self] _ in
             Debug.shared.log(message: "Memory warning received - unloading CoreML model", type: .warning)
             // Release model resources on memory warning
-            self?.model = nil
-            self?.isModelLoaded = false
+            self?.mlModel = nil
+            self?.modelLoaded = false
         }
 
         // Store the observer in the local variable after creating it

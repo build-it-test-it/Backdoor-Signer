@@ -416,7 +416,7 @@ class AILearningManager {
                 DispatchQueue.global(qos: .background).async { [weak self] in
                     if let strongSelf = self {
                         let trainResult = strongSelf.trainModelWithAllInteractions(minimumInteractions: 3)
-                        Debug.shared.log(message: "Initial model training success: \(trainResult.success)", type: .info)
+                        Debug.shared.log(message: "Initial model training result: \(trainResult)", type: .info)
                     }
                 }
             }

@@ -293,13 +293,16 @@ final class CoreDataManager {
                           userInfo: [NSLocalizedDescriptionKey: "App has no UUID even after attempted creation"])
         }
 
-        // Handle different UUID formats to ensure we get a string representation
+        // Get string representation of the UUID
         let uuidString: String
-        if uuid is UUID {
-            // If it's already a UUID object, get its string representation
-            uuidString = (uuid as! UUID).uuidString
+        if let uuidObject = uuid as? NSObject, String(describing: uuidObject).contains("UUID") {
+            // This is likely a UUID object from Core Data
+            uuidString = String(describing: uuid)
+        } else if let stringValue = uuid as? String {
+            // It's already a string
+            uuidString = stringValue
         } else {
-            // Otherwise treat it as a string (the common case)
+            // Fallback - just convert to string
             uuidString = String(describing: uuid)
         }
 
