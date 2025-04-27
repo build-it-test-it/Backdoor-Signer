@@ -298,22 +298,28 @@ class LibraryViewController: UITableViewController {
                                 section: Int,
                                 getuuidonly: Bool = false) -> URL?
     {
-        do {
-            if section == 0, let apps = signedApps, row < apps.count {
-                let signedApp = apps[row]
+        if section == 0, let apps = signedApps, row < apps.count {
+            let signedApp = apps[row]
+            do {
                 return try CoreDataManager.shared.getFilesForSignedApps(
                     for: signedApp,
                     getuuidonly: getuuidonly
                 )
-            } else if let apps = downloadedApps, row < apps.count {
-                let downloadedApp = apps[row]
+            } catch {
+                backdoor.Debug.shared.log(message: "Error getting file path: \(error)", type: LogType.error)
+                return nil
+            }
+        } else if let apps = downloadedApps, row < apps.count {
+            let downloadedApp = apps[row]
+            do {
                 return try CoreDataManager.shared.getFilesForDownloadedApps(
                     for: downloadedApp,
                     getuuidonly: getuuidonly
                 )
+            } catch {
+                backdoor.Debug.shared.log(message: "Error getting file path: \(error)", type: LogType.error)
+                return nil
             }
-        } catch {
-            backdoor.Debug.shared.log(message: "Error getting file path: \(error)", type: LogType.error)
         }
         return nil
     }
@@ -732,8 +738,8 @@ extension LibraryViewController {
     // This method is kept for compatibility with existing code
     @available(*, deprecated, message: "Use startSigning(app:) instead")
     func startSigning(meow: NSManagedObject) {
-        // Call the method with the original parameter name to match caller expectations
-        startSigning(meow: meow)
+        // Call the new method with the renamed parameter to avoid recursion
+        startSigning(app: meow)
     }
 
     override func tableView(

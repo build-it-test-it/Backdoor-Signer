@@ -15,6 +15,13 @@ struct TransferPreview: View {
     @State private var showShareSheet = false
     @State private var shareURL: URL?
 
+    init(installer: Installer, appPath: String, appName: String, isSharing: Bool = false) {
+        _installer = StateObject(wrappedValue: installer)
+        _appPath = State(initialValue: appPath)
+        _appName = State(initialValue: appName)
+        _isSharing = State(initialValue: isSharing)
+    }
+
     var icon: String {
         if packaging {
             return "archivebox.fill"

@@ -725,18 +725,14 @@ final class FloatingButtonManager {
     }
 
     private func performPresentation(_ viewController: UIViewController, from presenter: UIViewController) {
-        // Add a try-catch for presentation failures
-        do {
-            presenter.present(viewController, animated: true) { [weak self] in
-                // Log success
-                Debug.shared.log(message: "AI assistant presented successfully", type: .info)
-            }
-        } catch {
-            // If presentation fails for any reason, reset state
-            Debug.shared.log(message: "Failed to present AI assistant: \(error.localizedDescription)", type: .error)
-            isPresentingChat = false
-            show()
+        // Present directly without try-catch since UIKit presentation doesn't throw
+        presenter.present(viewController, animated: true) { [weak self] in
+            // Log success
+            Debug.shared.log(message: "AI assistant presented successfully", type: .info)
         }
+        
+        // Handle presentation failure through the completion handler if needed
+        // This is more reliable than a try-catch that will never be executed
     }
 
     private func showErrorAlert(message: String, on viewController: UIViewController) {
