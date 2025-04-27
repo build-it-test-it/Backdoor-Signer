@@ -126,12 +126,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 }
 
                 // Inform current tab view controller about app active state
-                if let tabController = rootViewController as? UIHostingController<TabbarView>,
-                   let topVC = UIApplication.shared.topMostViewController(),
-                   let refreshable = topVC as? ViewControllerRefreshable
+                if rootViewController is UIHostingController<TabbarView>,
+                   let topVC = UIApplication.shared.topMostViewController()
                 {
-                    // Give the view controller a chance to refresh its content
-                    refreshable.refreshContent()
+                    // Give the view controller a chance to refresh its content if it supports it
+                    (topVC as? ViewControllerRefreshable)?.refreshContent()
                 }
             }
 
@@ -195,9 +194,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
         // Schedule background refresh operation in a separate queue with lower priority
         // to avoid competing with UI restoration
-        backgroundQueue.async { [weak self] in
-            guard let self = self else { return }
-
+        backgroundQueue.async {
+            // Create and configure background operation queue
             let backgroundQueue = OperationQueue()
             backgroundQueue.qualityOfService = .utility
             backgroundQueue.maxConcurrentOperationCount = 1 // Limit concurrent operations
@@ -321,10 +319,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             refreshViewHierarchy(presentedVC)
         }
 
-        // Let the view controller refresh its content if it supports it
-        if let refreshable = viewController as? ViewControllerRefreshable {
-            refreshable.refreshContent()
-        }
+        // Refresh content if the view controller supports the refreshable protocol
+        (viewController as? ViewControllerRefreshable)?.refreshContent()
     }
 
     // MARK: - Startup Screen Management

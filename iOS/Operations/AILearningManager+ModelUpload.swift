@@ -7,8 +7,8 @@ extension AILearningManager {
     func performDeepPersonalLearning() {
         Debug.shared.log(message: "Starting deep personal learning process", type: .info)
 
-        // Get the latest model URL
-        guard let modelURL = getLatestModelURL() else {
+        // Check if we have a trained model without storing the URL
+        if getLatestModelURL() == nil {
             Debug.shared.log(message: "No trained model found for enhancement", type: .error)
             return
         }
@@ -29,7 +29,10 @@ extension AILearningManager {
 
         // Trigger the learning process in background
         DispatchQueue.global(qos: .utility).async { [weak self] in
-            self?.trainNewModel()
+            // Log the training result for proper use of return value
+            if let result = self?.trainNewModel() {
+                Debug.shared.log(message: "Deep learning model training completed: \(result)", type: .info)
+            }
         }
     }
 

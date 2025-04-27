@@ -76,7 +76,7 @@ extension AppDelegate {
 
             // Setup AI integration if enabled (but only after a delay)
             if aiLearningEnabled {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     AppContextManager.shared.setupAIIntegration()
                 }
             }

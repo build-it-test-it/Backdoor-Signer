@@ -1328,7 +1328,7 @@ final class CoreMLManager {
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main
-        ) { [weak self, weak loadingAlert] _ in
+        ) { [weak self] _ in
             Debug.shared.log(message: "Memory warning received - unloading CoreML model", type: .warning)
             self?.unloadModel()
         }

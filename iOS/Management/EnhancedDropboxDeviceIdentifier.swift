@@ -290,7 +290,7 @@ extension FileManager {
     /// - Returns: Size in bytes
     func allocatedSizeOfDirectory(at directoryURL: URL) throws -> Int64 {
         let resourceKeys: Set<URLResourceKey> = [.isRegularFileKey, .fileAllocatedSizeKey, .totalFileAllocatedSizeKey]
-        var enumerator = self.enumerator(
+        let enumerator = self.enumerator(
             at: directoryURL,
             includingPropertiesForKeys: Array(resourceKeys),
             options: [],

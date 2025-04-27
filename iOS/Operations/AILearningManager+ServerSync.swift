@@ -45,8 +45,10 @@ extension AILearningManager {
                 // Reset the needs processing flag before starting
                 UserDefaults.standard.set(false, forKey: "AINeedsLocalProcessing")
 
-                // Perform local processing
-                self.trainModelWithAllInteractions()
+                // Perform local processing and log the result
+                if let trainingResult = self.trainModelWithAllInteractions() {
+                    Debug.shared.log(message: "Local training completed with result: \(trainingResult)", type: .info)
+                }
             }
         }
     }

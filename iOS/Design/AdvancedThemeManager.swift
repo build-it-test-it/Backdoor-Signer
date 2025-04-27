@@ -306,8 +306,7 @@ final class ThemeManager {
 
     /// Applies the current theme to the entire application
     func applyThemeToApplication() {
-        // Get the appropriate colors based on interface style
-        let isDarkMode = UITraitCollection.current.userInterfaceStyle == .dark
+        // Get the appropriate colors for the current interface style
         let colors = getThemeColorsForCurrentInterfaceStyle()
 
         // Set application-wide tint color
