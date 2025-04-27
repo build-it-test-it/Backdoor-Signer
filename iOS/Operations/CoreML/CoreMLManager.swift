@@ -422,8 +422,8 @@ final class CoreMLManager {
         // First create an observer variable
         var memoryObserverLocal: NSObjectProtocol?
 
-        // Set up memory pressure observer
-        memoryObserverLocal = NotificationCenter.default.addObserver(
+        // Set up memory pressure observer - create the observer first
+        let memoryObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main
@@ -446,7 +446,8 @@ final class CoreMLManager {
             completion?(false)
         }
 
-        let memoryObserver = memoryObserverLocal!
+        // Store the observer in the local variable after creating it
+        memoryObserverLocal = memoryObserver
 
         // Perform actual loading in background
         predictionQueue.async { [weak self] in
@@ -1113,7 +1114,7 @@ final class CoreMLManager {
         case "sign_app", "signing":
             // Extract app name
             let appNameMatches = text.extractMatch(
-                pattern: "(?i)sign\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?.,]+)",
+                pattern: "(?i)sign\\s+(?:the\\s+)?app\\s+(?:called|named)\\s+\"?([^\".,?!]+)\"?",
                 groupIndex: 1
             )
             if let appName = appNameMatches {
@@ -1123,7 +1124,7 @@ final class CoreMLManager {
         case "navigate", "navigation":
             // Extract destination
             let destinationMatches = text.extractMatch(
-                pattern: "(?i)(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?([^?.,]+?)\\s+(?:tab|screen|page|section)",
+                pattern: "(?i)(?:go\\s+to|navigate\\s+to|open|show)\\s+(?:the\\s+)?([^\".,?!]+?)\\s+(?:tab|screen|page|section)",
                 groupIndex: 1
             )
             if let destination = destinationMatches {
@@ -1133,7 +1134,7 @@ final class CoreMLManager {
         case "add_source", "source":
             // Extract URL
             let urlMatches = text.extractMatch(
-                pattern: "(?i)add\\s+(?:a\\s+)?(?:new\\s+)?source\\s+(?:with\\s+url\\s+|at\\s+|from\\s+)?([^?.,\\s]+)",
+                pattern: "(?i)add\\s+(?:a\\s+)?(?:new\\s+)?source\\s+(?:with\\s+url\\s+|at\\s+|from\\s+)?([^\".,:;?!]+)",
                 groupIndex: 1
             )
             if let url = urlMatches {
@@ -1143,7 +1144,7 @@ final class CoreMLManager {
         case "install_app", "install":
             // Extract app name
             let appNameMatches = text.extractMatch(
-                pattern: "(?i)install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^?.,]+)",
+                pattern: "(?i)install\\s+(?:the\\s+)?app\\s+(?:called\\s+|named\\s+)?([^\".,?!]+)",
                 groupIndex: 1
             )
             if let appName = appNameMatches {
@@ -1153,7 +1154,7 @@ final class CoreMLManager {
         case "question", "query":
             // Extract question topic
             let topicMatches = text.extractMatch(
-                pattern: "(?i)(?:about|regarding|related\\s+to)\\s+([^?.,]+)",
+                pattern: "(?i)(?:about|regarding|related\\s+to)\\s+([^\".,?!]+)",
                 groupIndex: 1
             )
             if let topic = topicMatches {
@@ -1311,6 +1312,30 @@ final class CoreMLManager {
                     completion(.failure(.predictionFailed(error)))
                 }
             }
+        }
+    }
+
+    /// Set up memory pressure monitoring
+    private func setupMemoryPressureMonitoring() {
+        // Create a local copy of the observer to avoid mutation after capture
+        var memoryObserverLocal: NSObjectProtocol?
+
+        // Create the observer before the closure to avoid capturing it in the closure
+        let memoryObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self, weak loadingAlert] _ in
+            Debug.shared.log(message: "Memory warning received - unloading CoreML model", type: .warning)
+            self?.unloadModel()
+        }
+
+        // Store the observer in the local variable after creating it
+        memoryObserverLocal = memoryObserver
+
+        // Store the observer in the class property for later cleanup
+        if let observer = memoryObserverLocal {
+            memoryObservers.append(observer)
         }
     }
 }

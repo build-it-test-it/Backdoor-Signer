@@ -356,6 +356,10 @@ class HomeViewController: UIViewController, UISearchResultsUpdating, UIDocumentP
     }
 
     /// Initiates the file import process
+    @objc func importFile() {
+        fileHandlers.importFile(viewController: self)
+    }
+
     @objc func performFileImport() {
         fileHandlers.importFile(viewController: self)
     }

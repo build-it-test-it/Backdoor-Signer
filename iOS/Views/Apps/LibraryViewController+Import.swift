@@ -321,7 +321,7 @@ extension LibraryViewController {
             }
 
             let hostingController = UIHostingController(rootView: transferPreview)
-            hostingController.modalPresentationStyle = .pageSheet
+            hostingController.modalPresentationStyle = UIModalPresentationStyle.pageSheet
 
             if let presentationController = hostingController.presentationController as? UISheetPresentationController {
                 let detent = UISheetPresentationController.Detent._detent(

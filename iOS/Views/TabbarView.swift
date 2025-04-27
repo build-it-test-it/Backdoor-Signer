@@ -100,15 +100,32 @@ struct TabbarView: View {
         ) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 // Apply flowing LED effect to all tab bars
-                UIApplication.shared.windows.compactMap { $0.rootViewController as? UITabBarController }
-                    .forEach { tabController in
-                        tabController.tabBar.addFlowingLEDEffect(
-                            color: UIColor(hex: "#FF6482") ?? .systemPink,
-                            intensity: 0.5,
-                            width: 2,
-                            speed: 5.0
-                        )
-                    }
+                if #available(iOS 15.0, *) {
+                    // Use UIWindowScene.windows on iOS 15+
+                    UIApplication.shared.connectedScenes
+                        .compactMap { $0 as? UIWindowScene }
+                        .flatMap { $0.windows }
+                        .compactMap { $0.rootViewController as? UITabBarController }
+                        .forEach { tabController in
+                            tabController.tabBar.addFlowingLEDEffect(
+                                color: UIColor(hex: "#FF6482"),
+                                intensity: 0.5,
+                                width: 2,
+                                speed: 5.0
+                            )
+                        }
+                } else {
+                    // Use deprecated windows property on older iOS versions
+                    UIApplication.shared.windows.compactMap { $0.rootViewController as? UITabBarController }
+                        .forEach { tabController in
+                            tabController.tabBar.addFlowingLEDEffect(
+                                color: UIColor(hex: "#FF6482"),
+                                intensity: 0.5,
+                                width: 2,
+                                speed: 5.0
+                            )
+                        }
+                }
             }
         }
 
