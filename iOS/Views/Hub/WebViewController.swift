@@ -1,6 +1,6 @@
 import SafariServices
 import UIKit
-import WebKit
+@preconcurrency import WebKit
 
 /// Enhanced WebViewController for BDG Hub with modern UI and features
 @preconcurrency class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
