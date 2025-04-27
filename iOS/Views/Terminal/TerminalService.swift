@@ -65,7 +65,7 @@ class TerminalService {
             return
         }
 
-        var request = URLRequest(url: url)
+        let request = URLRequest(url: url)
 
         logger.log(message: "Setting up WebSocket connection to \(url.absoluteString)", type: .info)
         webSocketTask = session.webSocketTask(with: request)

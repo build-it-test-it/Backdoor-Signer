@@ -20,7 +20,7 @@ struct RepoViewController: View {
     @State private var debounceWorkItem: DispatchWorkItem?
     @State private var isVerifying: Bool = false
     @State private var isSyncing: Bool = false
-    @State private var sources: [Source]?
+    @State var sources: [Source]?
 
     // MARK: - Computed Properties
 
