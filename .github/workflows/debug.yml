@@ -88,20 +88,47 @@ jobs:
             SWIFT_CONDITIONS="$SWIFT_CONDITIONS DEBUGGER_ENABLED"
           fi
           
-          # Use make with debug scheme and flags - enhanced for debugger support
-          make package SCHEME="${{ github.event.inputs.scheme }}" \
-            CONFIGURATION="Debug" \
+          # Bypass the Makefile scheme handling and run xcodebuild directly to avoid quoting issues
+          echo "Building directly with xcodebuild to avoid scheme name quoting issues"
+          
+          # Set up build flags
+          DEBUG_BUILD_FLAGS="SWIFT_ACTIVE_COMPILATION_CONDITIONS='$SWIFT_CONDITIONS' OTHER_SWIFT_FLAGS='${{ github.event.inputs.debug_flags }}' SWIFT_OPTIMIZATION_LEVEL='-Onone' SWIFT_COMPILATION_MODE='singlefile' GCC_PREPROCESSOR_DEFINITIONS='DEBUG=1' GCC_OPTIMIZATION_LEVEL=0 COPY_PHASE_STRIP=NO ENABLE_TESTABILITY=YES $DEBUGGER_FLAGS $LOGGING_FLAGS"
+          
+          # Create output directories
+          mkdir -p packages
+          rm -rf Payload
+          
+          # Build directly with xcodebuild
+          echo "Running xcodebuild with scheme '${{ github.event.inputs.scheme }}'"
+          set -o pipefail && xcodebuild \
+            -jobs $(sysctl -n hw.ncpu) \
+            -project 'backdoor.xcodeproj' \
+            -scheme "${{ github.event.inputs.scheme }}" \
+            -configuration Debug \
+            -arch arm64 -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO \
             CFLAGS="${{ github.event.inputs.debug_flags }} -Onone" \
-            SWIFT_ACTIVE_COMPILATION_CONDITIONS="$SWIFT_CONDITIONS" \
-            OTHER_SWIFT_FLAGS="${{ github.event.inputs.debug_flags }}" \
-            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
-            SWIFT_COMPILATION_MODE="singlefile" \
-            GCC_PREPROCESSOR_DEFINITIONS="DEBUG=1" \
-            GCC_OPTIMIZATION_LEVEL=0 \
-            COPY_PHASE_STRIP=NO \
-            ENABLE_TESTABILITY=YES \
-            $DEBUGGER_FLAGS \
-            $LOGGING_FLAGS | tee build_log.txt
+            $DEBUG_BUILD_FLAGS | tee build_log.txt | xcpretty
+            
+          # Find the built app
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "backdoor.app" -type d | head -n 1)
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "Searching for app in alternate locations..."
+            APP_PATH=$(find . -name "backdoor.app" -type d | head -n 1)
+          fi
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Could not find built app"
+            exit 1
+          fi
+          
+          echo "Found app at: $APP_PATH"
+          
+          # Package the app
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r9 packages/backdoor.ipa Payload | tee -a build_log.txt
             
           # Check if build was successful
           if [ ! -d "packages" ] || [ -z "$(ls -A packages 2>/dev/null)" ]; then
