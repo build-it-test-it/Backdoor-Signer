@@ -841,7 +841,7 @@ class WebSearchManager {
     /// Extract the main content from HTML
     private func extractMainContent(from html: String) -> String {
         // Remove scripts, styles, and headers
-        var cleanedHtml = html
+        let cleanedHtml = html
             .replacingOccurrences(of: "<script[^>]*>.*?</script>", with: "", options: .regularExpression)
             .replacingOccurrences(of: "<style[^>]*>.*?</style>", with: "", options: .regularExpression)
             .replacingOccurrences(of: "<header[^>]*>.*?</header>", with: "", options: .regularExpression)

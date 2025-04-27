@@ -300,15 +300,11 @@ class LibraryViewController: UITableViewController {
     {
         if section == 0, let apps = signedApps, row < apps.count {
             let signedApp = apps[row]
-            do {
-                return try CoreDataManager.shared.getFilesForSignedApps(
-                    for: signedApp,
-                    getuuidonly: getuuidonly
-                )
-            } catch {
-                backdoor.Debug.shared.log(message: "Error getting file path: \(error)", type: LogType.error)
-                return nil
-            }
+            // Use non-throwing version directly since the method doesn't actually throw
+            return CoreDataManager.shared.getFilesForSignedApps(
+                for: signedApp,
+                getuuidonly: getuuidonly
+            )
         } else if let apps = downloadedApps, row < apps.count {
             let downloadedApp = apps[row]
             do {
@@ -529,12 +525,9 @@ extension LibraryViewController {
         clearButton.onTap = { [weak self] in
             guard let self = self else { return }
             self.popupVC.dismiss(animated: true)
-            do {
-                try CoreDataManager.shared.clearUpdateStateCompat(for: signedApp)
-                self.tableView.reloadRows(at: [indexPath], with: .none)
-            } catch {
-                backdoor.Debug.shared.log(message: "Error clearing update state: \(error)", type: LogType.error)
-            }
+            // Direct call since method doesn't actually throw
+            CoreDataManager.shared.clearUpdateStateCompat(for: signedApp)
+            self.tableView.reloadRows(at: [indexPath], with: .none)
         }
 
         popupVC.configureButtons([updateButton, clearButton])

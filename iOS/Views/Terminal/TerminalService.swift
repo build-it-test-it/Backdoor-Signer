@@ -133,7 +133,7 @@ class TerminalService {
                     }
 
                 case "joined":
-                    if let sessionData = json["session"] as? [String: Any],
+                    if let _ = json["session"] as? [String: Any],
                        let joinedSessionId = json["session_id"] as? String
                     {
                         logger.log(message: "Joined session: \(joinedSessionId)", type: .info)
