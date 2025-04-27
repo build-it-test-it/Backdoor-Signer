@@ -730,7 +730,7 @@ final class FloatingButtonManager {
             // Log success
             Debug.shared.log(message: "AI assistant presented successfully", type: .info)
         }
-        
+
         // Handle presentation failure through the completion handler if needed
         // This is more reliable than a try-catch that will never be executed
     }

@@ -445,7 +445,7 @@ final class CoreMLManager {
             self?.isModelLoading = false
             completion?(false)
         }
-        
+
         // Store the observer in the local variable after creating it
         memoryObserverLocal = memoryObserver
 
@@ -1319,7 +1319,7 @@ final class CoreMLManager {
     private func setupMemoryPressureMonitoring() {
         // Create a local copy of the observer to avoid mutation after capture
         var memoryObserverLocal: NSObjectProtocol?
-        
+
         // Create the observer before the closure to avoid capturing it in the closure
         let memoryObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
@@ -1329,10 +1329,10 @@ final class CoreMLManager {
             Debug.shared.log(message: "Memory warning received - unloading CoreML model", type: .warning)
             self?.unloadModel()
         }
-        
+
         // Store the observer in the local variable after creating it
         memoryObserverLocal = memoryObserver
-        
+
         // Store the observer in the class property for later cleanup
         if let observer = memoryObserverLocal {
             memoryObservers.append(observer)
