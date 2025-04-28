@@ -343,7 +343,7 @@ final class TerminalButtonManager {
         
         // Check if current position is valid
         let currentCenter = floatingButton.center
-        let viewBounds = parentVC.view.bounds
+        let _ = parentVC.view.bounds
         let buttonSize = floatingButton.frame.size
         
         // Add margin for better accessibility
