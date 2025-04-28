@@ -25,11 +25,11 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             stateQueue.sync { _isProcessingMessage = newValue }
 
             // Update UI based on processing state
-            DispatchQueue.main.async(execute: { [weak self] in
+            DispatchQueue.main.async { [weak self] in
                 if let self = self {
                     self.updateProcessingState(isProcessing: newValue)
                 }
-            })
+            }
         }
     }
 
@@ -273,7 +273,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             welcomeLabel.topAnchor.constraint(equalTo: animationView.bottomAnchor, constant: 16),
             welcomeLabel.centerXAnchor.constraint(equalTo: emptyView.centerXAnchor),
             welcomeLabel.leadingAnchor.constraint(equalTo: emptyView.leadingAnchor, constant: 30),
-            welcomeLabel.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -30),
+            welcomeLabel.trailingAnchor.constraint(equalTo: emptyView.trailingAnchor, constant: -30)
         ])
 
         // Add to table view
@@ -784,7 +784,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
     /// Handle timeout of message processing (e.g., when app is backgrounded for too long)
     private func handleMessageProcessingTimeout() {
-        DispatchQueue.main.async(execute: { [weak self] in
+        DispatchQueue.main.async { [weak self] in
             guard let self = self, self.isProcessingMessage else { return }
 
             // Reset UI state
@@ -806,7 +806,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             } catch {
                 Debug.shared.log(message: "Failed to add timeout message: \(error)", type: .error)
             }
-        })
+        }
     }
 
     // MARK: - Command Processing
@@ -821,7 +821,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             // Use weak self to prevent retain cycles
             AppContextManager.shared.executeCommand(command, parameter: parameter) { [weak self] commandResult in
                 // Ensure UI updates happen on main thread
-                DispatchQueue.main.async(execute: {
+                DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
 
                     let systemMessageContent: String
@@ -845,7 +845,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     } catch {
                         Debug.shared.log(message: "Failed to add system message: \(error)", type: .error)
                     }
-                })
+                }
             }
         }
     }
