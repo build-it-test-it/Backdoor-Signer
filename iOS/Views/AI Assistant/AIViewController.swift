@@ -153,6 +153,7 @@ class AIViewController: UIViewController {
     
     private func loadRecentSessions() {
         // Load recent chat sessions from CoreData
+        // Fetch up to 20 recent sessions
         recentSessions = CoreDataManager.shared.fetchRecentChatSessions(limit: 20)
         
         DispatchQueue.main.async { [weak self] in
