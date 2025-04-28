@@ -28,6 +28,7 @@ struct TabbarView: View {
         case home
         case sources
         case library
+        case ai
         case settings
         case bdgHub
 
@@ -38,6 +39,7 @@ struct TabbarView: View {
             case .home: return String.localized("TAB_HOME")
             case .sources: return String.localized("TAB_SOURCES")
             case .library: return String.localized("TAB_LIBRARY")
+            case .ai: return "AI Assistant"
             case .settings: return String.localized("TAB_SETTINGS")
             case .bdgHub: return "BDG HUB"
             }
@@ -53,6 +55,7 @@ struct TabbarView: View {
                     return "books.vertical.fill"
                 }
             case .library: return "square.grid.2x2.fill"
+            case .ai: return "bubble.left.and.bubble.right.fill"
             case .settings: return "gearshape.2.fill"
             case .bdgHub: return "sparkles" // More modern icon for BDG Hub
             }
@@ -64,6 +67,7 @@ struct TabbarView: View {
             case .home: return Color.blue
             case .sources: return Color.purple
             case .library: return Color.orange
+            case .ai: return Color(UIColor(hex: "#FF6482")) // Pink accent for AI tab
             case .settings: return Color.gray
             case .bdgHub: return Color(UIColor(hex: "#FF6482")) // Pink accent for BDG Hub
             }
@@ -73,6 +77,7 @@ struct TabbarView: View {
         var selectedIconName: String? {
             switch self {
             case .bdgHub: return "sparkles.rectangle.stack.fill"
+            case .ai: return "bubble.left.and.bubble.right.fill"
             default: return nil
             }
         }
@@ -301,6 +306,15 @@ struct TabbarView: View {
         case .library:
             createTab(
                 viewController: LibraryViewController.self,
+                title: tab.displayName,
+                imageName: tab.iconName,
+                selectedImageName: tab.selectedIconName,
+                color: tab.accentColor,
+                isSelected: selectedTab == tab
+            )
+        case .ai:
+            createTab(
+                viewController: AIViewController.self,
                 title: tab.displayName,
                 imageName: tab.iconName,
                 selectedImageName: tab.selectedIconName,
