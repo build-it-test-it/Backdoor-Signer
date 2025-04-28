@@ -291,8 +291,10 @@ public final class DebuggerEngine {
     // MARK: - Private Methods
 
     private func setupExceptionHandling() {
-        // Set up exception handling with a static function to avoid capturing self
-        NSSetUncaughtExceptionHandler(DebuggerEngine.handleUncaughtException)
+        // Set up exception handling with a closure that calls our static method
+        NSSetUncaughtExceptionHandler({ exception in
+            DebuggerEngine.handleUncaughtException(exception)
+        })
     }
     
     // Static exception handler that doesn't capture self
