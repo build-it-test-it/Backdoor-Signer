@@ -325,5 +325,3 @@ import UIKit
             return true
         }
     }
-
-#endif // DEBUG
