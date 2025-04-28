@@ -376,5 +376,3 @@ import UIKit
         var gpuUsage: Double = 15.0
         var energyImpact: Double = 3.0
     }
-
-#endif // DEBUG
