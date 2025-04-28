@@ -7,7 +7,7 @@ class AIViewController: UIViewController {
     
     private let welcomeLabel = UILabel()
     private let startChatButton = UIButton(type: .system)
-    private let recentChatsTableView = UITableView(style: .insetGrouped)
+    private let recentChatsTableView = UITableView(frame: .zero, style: .insetGrouped)
     private let emptyStateView = UIView()
     
     // MARK: - Data
@@ -103,8 +103,8 @@ class AIViewController: UIViewController {
         recentChatsTableView.dataSource = self
         recentChatsTableView.delegate = self
         recentChatsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "ChatSessionCell")
-        recentChatsTableView.backgroundColor = .systemGroupedBackground
-        recentChatsTableView.separatorStyle = .singleLine
+        recentChatsTableView.backgroundColor = UIColor.systemGroupedBackground
+        recentChatsTableView.separatorStyle = UITableViewCell.SeparatorStyle.singleLine
         recentChatsTableView.tableFooterView = UIView()
     }
     
@@ -375,7 +375,7 @@ extension AIViewController: UITableViewDelegate {
 // MARK: - View Controller Refreshable
 
 extension AIViewController: ViewControllerRefreshable {
-    func refreshContent() {
+    override func refreshContent() {
         // Reload data when tab is selected
         loadRecentSessions()
     }
