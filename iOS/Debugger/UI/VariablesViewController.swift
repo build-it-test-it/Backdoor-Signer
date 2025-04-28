@@ -1,6 +1,5 @@
 import UIKit
 
-#if DEBUG
 
     /// View controller for the variables tab in the debugger
     class VariablesViewController: UIViewController {
