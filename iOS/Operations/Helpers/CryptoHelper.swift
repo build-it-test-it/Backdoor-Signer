@@ -131,7 +131,9 @@ class CryptoHelper {
         data.forEach { byte in
             var c = checksum ^ UInt32(byte)
             for _ in 0..<8 {
-                c = (c >> 1) ^ (0xEDB88320 & (-(c & 1)))
+                // Fix type conversion issues by explicitly casting to UInt32
+                let mask: UInt32 = (c & 1 == 0) ? 0 : 0xEDB88320
+                c = (c >> 1) ^ mask
             }
             checksum = c
         }
