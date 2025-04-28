@@ -93,6 +93,21 @@ final class FloatingButtonManager {
     func showAIAssistant() {
         handleAIRequest()
     }
+    
+    /// Show the floating button - wrapper for showAIAssistant
+    func show() {
+        showAIAssistant()
+    }
+    
+    /// Hide the floating button
+    func hide() {
+        // Reset state if currently presenting
+        if isPresentingChat {
+            isPresentingChat = false
+        }
+        
+        Debug.shared.log(message: "Floating button hidden", type: .debug)
+    }
 
     // MARK: - AI Request Handling
 
