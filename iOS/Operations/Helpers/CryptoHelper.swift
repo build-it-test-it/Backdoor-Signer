@@ -67,6 +67,76 @@ class CryptoHelper {
             return nil
         }
     }
-
-    // ... rest of the file remains unchanged ...
+    
+    // MARK: - Helper Methods
+    
+    /// Derive a key from a password using PBKDF2
+    /// - Parameters:
+    ///   - password: The password to derive the key from
+    ///   - salt: Salt for the key derivation
+    ///   - keyLength: Length of the key to generate in bytes
+    /// - Returns: The derived key as Data
+    func deriveKeyData(from password: String, salt: String, keyLength: Int) -> Data? {
+        guard let passwordData = password.data(using: .utf8),
+              let saltData = salt.data(using: .utf8) else {
+            return nil
+        }
+        
+        var derivedKeyData = Data(count: keyLength)
+        
+        let derivationStatus = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes in
+            passwordData.withUnsafeBytes { passwordBytes in
+                saltData.withUnsafeBytes { saltBytes in
+                    CCKeyDerivationPBKDF(
+                        CCPBKDFAlgorithm(kCCPBKDF2),
+                        passwordBytes.baseAddress, passwordData.count,
+                        saltBytes.baseAddress, saltData.count,
+                        CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256),
+                        10000,
+                        derivedKeyBytes.baseAddress, keyLength
+                    )
+                }
+            }
+        }
+        
+        return derivationStatus == kCCSuccess ? derivedKeyData : nil
+    }
+    
+    /// Generate random bytes for cryptographic operations
+    /// - Parameter length: Number of random bytes to generate
+    /// - Returns: Data containing random bytes
+    func generateRandomBytes(length: Int) -> Data {
+        var randomBytes = [UInt8](repeating: 0, count: length)
+        let status = SecRandomCopyBytes(kSecRandomDefault, length, &randomBytes)
+        
+        if status == errSecSuccess {
+            return Data(randomBytes)
+        } else {
+            // Fallback to less secure but functional method if SecRandomCopyBytes fails
+            for i in 0..<length {
+                randomBytes[i] = UInt8.random(in: 0...255)
+            }
+            return Data(randomBytes)
+        }
+    }
+    
+    /// Calculate CRC32 checksum for data
+    /// - Parameter data: The data to calculate checksum for
+    /// - Returns: CRC32 checksum as UInt32
+    func crc32(of data: Data) -> UInt32 {
+        // Initialize with all bits set
+        var checksum: UInt32 = 0xFFFFFFFF
+        
+        // Process each byte
+        data.forEach { byte in
+            var c = checksum ^ UInt32(byte)
+            for _ in 0..<8 {
+                c = (c >> 1) ^ (0xEDB88320 & (-(c & 1)))
+            }
+            checksum = c
+        }
+        
+        // Return one's complement
+        return ~checksum
+    }
 }

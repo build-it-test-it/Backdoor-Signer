@@ -298,10 +298,10 @@ final class CoreDataManager {
         if let uuidObject = uuid {
             if String(describing: uuidObject).contains("UUID") {
                 // This is likely a UUID object from Core Data
-                uuidString = String(describing: uuid)
+                uuidString = String(describing: uuidObject)
             } else {
                 // It's already a string or another type
-                uuidString = String(describing: uuid)
+                uuidString = String(describing: uuidObject)
             }
         } else {
             // Fallback - empty string
