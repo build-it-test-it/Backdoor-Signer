@@ -20,7 +20,7 @@ class DebuggerViewController: UIViewController {
     private let logger = Debug.shared
 
     /// Tab bar controller for different debugger features
-    private let tabBarController = UITabBarController()
+    private var debugTabBarController = UITabBarController()
 
     /// View controllers for each tab
     private var viewControllers: [UIViewController] = []
@@ -121,11 +121,11 @@ class DebuggerViewController: UIViewController {
 
     private func setupTabBarController() {
         // Add tab bar controller as child view controller
-        addChild(tabBarController)
-        view.addSubview(tabBarController.view)
-        tabBarController.view.frame = view.bounds
-        tabBarController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        tabBarController.didMove(toParent: self)
+        addChild(debugTabBarController)
+        view.addSubview(debugTabBarController.view)
+        debugTabBarController.view.frame = view.bounds
+        debugTabBarController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        debugTabBarController.didMove(toParent: self)
 
         // Create view controllers for each tab
         let consoleVC = createConsoleViewController()
@@ -157,8 +157,8 @@ class DebuggerViewController: UIViewController {
             UINavigationController(rootViewController: performanceVC),
         ]
 
-        tabBarController.viewControllers = viewControllers
-        tabBarController.selectedIndex = 0
+        debugTabBarController.viewControllers = viewControllers
+        debugTabBarController.selectedIndex = 0
     }
 
     // MARK: - Tab View Controllers
@@ -222,7 +222,7 @@ extension DebuggerViewController: DebuggerEngineDelegate {
 
         // Switch to breakpoints tab
         DispatchQueue.main.async {
-            self.tabBarController.selectedIndex = 1
+            self.debugTabBarController.selectedIndex = 1
         }
     }
 
@@ -240,7 +240,7 @@ extension DebuggerViewController: DebuggerEngineDelegate {
 
         // Switch to console tab
         DispatchQueue.main.async {
-            self.tabBarController.selectedIndex = 0
+            self.debugTabBarController.selectedIndex = 0
         }
     }
 

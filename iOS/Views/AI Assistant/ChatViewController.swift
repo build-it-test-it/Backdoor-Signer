@@ -25,7 +25,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             stateQueue.sync { _isProcessingMessage = newValue }
 
             // Update UI based on processing state
-            DispatchQueue.main.async { [weak self] in
+            DispatchQueue.main.async(execute: { [weak self] in
                 if let self = self {
                     self.updateProcessingState(isProcessing: newValue)
                 }
@@ -158,7 +158,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         Debug.shared.log(message: "Chat view controller becoming active after background", type: .debug)
 
         // Refresh messages to ensure we're in sync with CoreData
-        DispatchQueue.main.async { [weak self] in
+        DispatchQueue.main.async(execute: { [weak self] in
             self?.loadMessages()
 
             // Re-enable UI if it was left in a processing state
@@ -677,7 +677,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             // Call AI service with proper error handling
             OpenAIService.shared.getAIResponse(messages: apiMessages, context: context) { [weak self] result in
                 // Ensure UI updates happen on main thread
-                DispatchQueue.main.async {
+                DispatchQueue.main.async(execute: {
                     guard let self = self else { return }
 
                     // Reset UI state
@@ -784,7 +784,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
     /// Handle timeout of message processing (e.g., when app is backgrounded for too long)
     private func handleMessageProcessingTimeout() {
-        DispatchQueue.main.async { [weak self] in
+        DispatchQueue.main.async(execute: { [weak self] in
             guard let self = self, self.isProcessingMessage else { return }
 
             // Reset UI state
@@ -821,7 +821,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             // Use weak self to prevent retain cycles
             AppContextManager.shared.executeCommand(command, parameter: parameter) { [weak self] commandResult in
                 // Ensure UI updates happen on main thread
-                DispatchQueue.main.async {
+                DispatchQueue.main.async(execute: {
                     guard let self = self else { return }
 
                     let systemMessageContent: String

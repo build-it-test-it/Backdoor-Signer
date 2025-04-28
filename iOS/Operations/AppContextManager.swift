@@ -108,7 +108,7 @@ final class AppContextManager {
     }
 
     /// Executes a command with the given parameter and returns the result via completion.
-    func executeCommand(_ command: String, parameter: String, completion: @escaping (CommandResult) -> Void) {
+    func executeCommand(_ command: String, parameter: String, completion: @escaping (AppCommandResult) -> Void) {
         commandQueue.sync {
             let commandKey = command.lowercased()
             if let handler = commandHandlers[commandKey] {
@@ -142,7 +142,7 @@ final class AppContextManager {
 }
 
 /// Result type for command execution.
-enum CommandResult {
+enum AppCommandResult {
     case successWithResult(String)
     case unknownCommand(String)
 }

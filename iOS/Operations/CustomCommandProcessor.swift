@@ -15,7 +15,7 @@ class CustomCommandProcessor {
     /// - Parameters:
     ///   - commandString: The full command string containing command and parameter
     ///   - completion: Callback with result information
-    func processCommand(_ commandString: String, completion: @escaping (CommandResult) -> Void) {
+    func processCommand(_ commandString: String, completion: @escaping (AppCommandResult) -> Void) {
         // Extract command and parameter
         let components = commandString.split(separator: ":", maxSplits: 1).map(String.init)
 
@@ -36,7 +36,7 @@ class CustomCommandProcessor {
     ///   - command: The command to execute
     ///   - parameter: The parameter for the command
     ///   - completion: Callback with result information
-    private func executeCommand(_ command: String, parameter: String, completion: @escaping (CommandResult) -> Void) {
+    private func executeCommand(_ command: String, parameter: String, completion: @escaping (AppCommandResult) -> Void) {
         // Log command execution
         Debug.shared.log(message: "Executing command: \(command) with parameter: \(parameter)", type: .info)
 
@@ -75,7 +75,7 @@ class CustomCommandProcessor {
 
     // MARK: - Command Implementations
 
-    private func signApp(named appName: String, completion: @escaping (CommandResult) -> Void) {
+    private func signApp(named appName: String, completion: @escaping (AppCommandResult) -> Void) {
         // Find app in downloaded apps
         let downloadedApps = CoreDataManager.shared.getDatedDownloadedApps()
         let matchingApps = downloadedApps.filter {
@@ -95,7 +95,7 @@ class CustomCommandProcessor {
         )
     }
 
-    private func installApp(named appName: String, completion: @escaping (CommandResult) -> Void) {
+    private func installApp(named appName: String, completion: @escaping (AppCommandResult) -> Void) {
         // Simulate app installation
         completion(
             .successWithResult(
@@ -104,7 +104,7 @@ class CustomCommandProcessor {
         )
     }
 
-    private func openApp(named appName: String, completion: @escaping (CommandResult) -> Void) {
+    private func openApp(named appName: String, completion: @escaping (AppCommandResult) -> Void) {
         // Find app in signed apps
         let signedApps = CoreDataManager.shared.getDatedSignedApps()
         let matchingApps = signedApps.filter {
@@ -124,7 +124,7 @@ class CustomCommandProcessor {
         )
     }
 
-    private func showHelp(topic: String, completion: @escaping (CommandResult) -> Void) {
+    private func showHelp(topic: String, completion: @escaping (AppCommandResult) -> Void) {
         var helpText = "Backdoor AI Assistant Help"
 
         if topic.isEmpty {
