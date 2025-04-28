@@ -1,23 +1,23 @@
 name: Build iOS App
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:  # This enables manual triggering
+    inputs:
+      build_mode:
+        description: 'Build configuration mode'
+        required: true
+        default: 'Debug'
+        type: choice
+        options:
+          - Debug
+          - Release
 
 jobs:
   build:
-    name: Build App in Debug Mode
+    name: Build App in ${{ inputs.build_mode }} Mode
     runs-on: macos-14
-    # Run for PRs or main branch pushes
-    if: |
-      github.event_name == 'pull_request' || 
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || '' }}
 
       - name: Install Git LFS
         run: |
@@ -59,7 +59,7 @@ jobs:
           fi
           ldid -v || echo "ldid version check not supported"
 
-      - name: Build in Debug Mode
+      - name: Build in ${{ inputs.build_mode }} Mode
         run: |
           # Check Xcode project format version
           if ! plutil -p backdoor.xcodeproj/project.pbxproj > /dev/null 2>&1; then
@@ -76,15 +76,19 @@ jobs:
             exit 1
           }
           
-          echo "=== Building in Debug Mode ==="
+          echo "=== Building in ${{ inputs.build_mode }} Mode ==="
           set -o pipefail
+          
+          # Create a directory for the build output
+          mkdir -p build
           
           xcodebuild \
             -jobs $(sysctl -n hw.ncpu) \
             -project 'backdoor.xcodeproj' \
-            -scheme 'backdoor (Debug)' \
-            -configuration Debug \
+            -scheme 'backdoor (${{ inputs.build_mode }})' \
+            -configuration ${{ inputs.build_mode }} \
             -arch arm64 -sdk iphoneos \
+            -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO | tee build_log.txt | xcpretty
           
           BUILD_RESULT=$?
@@ -98,3 +102,36 @@ jobs:
             fi
             exit 1
           fi
+
+      - name: Create IPA
+        run: |
+          APP_PATH=$(find build -name "*.app" -type d)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::Could not find .app file"
+            exit 1
+          fi
+          
+          # Create Payload directory and copy .app into it
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          
+          # Create IPA
+          zip -r "backdoor_${{ inputs.build_mode }}.ipa" Payload
+          
+          # Cleanup
+          rm -rf Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: backdoor-${{ inputs.build_mode }}-ipa
+          path: backdoor_${{ inputs.build_mode }}.ipa
+          retention-days: 5
+
+      - name: Upload Build Log
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: build-logs
+          path: build_log.txt
+          retention-days: 5
