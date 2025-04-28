@@ -422,10 +422,7 @@ final class CoreMLManager {
             }
         }
 
-        // First create an observer variable
-        var memoryObserverLocal: NSObjectProtocol?
-
-        // Set up memory pressure observer - create the observer first
+        // Store the observer in a local variable first
         let memoryObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
@@ -441,16 +438,14 @@ final class CoreMLManager {
             }
 
             // Remove the observer itself
-            if let observer = memoryObserverLocal {
-                NotificationCenter.default.removeObserver(observer)
-            }
+            NotificationCenter.default.removeObserver(memoryObserver)
 
             self?.isModelLoading = false
             completion?(false)
         }
 
-        // Store the observer in the local variable after creating it
-        memoryObserverLocal = memoryObserver
+        // Store the observer in the array for later cleanup
+        memoryObservers.append(memoryObserver)
 
         // Perform actual loading in background
         predictionQueue.async { [weak self] in
