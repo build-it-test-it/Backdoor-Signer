@@ -1,6 +1,5 @@
 import UIKit
 
-#if DEBUG
 
     /// View controller for the console tab in the debugger
     class ConsoleViewController: UIViewController {
