@@ -34,10 +34,13 @@ final class TerminalButtonManager {
         set { stateQueue.sync { _recoveryAttempts = newValue } }
     }
 
-    private let maxRecoveryAttempts = 3
+    private let maxRecoveryAttempts = 5 // Increased from 3 to 5 for better recovery
 
     // Monitor app state
     private var isAppActive = true
+    
+    // Position recovery timer
+    private var positionCheckTimer: Timer?
 
     // Logger
     private let logger = Debug.shared
@@ -54,6 +57,7 @@ final class TerminalButtonManager {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        positionCheckTimer?.invalidate()
         logger.log(message: "TerminalButtonManager deinit", type: .debug)
     }
 
@@ -61,6 +65,52 @@ final class TerminalButtonManager {
         // Ensure it's above other views but below AI button
         floatingButton.layer.zPosition = 998
         floatingButton.isUserInteractionEnabled = true
+        
+        // Start position check timer for continuous accessibility
+        startPositionCheckTimer()
+    }
+    
+    private func startPositionCheckTimer() {
+        // Invalidate existing timer if any
+        positionCheckTimer?.invalidate()
+        
+        // Create a new timer that periodically checks button position
+        positionCheckTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+            guard let self = self, self.isAppActive, !self.isPresentingTerminal else { return }
+            
+            // Check if button is still accessible
+            self.checkButtonAccessibility()
+        }
+    }
+    
+    private func checkButtonAccessibility() {
+        // Skip if button is hidden or not in a view
+        guard !floatingButton.isHidden, floatingButton.superview != nil else { return }
+        
+        // Check if button is visible on screen
+        if let parentVC = parentViewController, parentVC.view.window != nil {
+            // Get safe area
+            let safeArea = parentVC.view.safeAreaInsets
+            
+            // Check if button is outside safe area
+            let buttonFrame = floatingButton.frame
+            let viewBounds = parentVC.view.bounds
+            
+            // Add margin for better accessibility
+            let margin: CGFloat = 20
+            let accessibleBounds = viewBounds.inset(by: UIEdgeInsets(
+                top: safeArea.top + margin,
+                left: safeArea.left + margin,
+                bottom: safeArea.bottom + margin,
+                right: safeArea.right + margin
+            ))
+            
+            // If button is outside accessible bounds, reposition it
+            if !accessibleBounds.contains(buttonFrame) {
+                logger.log(message: "Terminal button outside accessible area, repositioning", type: .warning)
+                updateButtonPosition()
+            }
+        }
     }
 
     private func setupObservers() {
@@ -110,6 +160,47 @@ final class TerminalButtonManager {
             name: .tabDidChange,
             object: nil
         )
+        
+        // Listen for keyboard appearance
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboardWillShow),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboardWillHide),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func handleKeyboardWillShow(_ notification: Notification) {
+        guard !isPresentingTerminal, !floatingButton.isHidden, 
+              let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+              let parentVC = parentViewController else { return }
+        
+        // Convert keyboard frame to view coordinates
+        let keyboardFrameInView = parentVC.view.convert(keyboardFrame, from: nil)
+        
+        // Check if button overlaps with keyboard
+        if floatingButton.frame.intersects(keyboardFrameInView) {
+            // Move button above keyboard
+            let newY = keyboardFrameInView.minY - floatingButton.frame.height - 20
+            
+            UIView.animate(withDuration: 0.3) {
+                self.floatingButton.center.y = newY
+            }
+        }
+    }
+    
+    @objc private func handleKeyboardWillHide(_ notification: Notification) {
+        // Reset button position when keyboard hides
+        if !isPresentingTerminal && !floatingButton.isHidden {
+            updateButtonPosition()
+        }
     }
 
     @objc private func handleTabChange(_: Notification) {
@@ -140,6 +231,16 @@ final class TerminalButtonManager {
         // Find top view controller
         guard let rootVC = UIApplication.shared.topMostViewController() else {
             logger.log(message: "No root view controller found", type: .error)
+            
+            // Retry after delay with exponential backoff
+            let delay = min(pow(1.5, Double(recoveryAttempts)), 5.0)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                guard let self = self else { return }
+                if self.recoveryAttempts < self.maxRecoveryAttempts {
+                    self.recoveryAttempts += 1
+                    self.attachToRootView()
+                }
+            }
             return
         }
 
@@ -149,9 +250,14 @@ final class TerminalButtonManager {
         else {
             logger.log(message: "View controller in invalid state for button attachment", type: .warning)
 
-            // Retry after delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.attachToRootView()
+            // Retry after delay with exponential backoff
+            let delay = min(pow(1.5, Double(recoveryAttempts)), 5.0)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                guard let self = self else { return }
+                if self.recoveryAttempts < self.maxRecoveryAttempts {
+                    self.recoveryAttempts += 1
+                    self.attachToRootView()
+                }
             }
             return
         }
@@ -229,11 +335,33 @@ final class TerminalButtonManager {
 
         // Update position for current orientation
         let safeArea = parentVC.view.safeAreaInsets
+        
+        // Calculate accessible position that doesn't interfere with common UI elements
+        // Default to bottom right with margins
         let maxX = parentVC.view.bounds.width - 80 - safeArea.right
         let maxY = parentVC.view.bounds.height - 160 - safeArea.bottom
-
-        UIView.animate(withDuration: 0.3) {
-            self.floatingButton.center = CGPoint(x: maxX, y: maxY)
+        
+        // Check if current position is valid
+        let currentCenter = floatingButton.center
+        let viewBounds = parentVC.view.bounds
+        let buttonSize = floatingButton.frame.size
+        
+        // Add margin for better accessibility
+        let margin: CGFloat = 20
+        let minX = buttonSize.width/2 + safeArea.left + margin
+        let minY = buttonSize.height/2 + safeArea.top + margin
+        
+        // Only animate if position needs adjustment
+        if currentCenter.x < minX || currentCenter.x > maxX || 
+           currentCenter.y < minY || currentCenter.y > maxY {
+            
+            // Calculate new position
+            let newX = min(max(currentCenter.x, minX), maxX)
+            let newY = min(max(currentCenter.y, minY), maxY)
+            
+            UIView.animate(withDuration: 0.3) {
+                self.floatingButton.center = CGPoint(x: newX, y: newY)
+            }
         }
     }
 
@@ -247,11 +375,18 @@ final class TerminalButtonManager {
                 self.show()
             }
         }
+        
+        // Restart position check timer
+        startPositionCheckTimer()
     }
 
     @objc private func handleAppWillResignActive() {
         isAppActive = false
         hide()
+        
+        // Invalidate timer when app is inactive
+        positionCheckTimer?.invalidate()
+        positionCheckTimer = nil
     }
 
     @objc private func updateButtonAppearance() {

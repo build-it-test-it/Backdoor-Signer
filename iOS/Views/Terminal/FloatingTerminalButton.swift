@@ -6,6 +6,10 @@ class FloatingTerminalButton: UIButton {
     private let defaultPosition = CGPoint(x: 60, y: 500)
     private let cornerRadius: CGFloat = 25
     private let buttonSize: CGFloat = 50
+    
+    // Accessibility properties
+    private let accessibilityEdgeMargin: CGFloat = 20
+    private let minimumTouchArea: CGFloat = 60
 
     // Pan gesture for dragging the button
     private var panGesture: UIPanGestureRecognizer!
@@ -52,8 +56,26 @@ class FloatingTerminalButton: UIButton {
 
         // Add target action for tap
         addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        
+        // Configure accessibility
+        setupAccessibility()
 
         logger.log(message: "Floating terminal button initialized", type: .info)
+    }
+    
+    private func setupAccessibility() {
+        // Set accessibility traits
+        accessibilityTraits = .button
+        
+        // Set accessibility label and hint
+        accessibilityLabel = "Terminal"
+        accessibilityHint = "Double tap to open terminal. Drag to move button."
+        
+        // Make sure it's accessible
+        isAccessibilityElement = true
+        
+        // Increase hit area for better touch accessibility
+        contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
     }
 
     private func setupGestures() {
@@ -87,15 +109,33 @@ class FloatingTerminalButton: UIButton {
             gesture.setTranslation(.zero, in: superview)
 
         case .ended, .cancelled:
-            // Constrain to safe area
+            // Constrain to safe area with additional margin for accessibility
             let safeArea = superview.safeAreaInsets
-            let minX = buttonSize / 2 + safeArea.left
-            let maxX = superview.bounds.width - buttonSize / 2 - safeArea.right
-            let minY = buttonSize / 2 + safeArea.top
-            let maxY = superview.bounds.height - buttonSize / 2 - safeArea.bottom
-
-            let constrainedX = min(max(center.x, minX), maxX)
-            let constrainedY = min(max(center.y, minY), maxY)
+            let minX = buttonSize / 2 + safeArea.left + accessibilityEdgeMargin
+            let maxX = superview.bounds.width - buttonSize / 2 - safeArea.right - accessibilityEdgeMargin
+            let minY = buttonSize / 2 + safeArea.top + accessibilityEdgeMargin
+            let maxY = superview.bounds.height - buttonSize / 2 - safeArea.bottom - accessibilityEdgeMargin
+            
+            // Ensure button stays within accessible bounds
+            var constrainedX = min(max(center.x, minX), maxX)
+            var constrainedY = min(max(center.y, minY), maxY)
+            
+            // Snap to edge if close to it for better accessibility
+            let edgeSnapThreshold: CGFloat = 30
+            
+            // Snap to left or right edge if close
+            if constrainedX < minX + edgeSnapThreshold {
+                constrainedX = minX
+            } else if constrainedX > maxX - edgeSnapThreshold {
+                constrainedX = maxX
+            }
+            
+            // Snap to top or bottom edge if close
+            if constrainedY < minY + edgeSnapThreshold {
+                constrainedY = minY
+            } else if constrainedY > maxY - edgeSnapThreshold {
+                constrainedY = maxY
+            }
 
             // Animate to constrained position
             UIView.animate(withDuration: 0.3, animations: {
@@ -125,6 +165,40 @@ class FloatingTerminalButton: UIButton {
             center = CGPoint(x: x, y: y)
         } else {
             center = defaultPosition
+        }
+        
+        // Ensure position is valid after restoration
+        ensureAccessiblePosition()
+    }
+    
+    /// Ensures the button is in an accessible position within the screen bounds
+    private func ensureAccessiblePosition() {
+        guard let superview = superview else { return }
+        
+        // Get safe area
+        let safeArea = superview.safeAreaInsets
+        
+        // Calculate accessible bounds
+        let minX = buttonSize / 2 + safeArea.left + accessibilityEdgeMargin
+        let maxX = superview.bounds.width - buttonSize / 2 - safeArea.right - accessibilityEdgeMargin
+        let minY = buttonSize / 2 + safeArea.top + accessibilityEdgeMargin
+        let maxY = superview.bounds.height - buttonSize / 2 - safeArea.bottom - accessibilityEdgeMargin
+        
+        // Check if current position is outside bounds
+        let currentX = center.x
+        let currentY = center.y
+        
+        if currentX < minX || currentX > maxX || currentY < minY || currentY > maxY {
+            // Calculate new position within bounds
+            let newX = min(max(currentX, minX), maxX)
+            let newY = min(max(currentY, minY), maxY)
+            
+            // Animate to new position
+            UIView.animate(withDuration: 0.3) {
+                self.center = CGPoint(x: newX, y: newY)
+            } completion: { _ in
+                self.savePosition()
+            }
         }
     }
 
@@ -168,6 +242,23 @@ class FloatingTerminalButton: UIButton {
         // Update appearance when theme changes
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             updateAppearance()
+        }
+    }
+    
+    // Override point inside to increase touch area
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        // Expand touch area for better accessibility
+        let expandedBounds = bounds.insetBy(dx: -15, dy: -15)
+        return expandedBounds.contains(point)
+    }
+    
+    // Handle layout changes
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        // Ensure button is in accessible position after layout changes
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.ensureAccessiblePosition()
         }
     }
 }
