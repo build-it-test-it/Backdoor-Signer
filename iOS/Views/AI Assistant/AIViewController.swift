@@ -35,10 +35,10 @@ class AIViewController: UIViewController {
         loadRecentSessions()
     }
     
-    // MARK: - ViewControllerRefreshable
+    // MARK: - ViewControllerRefreshable Protocol Implementation
     
     override func refreshContent() {
-        // Reload data when tab is selected
+        // Reload data when tab is selected to refresh content
         loadRecentSessions()
     }
     
