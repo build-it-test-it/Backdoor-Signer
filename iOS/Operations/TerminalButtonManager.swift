@@ -94,11 +94,11 @@ final class TerminalButtonManager {
             
             // Check if button is outside safe area
             let buttonFrame = floatingButton.frame
-            let viewBounds = parentVC.view.bounds
+            let _ = parentVC.view.bounds
             
             // Add margin for better accessibility
             let margin: CGFloat = 20
-            let accessibleBounds = viewBounds.inset(by: UIEdgeInsets(
+            let accessibleBounds = parentVC.view.bounds.inset(by: UIEdgeInsets(
                 top: safeArea.top + margin,
                 left: safeArea.left + margin,
                 bottom: safeArea.bottom + margin,
