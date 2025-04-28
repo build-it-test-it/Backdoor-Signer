@@ -35,6 +35,13 @@ class AIViewController: UIViewController {
         loadRecentSessions()
     }
     
+    // MARK: - ViewControllerRefreshable
+    
+    override func refreshContent() {
+        // Reload data when tab is selected
+        loadRecentSessions()
+    }
+    
     // MARK: - UI Setup
     
     private func setupUI() {
@@ -363,10 +370,4 @@ extension AIViewController: UITableViewDelegate {
     }
 }
 
-// MARK: - View Controller Refreshable
 
-// Override refreshContent from ViewControllerRefreshable protocol
-override func refreshContent() {
-    // Reload data when tab is selected
-    loadRecentSessions()
-}
