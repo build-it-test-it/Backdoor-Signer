@@ -51,6 +51,21 @@ extension CoreDataManager {
             return []
         }
     }
+    
+    // Fetch recent chat sessions with limit
+    func fetchRecentChatSessions(limit: Int = 20) -> [ChatSession] {
+        let fetchRequest: NSFetchRequest<ChatSession> = ChatSession.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+        fetchRequest.fetchLimit = limit
+        
+        do {
+            let ctx = try context
+            return try ctx.fetch(fetchRequest)
+        } catch {
+            Debug.shared.log(message: "Failed to fetch recent chat sessions: \(error)", type: .error)
+            return []
+        }
+    }
 
     // Fetch specific chat session by ID
     func fetchChatSession(sessionID: String) -> ChatSession? {

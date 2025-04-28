@@ -39,4 +39,9 @@ public extension ChatSession {
     @objc var wrappedTitle: String {
         title ?? "Untitled Chat"
     }
+    
+    // Computed property for backward compatibility
+    @objc var createdAt: Date? {
+        return creationDate
+    }
 }
