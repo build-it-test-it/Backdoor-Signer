@@ -762,8 +762,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
     }
 
     private func setupMainUI() {
-        let tabBarController = UIHostingController(rootView: TabbarView())
+        // Create TabbarView with proper initialization
+        let tabBarView = TabbarView()
+        
+        // Create hosting controller with the view
+        let tabBarController = UIHostingController(rootView: tabBarView)
+        
+        // Set as root view controller
         window?.rootViewController = tabBarController
+        
+        // Log successful UI setup
+        Debug.shared.log(message: "Main UI setup completed successfully", type: .info)
     }
 
     private func logDeviceInfo() {

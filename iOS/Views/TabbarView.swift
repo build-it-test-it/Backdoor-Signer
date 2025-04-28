@@ -97,43 +97,6 @@ struct TabbarView: View {
         // Add subtle blur effect for a more modern look
         appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
 
-        // Set up observer to add LED effects after tab bar is ready
-        NotificationCenter.default.addObserver(
-            forName: UIApplication.didBecomeActiveNotification,
-            object: nil,
-            queue: .main
-        ) { _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Apply flowing LED effect to all tab bars
-                if #available(iOS 15.0, *) {
-                    // Use UIWindowScene.windows on iOS 15+
-                    UIApplication.shared.connectedScenes
-                        .compactMap { $0 as? UIWindowScene }
-                        .flatMap { $0.windows }
-                        .compactMap { $0.rootViewController as? UITabBarController }
-                        .forEach { tabController in
-                            tabController.tabBar.addFlowingLEDEffect(
-                                color: UIColor(hex: "#FF6482"),
-                                intensity: 0.5,
-                                width: 2,
-                                speed: 5.0
-                            )
-                        }
-                } else {
-                    // Use deprecated windows property on older iOS versions
-                    UIApplication.shared.windows.compactMap { $0.rootViewController as? UITabBarController }
-                        .forEach { tabController in
-                            tabController.tabBar.addFlowingLEDEffect(
-                                color: UIColor(hex: "#FF6482"),
-                                intensity: 0.5,
-                                width: 2,
-                                speed: 5.0
-                            )
-                        }
-                }
-            }
-        }
-
         // Configure selected item appearance
         let itemAppearance = UITabBarItemAppearance()
 
@@ -155,6 +118,9 @@ struct TabbarView: View {
         if #available(iOS 15.0, *) {
             UITabBar.appearance().scrollEdgeAppearance = appearance
         }
+        
+        // Set up observer to add LED effects after tab bar is ready - moved to onAppear for safety
+        // This prevents potential crashes during initialization
     }
 
     // Handle tab change notification from other parts of the app with enhanced animations
@@ -278,6 +244,47 @@ struct TabbarView: View {
                     message: "Enhanced TabbarView appeared with tab: \(selectedTab.rawValue)",
                     type: .debug
                 )
+            }
+            
+            // Set up LED effects after a delay to ensure tab bar is ready
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                // Apply flowing LED effect to all tab bars - safely
+                do {
+                    if #available(iOS 15.0, *) {
+                        // Use UIWindowScene.windows on iOS 15+
+                        UIApplication.shared.connectedScenes
+                            .compactMap { $0 as? UIWindowScene }
+                            .flatMap { $0.windows }
+                            .compactMap { $0.rootViewController as? UITabBarController }
+                            .forEach { tabController in
+                                // Check if the method exists before calling it
+                                if tabController.tabBar.responds(to: #selector(UITabBar.addFlowingLEDEffect)) {
+                                    tabController.tabBar.addFlowingLEDEffect(
+                                        color: UIColor(hex: "#FF6482"),
+                                        intensity: 0.3, // Reduced intensity
+                                        width: 2,
+                                        speed: 5.0
+                                    )
+                                }
+                            }
+                    } else {
+                        // Use deprecated windows property on older iOS versions
+                        UIApplication.shared.windows.compactMap { $0.rootViewController as? UITabBarController }
+                            .forEach { tabController in
+                                // Check if the method exists before calling it
+                                if tabController.tabBar.responds(to: #selector(UITabBar.addFlowingLEDEffect)) {
+                                    tabController.tabBar.addFlowingLEDEffect(
+                                        color: UIColor(hex: "#FF6482"),
+                                        intensity: 0.3, // Reduced intensity
+                                        width: 2,
+                                        speed: 5.0
+                                    )
+                                }
+                            }
+                    }
+                } catch {
+                    Debug.shared.log(message: "Error applying LED effect: \(error.localizedDescription)", type: .error)
+                }
             }
         }
     }

@@ -58,11 +58,32 @@ class SafeModeLauncher {
 
     /// Disable safe mode and reset launch attempts
     func disableSafeMode() {
+        // Reset all relevant UserDefaults to ensure a clean state
         UserDefaults.standard.set(false, forKey: safeModeFlagKey)
         UserDefaults.standard.set(0, forKey: launchAttemptsKey)
+        
+        // Reset the selected tab to home to avoid potential issues
+        UserDefaults.standard.set("home", forKey: "selectedTab")
+        
+        // Clear any cached data that might be causing issues
+        clearProblemCaches()
+        
         UserDefaults.standard.synchronize()
 
         print("🔄 Safe mode disabled, app will restart with full functionality")
+    }
+    
+    /// Clear caches that might be causing crashes
+    private func clearProblemCaches() {
+        // Clear image cache
+        try? FileManager.default.removeItem(at: FileManager.default.temporaryDirectory.appendingPathComponent("com.backdoor.imagecache"))
+        
+        // Reset any problematic flags
+        UserDefaults.standard.set(false, forKey: "isShowingStartupPopup")
+        UserDefaults.standard.set(false, forKey: "HasShownStartupPopup")
+        
+        // Reset any animation flags
+        UserDefaults.standard.set(false, forKey: "animateIcon")
     }
 
     /// Present a safe mode alert to inform the user
