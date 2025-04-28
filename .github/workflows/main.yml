@@ -1,6 +1,5 @@
 build:
     name: Build and Package
-    needs: auto_fix
     runs-on: macos-15
     # Run for both PRs and main branch pushes
     if: |
