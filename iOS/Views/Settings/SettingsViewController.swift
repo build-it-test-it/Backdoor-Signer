@@ -91,8 +91,8 @@ class SettingsViewController: FRSTableViewController {
         guard isViewLoaded && view.window != nil && isInitialized else { return }
         
         // Get visible cells to apply effects only to what the user can see
-        guard let visibleCells = tableView.visibleCells as? [UITableViewCell] else { return }
-
+        let visibleCells = tableView.visibleCells
+        
         for cell in visibleCells {
             // Apply LED effects based on cell content
             if let textLabel = cell.textLabel, let text = textLabel.text {
