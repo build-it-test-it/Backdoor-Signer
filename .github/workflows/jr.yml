@@ -1,39 +1,24 @@
-name: Ping Webhook Data Viewer
+name: Debug Build
 
-# Controls when the workflow will run
 on:
-  schedule:
-    # Runs every 2 minutes
-    - cron: '*/8 * * * *'
-  # Allows you to run this workflow manually from the Actions tab
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Allow manual trigger
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs
 jobs:
-  ping-site:
-    # The type of runner that the job will run on
+  build:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    
     steps:
-      # Checks out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # Sends a ping to the Webhook Data Viewer site
-      - name: Ping Webhook Endpoint
-        run: |
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d '{"sender": "github-action", "title": "Ping from GitHub Actions", "data": {"status": "active"}}' \
-            https://webhook-data-viewer.onrender.com/api/webhook
-
-      # (Optional) Verify the ping was successful
-      - name: Check Response
-        run: |
-          if [ $? -eq 0 ]; then
-            echo "Successfully pinged the webhook endpoint."
-          else
-            echo "Failed to ping the webhook endpoint."
-            exit 1
-          fi
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Make script executable
+      run: chmod +x ./build_debug.sh
+      
+    - name: Run debug build
+      run: ./build_debug.sh
