@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build App in Debug Mode
-    runs-on: macos-14  # Using the latest stable macOS runner
+    runs-on: macos-14
     # Run for PRs or main branch pushes
     if: |
       github.event_name == 'pull_request' || 
@@ -29,6 +29,20 @@ jobs:
             echo "Git LFS not configured, skipping."
           fi
 
+      - name: Select Xcode Version
+        run: |
+          # List available Xcode versions
+          sudo xcode-select -p
+          ls -la /Applications/Xcode*
+          
+          # Select the latest Xcode version available
+          LATEST_XCODE=$(ls -d /Applications/Xcode* | sort -V | tail -n 1)
+          echo "Latest Xcode path: $LATEST_XCODE"
+          sudo xcode-select --switch "$LATEST_XCODE"
+          
+          # Verify Xcode version
+          xcodebuild -version
+
       - name: Install Dependencies
         run: |
           # Install ldid (required for iOS app signing)
@@ -47,11 +61,20 @@ jobs:
 
       - name: Build in Debug Mode
         run: |
+          # Check Xcode project format version
+          if ! plutil -p backdoor.xcodeproj/project.pbxproj > /dev/null 2>&1; then
+            echo "::error::Unable to read project file format"
+            exit 1
+          fi
+          
           echo "Xcode version:"
           xcodebuild -version
           
           echo "Available schemes:"
-          xcodebuild -project backdoor.xcodeproj -list
+          xcodebuild -project backdoor.xcodeproj -list || {
+            echo "::error::Failed to list schemes. Project might be in an incompatible format."
+            exit 1
+          }
           
           echo "=== Building in Debug Mode ==="
           set -o pipefail
@@ -64,9 +87,14 @@ jobs:
             -arch arm64 -sdk iphoneos \
             CODE_SIGNING_ALLOWED=NO | tee build_log.txt | xcpretty
           
+          BUILD_RESULT=$?
+          
           # Check for build errors
-          if [ -f "build_log.txt" ] && grep -q "error:" build_log.txt; then
-            echo "::error::Build failed"
-            tail -n 50 build_log.txt
+          if [ $BUILD_RESULT -ne 0 ]; then
+            echo "::error::Build failed with exit code $BUILD_RESULT"
+            if [ -f "build_log.txt" ]; then
+              echo "Last 50 lines of build log:"
+              tail -n 50 build_log.txt
+            fi
             exit 1
           fi
