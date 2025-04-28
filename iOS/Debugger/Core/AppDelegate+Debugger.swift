@@ -1,6 +1,5 @@
 import UIKit
 
-#if DEBUG
 
     /// Extension to AppDelegate for initializing the debugger
     extension AppDelegate {
