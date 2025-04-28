@@ -1,13 +1,10 @@
 build:
-  name: Build and Package
-  needs: auto_fix
+  name: Build App in Debug Mode
   runs-on: macos-15
-  # Run for PRs or main branch pushes, but only if auto_fix succeeded
+  # Run for PRs or main branch pushes
   if: |
     github.event_name == 'pull_request' || 
     (github.event_name == 'push' && github.ref == 'refs/heads/main')
-  outputs:
-    build_has_errors: ${{ steps.set_status.outputs.build_has_errors }}
   steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -16,28 +13,22 @@ build:
 
     - name: Install Git LFS
       run: |
-        # Check if Git LFS is needed before installing
+        # Check if Git LFS is needed
         if git lfs env >/dev/null 2>&1; then
           git lfs install
           git lfs pull
         else
-          echo "Git LFS not configured in this repository, skipping."
+          echo "Git LFS not configured, skipping."
         fi
 
     - name: Install Dependencies
       run: |
-        # Install ldid
+        # Install ldid (required for iOS app signing)
         curl -LO https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_x86_64
         sudo install -m755 ldid_macosx_x86_64 /usr/local/bin/ldid
         
-        # Install other dependencies
-        brew install p7zip gnu-sed
-        
-        # Install xcpretty
+        # Install xcpretty for nicer build output
         gem install xcpretty
-        
-        # Create build directory
-        mkdir -p build
         
         # Verify ldid installation
         if ! command -v ldid >/dev/null 2>&1; then
@@ -46,118 +37,28 @@ build:
         fi
         ldid -v || echo "ldid version check not supported"
 
-    - name: Compile
+    - name: Build in Debug Mode
       run: |
-        # Create upload directory
-        mkdir -p upload
-        
-        # Output environment information
         echo "Xcode version:"
         xcodebuild -version
         
         echo "Available schemes:"
         xcodebuild -project backdoor.xcodeproj -list
         
-        echo "=== Building with xcodebuild ==="
+        echo "=== Building in Debug Mode ==="
         set -o pipefail
         
-        # Clean previous builds
-        xcodebuild clean -project backdoor.xcodeproj -scheme "backdoor (Release)" || echo "Clean failed, continuing..."
-        
-        # Simulate a break for PRs (for testing purposes)
-        if [ "${{ github.event_name }}" = "pull_request" ]; then
-          echo "::warning::Intentionally breaking build for PRs to test failure handling"
-          echo "Simulated build error" >&2
-          exit 1
-        fi
-        
-        # Build the project
-        mkdir -p packages
         xcodebuild \
           -jobs $(sysctl -n hw.ncpu) \
           -project 'backdoor.xcodeproj' \
-          -scheme 'backdoor (Release)' \
-          -configuration Release \
+          -scheme 'backdoor (Debug)' \
+          -configuration Debug \
           -arch arm64 -sdk iphoneos \
-          CODE_SIGNING_ALLOWED=NO \
-          CFLAGS="-Onone" \
-          SWIFT_OPTIMIZATION_LEVEL="-Onone" \
-          SWIFT_COMPILATION_MODE="singlefile" | tee build_log.txt | xcpretty
+          CODE_SIGNING_ALLOWED=NO | tee build_log.txt | xcpretty
         
-        # Create IPA
-        echo "Creating IPA package..."
-        mkdir -p Payload
-        APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "backdoor.app" -type d | head -n 1)
-        if [ -z "$APP_PATH" ]; then
-          APP_PATH=$(find . -name "backdoor.app" -type d | head -n 1)
-        fi
-        
-        if [ -z "$APP_PATH" ] || [ ! -d "$APP_PATH" ]; then
-          echo "::error::Failed to find backdoor.app bundle"
-          tail -n 50 build_log.txt
-          exit 1
-        fi
-        
-        cp -r "$APP_PATH" Payload/
-        zip -r9 packages/backdoor.ipa Payload
-        echo "Package created successfully"
-        
-        # Verify package
-        if [ ! -f "packages/backdoor.ipa" ]; then
-          echo "::error::IPA file not created"
-          tail -n 50 build_log.txt
-          exit 1
-        fi
-        
-        # Move packages to upload directory
-        mv packages/* upload/
-
-    - name: Set Build Status
-      id: set_status
-      run: |
+        # Check for build errors
         if [ -f "build_log.txt" ] && grep -q "error:" build_log.txt; then
-          echo "build_has_errors=true" >> $GITHUB_OUTPUT
-        else
-          echo "build_has_errors=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ipa-files
-        path: |
-          upload/*.ipa
-          build_log.txt
-        retention-days: 7
-        if-no-files-found: error
-
-    - name: Get Version Number
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      id: get_version
-      run: |
-        if [ ! -f "Payload/backdoor.app/Info.plist" ]; then
-          echo "::error::Info.plist not found"
+          echo "::error::Build failed"
+          tail -n 50 build_log.txt
           exit 1
         fi
-        VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Payload/backdoor.app/Info.plist)
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-    - name: Setup Release Assets
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: |
-        mv upload/backdoor.ipa upload/backdoor_v${{ env.VERSION }}.ipa
-        cp upload/backdoor_v${{ env.VERSION }}.ipa upload/backdoor_v${{ env.VERSION }}.tipa
-
-    - name: Create GitHub Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v2
-      with:
-        name: backdoor v${{ env.VERSION }}
-        tag_name: v${{ env.VERSION }}
-        files: |
-          upload/*.ipa
-          upload/*.tipa
-        generate_release_notes: true
-        fail_on_unmatched_files: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
