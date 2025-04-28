@@ -64,7 +64,7 @@ class PerformanceViewController: UIViewController {
     private var updateTimer: Timer?
 
     /// Performance metrics
-    private var metrics: PerformanceMetrics = .init()
+    private var metrics: PerformanceMetricsData = .init()
     
     // MARK: - Lifecycle
 
@@ -369,7 +369,7 @@ enum MetricType {
 }
 
 /// Performance metrics
-struct PerformanceMetrics {
+struct PerformanceMetricsData {
     var cpuUsage: Double = 25.0
     var memoryUsage: Double = 256.0
     var gpuUsage: Double = 15.0

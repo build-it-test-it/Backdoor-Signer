@@ -246,15 +246,6 @@ extension DebuggerManager: DebuggerViewControllerDelegate {
 // MARK: - UIApplication Extension
 
 extension UIApplication {
-    /// Get the top most view controller
-    func topMostViewController() -> UIViewController? {
-        guard let rootController = keyWindow?.rootViewController else {
-            return nil
-        }
-
-        return findTopViewController(rootController)
-    }
-
     private func findTopViewController(_ controller: UIViewController) -> UIViewController {
         if let presentedController = controller.presentedViewController {
             return findTopViewController(presentedController)
