@@ -784,7 +784,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
     /// Handle timeout of message processing (e.g., when app is backgrounded for too long)
     private func handleMessageProcessingTimeout() {
-        DispatchQueue.main.async { [weak self] in
+        DispatchQueue.main.async(execute: { [weak self] in
             guard let self = self, self.isProcessingMessage else { return }
 
             // Reset UI state
