@@ -1,6 +1,5 @@
 import UIKit
 
-#if DEBUG
 
     /// View controller for the breakpoints tab in the debugger
     class BreakpointsViewController: UIViewController {
