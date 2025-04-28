@@ -75,7 +75,15 @@ class FloatingTerminalButton: UIButton {
         isAccessibilityElement = true
         
         // Increase hit area for better touch accessibility
-        contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        if #available(iOS 15.0, *) {
+            // Use configuration for iOS 15+
+            var config = UIButton.Configuration.plain()
+            config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+            configuration = config
+        } else {
+            // Use deprecated property for older iOS versions
+            contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        }
     }
 
     private func setupGestures() {

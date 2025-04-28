@@ -7,7 +7,7 @@ class AIViewController: UIViewController {
     
     private let welcomeLabel = UILabel()
     private let startChatButton = UIButton(type: .system)
-    private let recentChatsTableView = UITableView(frame: .zero, style: .insetGrouped)
+    private let recentChatsTableView = UITableView(style: .insetGrouped)
     private let emptyStateView = UIView()
     
     // MARK: - Data
@@ -103,8 +103,8 @@ class AIViewController: UIViewController {
         recentChatsTableView.dataSource = self
         recentChatsTableView.delegate = self
         recentChatsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "ChatSessionCell")
-        recentChatsTableView.backgroundColor = UIColor.systemGroupedBackground
-        recentChatsTableView.separatorStyle = UITableViewCell.SeparatorStyle.singleLine
+        recentChatsTableView.backgroundColor = .systemGroupedBackground
+        recentChatsTableView.separatorStyle = .singleLine
         recentChatsTableView.tableFooterView = UIView()
     }
     
@@ -147,7 +147,7 @@ class AIViewController: UIViewController {
     private func loadRecentSessions() {
         // Load recent chat sessions from CoreData
         do {
-            recentSessions = try CoreDataManager.shared.fetchRecentChatSessions(limit: 20)
+            recentSessions = CoreDataManager.shared.fetchRecentChatSessions(limit: 20)
             
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
@@ -258,7 +258,7 @@ extension AIViewController: UITableViewDataSource {
             dateFormatter.dateStyle = .medium
             dateFormatter.timeStyle = .short
             
-            if let date = session.creationDate {
+            if let date = session.createdAt {
                 content.secondaryText = dateFormatter.string(from: date)
             }
             
@@ -275,7 +275,7 @@ extension AIViewController: UITableViewDataSource {
             dateFormatter.dateStyle = .medium
             dateFormatter.timeStyle = .short
             
-            if let date = session.creationDate {
+            if let date = session.createdAt {
                 cell.detailTextLabel?.text = dateFormatter.string(from: date)
             }
         }
@@ -374,8 +374,8 @@ extension AIViewController: UITableViewDelegate {
 
 // MARK: - View Controller Refreshable
 
-extension AIViewController {
-    override func refreshContent() {
+extension AIViewController: ViewControllerRefreshable {
+    func refreshContent() {
         // Reload data when tab is selected
         loadRecentSessions()
     }
