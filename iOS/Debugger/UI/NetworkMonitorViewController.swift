@@ -1,6 +1,5 @@
 import UIKit
 
-#if DEBUG
 
     /// View controller for the network tab in the debugger
     class NetworkMonitorViewController: UIViewController {
