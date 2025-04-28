@@ -12,5 +12,3 @@ import UIKit
             Debug.shared.log(message: "Debugger initialized", type: .info)
         }
     }
-
-#endif // DEBUG
