@@ -1,6 +1,5 @@
 import UIKit
 
-#if DEBUG
 
     /// View controller for the performance tab in the debugger
     class PerformanceViewController: UIViewController {
