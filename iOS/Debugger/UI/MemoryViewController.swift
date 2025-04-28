@@ -1,6 +1,5 @@
 import UIKit
 
-#if DEBUG
 
     /// View controller for the memory tab in the debugger
     class MemoryViewController: UIViewController {
