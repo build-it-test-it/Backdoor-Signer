@@ -414,7 +414,7 @@ final class AppLifecycleManager {
 
         // Check if the view controller conforms to our refreshable protocol
         // and call the refresh method directly if it does
-        (viewController as? ViewControllerRefreshable)?.refreshContent()
+        viewController.refreshContent()
 
         // Recursively refresh child view controllers
         for child in viewController.children {

@@ -130,7 +130,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                    let topVC = UIApplication.shared.topMostViewController()
                 {
                     // Give the view controller a chance to refresh its content if it supports it
-                    (topVC as? ViewControllerRefreshable)?.refreshContent()
+                    topVC.refreshContent()
                 }
             }
 
@@ -320,7 +320,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         }
 
         // Refresh content if the view controller supports the refreshable protocol
-        (viewController as? ViewControllerRefreshable)?.refreshContent()
+        viewController.refreshContent()
     }
 
     // MARK: - Startup Screen Management

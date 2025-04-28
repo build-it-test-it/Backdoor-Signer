@@ -300,11 +300,16 @@ class LibraryViewController: UITableViewController {
     {
         if section == 0, let apps = signedApps, row < apps.count {
             let signedApp = apps[row]
-            // Use non-throwing version directly since the method doesn't actually throw
-            return CoreDataManager.shared.getFilesForSignedApps(
-                for: signedApp,
-                getuuidonly: getuuidonly
-            )
+            // Use throwing version instead of deprecated non-throwing version
+            do {
+                return try CoreDataManager.shared.getFilesForSignedAppsWithThrow(
+                    for: signedApp,
+                    getuuidonly: getuuidonly
+                )
+            } catch {
+                backdoor.Debug.shared.log(message: "Error getting files for signed app: \(error.localizedDescription)", type: .error)
+                return URL(fileURLWithPath: "")
+            }
         } else if let apps = downloadedApps, row < apps.count {
             let downloadedApp = apps[row]
             do {

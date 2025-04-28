@@ -295,15 +295,17 @@ final class CoreDataManager {
 
         // Get string representation of the UUID
         let uuidString: String
-        if let uuidObject = uuid as? NSObject, String(describing: uuidObject).contains("UUID") {
-            // This is likely a UUID object from Core Data
-            uuidString = String(describing: uuid)
-        } else if let stringValue = uuid as? String {
-            // It's already a string
-            uuidString = stringValue
+        if let uuidObject = uuid {
+            if String(describing: uuidObject).contains("UUID") {
+                // This is likely a UUID object from Core Data
+                uuidString = String(describing: uuid)
+            } else {
+                // It's already a string or another type
+                uuidString = String(describing: uuid)
+            }
         } else {
-            // Fallback - just convert to string
-            uuidString = String(describing: uuid)
+            // Fallback - empty string
+            uuidString = ""
         }
 
         let url = getuuidonly ? documentsDirectory.appendingPathComponent(uuidString)
