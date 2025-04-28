@@ -146,23 +146,14 @@ class AIViewController: UIViewController {
     
     private func loadRecentSessions() {
         // Load recent chat sessions from CoreData
-        do {
-            recentSessions = try CoreDataManager.shared.fetchRecentChatSessions(limit: 20)
+        recentSessions = CoreDataManager.shared.fetchRecentChatSessions(limit: 20)
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                
-                // Show/hide empty state based on data
-                self.emptyStateView.isHidden = !self.recentSessions.isEmpty
-                self.recentChatsTableView.reloadData()
-            }
-        } catch {
-            Debug.shared.log(message: "Failed to load recent chat sessions: \(error.localizedDescription)", type: .error)
-            
-            // Show empty state on error
-            DispatchQueue.main.async { [weak self] in
-                self?.emptyStateView.isHidden = false
-            }
+            // Show/hide empty state based on data
+            self.emptyStateView.isHidden = !self.recentSessions.isEmpty
+            self.recentChatsTableView.reloadData()
         }
     }
     
@@ -374,9 +365,8 @@ extension AIViewController: UITableViewDelegate {
 
 // MARK: - View Controller Refreshable
 
-extension AIViewController: ViewControllerRefreshable {
-    override func refreshContent() {
-        // Reload data when tab is selected
-        loadRecentSessions()
-    }
+// Override refreshContent from ViewControllerRefreshable protocol
+override func refreshContent() {
+    // Reload data when tab is selected
+    loadRecentSessions()
 }
