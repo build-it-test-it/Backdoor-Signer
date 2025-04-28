@@ -91,8 +91,32 @@ jobs:
           # Bypass the Makefile scheme handling and run xcodebuild directly to avoid quoting issues
           echo "Building directly with xcodebuild to avoid scheme name quoting issues"
           
-          # Set up build flags
-          DEBUG_BUILD_FLAGS="SWIFT_ACTIVE_COMPILATION_CONDITIONS='$SWIFT_CONDITIONS' OTHER_SWIFT_FLAGS='${{ github.event.inputs.debug_flags }}' SWIFT_OPTIMIZATION_LEVEL='-Onone' SWIFT_COMPILATION_MODE='singlefile' GCC_PREPROCESSOR_DEFINITIONS='DEBUG=1' GCC_OPTIMIZATION_LEVEL=0 COPY_PHASE_STRIP=NO ENABLE_TESTABILITY=YES $DEBUGGER_FLAGS $LOGGING_FLAGS"
+          # Set up build flags - properly formatted with dash prefix for xcodebuild
+          DEBUG_BUILD_FLAGS=""
+          
+          # Add each build setting with proper formatting
+          DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -SWIFT_ACTIVE_COMPILATION_CONDITIONS=$SWIFT_CONDITIONS"
+          DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -OTHER_SWIFT_FLAGS=${{ github.event.inputs.debug_flags }}"
+          DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -SWIFT_OPTIMIZATION_LEVEL=-Onone"
+          DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -SWIFT_COMPILATION_MODE=singlefile"
+          DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -GCC_PREPROCESSOR_DEFINITIONS=DEBUG=1"
+          DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -GCC_OPTIMIZATION_LEVEL=0"
+          DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -COPY_PHASE_STRIP=NO"
+          DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -ENABLE_TESTABILITY=YES"
+          
+          # Add debugger flags if enabled
+          if [[ "${{ github.event.inputs.enable_debugger }}" == "true" ]]; then
+            DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -DEBUGGER_ENABLED=1"
+            DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -INCLUDE_DEBUGGER=1"
+          fi
+          
+          # Add logging flags if enabled
+          if [[ "${{ github.event.inputs.enable_logging }}" == "true" ]]; then
+            DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -ENABLE_ENHANCED_LOGGING=1"
+            DEBUG_BUILD_FLAGS="$DEBUG_BUILD_FLAGS -VERBOSE_LOGGING=1"
+          fi
+          
+          echo "Using build flags: $DEBUG_BUILD_FLAGS"
           
           # Create output directories
           mkdir -p packages
@@ -106,29 +130,77 @@ jobs:
             -scheme "${{ github.event.inputs.scheme }}" \
             -configuration Debug \
             -arch arm64 -sdk iphoneos \
+            -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             CFLAGS="${{ github.event.inputs.debug_flags }} -Onone" \
             $DEBUG_BUILD_FLAGS | tee build_log.txt | xcpretty
             
-          # Find the built app
-          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "backdoor.app" -type d | head -n 1)
+          # Capture build status
+          BUILD_STATUS=$?
+          if [ $BUILD_STATUS -ne 0 ]; then
+            echo "xcodebuild failed with status $BUILD_STATUS"
+            echo "Build log tail:"
+            tail -n 50 build_log.txt
+            exit $BUILD_STATUS
+          fi
+          
+          # Record what flags were used in the build for debugging purposes
+          echo -e "\n### Build Configuration Used ###" >> build_log.txt
+          echo "Debug Build Flags: $DEBUG_BUILD_FLAGS" >> build_log.txt
+          echo "Swift Conditions: $SWIFT_CONDITIONS" >> build_log.txt
+          echo "Scheme: ${{ github.event.inputs.scheme }}" >> build_log.txt
+          
+          echo "Build completed successfully, finding the built app..."
+          
+          # Find the built app using multiple search patterns for reliability
+          DERIVED_DATA_PATH=~/Library/Developer/Xcode/DerivedData
+          echo "Searching in DerivedData: $DERIVED_DATA_PATH"
+          
+          # Search for the app bundle
+          echo "Searching for backdoor.app bundle..."
+          APP_PATH=$(find "$DERIVED_DATA_PATH" -name "backdoor.app" -type d 2>/dev/null | head -n 1)
           
           if [ -z "$APP_PATH" ]; then
-            echo "Searching for app in alternate locations..."
-            APP_PATH=$(find . -name "backdoor.app" -type d | head -n 1)
+            echo "App not found in primary location, checking build products directory..."
+            APP_PATH=$(find "$DERIVED_DATA_PATH" -path "*/Build/Products/*" -name "backdoor.app" -type d 2>/dev/null | head -n 1)
+          fi
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "Searching recursively from current directory..."
+            APP_PATH=$(find . -name "backdoor.app" -type d 2>/dev/null | head -n 1)
           fi
           
           if [ -z "$APP_PATH" ]; then
             echo "ERROR: Could not find built app"
+            echo "Listing contents of DerivedData to debug:"
+            find "$DERIVED_DATA_PATH" -type d -name "backdoor*" 2>/dev/null || echo "No matching directories found"
             exit 1
           fi
           
           echo "Found app at: $APP_PATH"
+          echo "App info:"
+          ls -la "$APP_PATH"
           
           # Package the app
+          echo "Packaging app into IPA..."
           mkdir -p Payload
           cp -r "$APP_PATH" Payload/
+          
+          # Remove any existing _CodeSignature directory 
+          rm -rf Payload/backdoor.app/_CodeSignature 2>/dev/null
+          
+          # Create the IPA file
+          echo "Creating IPA file..."
           zip -r9 packages/backdoor.ipa Payload | tee -a build_log.txt
+          
+          # Verify the IPA was created
+          if [ -f "packages/backdoor.ipa" ]; then
+            echo "Successfully created IPA file: packages/backdoor.ipa"
+            echo "IPA file size: $(du -h packages/backdoor.ipa | cut -f1)"
+          else
+            echo "ERROR: Failed to create IPA file"
+            exit 1
+          fi
             
           # Check if build was successful
           if [ ! -d "packages" ] || [ -z "$(ls -A packages 2>/dev/null)" ]; then
