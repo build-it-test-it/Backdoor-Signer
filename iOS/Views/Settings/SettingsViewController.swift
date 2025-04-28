@@ -71,11 +71,6 @@ class SettingsViewController: FRSTableViewController {
             // Set up UI with proper error handling
             try safeInitialize()
             backdoor.Debug.shared.log(message: "SettingsViewController initialized successfully", type: .info)
-
-            // Add LED effects to important sections after a delay to ensure layout is complete
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.addLEDEffectsToImportantCells()
-            }
         } catch {
             backdoor.Debug.shared.log(message: "SettingsViewController initialization failed: \(error)", type: .error)
 
@@ -92,11 +87,11 @@ class SettingsViewController: FRSTableViewController {
 
     /// Add LED effects to highlight important settings cells
     private func addLEDEffectsToImportantCells() {
-        // Only apply effects if the view is visible
-        guard isViewLoaded && view.window != nil else { return }
-
+        // Only apply effects if the view is visible and initialized
+        guard isViewLoaded && view.window != nil && isInitialized else { return }
+        
         // Get visible cells to apply effects only to what the user can see
-        let visibleCells = tableView.visibleCells
+        guard let visibleCells = tableView.visibleCells as? [UITableViewCell] else { return }
 
         for cell in visibleCells {
             // Apply LED effects based on cell content
@@ -171,11 +166,19 @@ class SettingsViewController: FRSTableViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        // Refresh LED effects when view appears
-        addLEDEffectsToImportantCells()
+        // Only add LED effects if view is initialized
+        if isInitialized {
+            // Delay LED effects to ensure view is fully loaded
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.addLEDEffectsToImportantCells()
+            }
+        }
     }
 
     override func tableView(_: UITableView, willDisplay cell: UITableViewCell, forRowAt _: IndexPath) {
+        // Only apply LED effects if view is initialized
+        guard isInitialized else { return }
+        
         // Apply LED effects to newly visible cells
         if let text = cell.textLabel?.text {
             switch text {
@@ -309,6 +312,13 @@ extension SettingsViewController {
         cell.accessoryType = .none
         cell.selectionStyle = .none
 
+        // Safety check to prevent crashes
+        guard isInitialized, 
+              indexPath.section < tableData.count,
+              indexPath.row < tableData[indexPath.section].count else {
+            return cell
+        }
+
         let cellText = tableData[indexPath.section][indexPath.row]
         cell.textLabel?.text = cellText
 
@@ -396,6 +406,14 @@ extension SettingsViewController {
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // Safety check to prevent crashes
+        guard isInitialized,
+              indexPath.section < tableData.count,
+              indexPath.row < tableData[indexPath.section].count else {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
+        
         let itemTapped = tableData[indexPath.section][indexPath.row]
         switch itemTapped {
         case String.localized("SETTINGS_VIEW_CONTROLLER_CELL_ABOUT", arguments: "Backdoor"):
