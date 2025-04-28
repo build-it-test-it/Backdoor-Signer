@@ -368,5 +368,3 @@ import UIKit
             accessoryType = variable.children != nil ? .disclosureIndicator : .none
         }
     }
-
-#endif // DEBUG
