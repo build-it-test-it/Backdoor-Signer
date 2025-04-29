@@ -483,7 +483,7 @@ final class CoreMLManager {
 
                 // Remove observer as loading succeeded
                 if let observer = memoryObserver {
-                    NotificationCenter.default.removeObserver(observer)
+                    NotificationCenter.default.removeObserver(observer as Any)
                 }
 
                 // Dismiss loading alert
@@ -500,7 +500,7 @@ final class CoreMLManager {
             } catch {
                 // Remove observer on failure
                 if let observer = memoryObserver {
-                    NotificationCenter.default.removeObserver(observer)
+                    NotificationCenter.default.removeObserver(observer as Any)
                 }
 
                 // Dismiss loading alert

@@ -249,31 +249,27 @@ struct TabbarView: View {
             // Set up LED effects after a delay to ensure tab bar is ready
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 // Apply flowing LED effect to all tab bars - safely
-                do {
-                    if #available(iOS 15.0, *) {
-                        // Use UIWindowScene.windows on iOS 15+
-                        UIApplication.shared.connectedScenes
-                            .compactMap { $0 as? UIWindowScene }
-                            .flatMap { $0.windows }
-                            .compactMap { $0.rootViewController as? UITabBarController }
-                            .forEach { tabController in
-                                // Use the method directly since it's defined in our extension
-                                tabController.tabBar.addTabBarLEDEffect(
-                                    color: UIColor(hex: "#FF6482")
-                                )
-                            }
-                    } else {
-                        // Use deprecated windows property on older iOS versions
-                        UIApplication.shared.windows.compactMap { $0.rootViewController as? UITabBarController }
-                            .forEach { tabController in
-                                // Use the method directly since it's defined in our extension
-                                tabController.tabBar.addTabBarLEDEffect(
-                                    color: UIColor(hex: "#FF6482")
-                                )
-                            }
-                    }
-                } catch let error as NSError {
-                    Debug.shared.log(message: "Error applying LED effect: \(error.localizedDescription)", type: .error)
+                if #available(iOS 15.0, *) {
+                    // Use UIWindowScene.windows on iOS 15+
+                    UIApplication.shared.connectedScenes
+                        .compactMap { $0 as? UIWindowScene }
+                        .flatMap { $0.windows }
+                        .compactMap { $0.rootViewController as? UITabBarController }
+                        .forEach { tabController in
+                            // Use the method directly since it's defined in our extension
+                            tabController.tabBar.addTabBarLEDEffect(
+                                color: UIColor(hex: "#FF6482")
+                            )
+                        }
+                } else {
+                    // Use deprecated windows property on older iOS versions
+                    UIApplication.shared.windows.compactMap { $0.rootViewController as? UITabBarController }
+                        .forEach { tabController in
+                            // Use the method directly since it's defined in our extension
+                            tabController.tabBar.addTabBarLEDEffect(
+                                color: UIColor(hex: "#FF6482")
+                            )
+                        }
                 }
             }
         }
