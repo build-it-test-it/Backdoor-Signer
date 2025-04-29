@@ -482,7 +482,9 @@ final class CoreMLManager {
                 let model = try MLModel(contentsOf: compiledModelURL)
 
                 // Remove observer as loading succeeded
-                NotificationCenter.default.removeObserver(memoryObserver)
+                if let observer = memoryObserver {
+                    NotificationCenter.default.removeObserver(observer as Any)
+                }
 
                 // Dismiss loading alert
                 DispatchQueue.main.async {
@@ -497,7 +499,9 @@ final class CoreMLManager {
                 }
             } catch {
                 // Remove observer on failure
-                NotificationCenter.default.removeObserver(memoryObserver)
+                if let observer = memoryObserver {
+                    NotificationCenter.default.removeObserver(observer as Any)
+                }
 
                 // Dismiss loading alert
                 DispatchQueue.main.async {

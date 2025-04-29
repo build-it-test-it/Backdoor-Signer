@@ -94,7 +94,7 @@ extension UIView {
     ///   - intensity: Glow intensity (0.0-1.0, default: 0.8)
     ///   - width: Width of the flowing LED effect (default: 5)
     ///   - speed: Animation speed - lower is faster (default: 2.0)
-    func addFlowingLEDEffect(
+    @objc func addFlowingLEDEffect(
         color: UIColor,
         intensity: CGFloat = 0.8,
         width: CGFloat = 5,

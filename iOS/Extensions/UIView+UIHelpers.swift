@@ -206,11 +206,7 @@ extension UIView {
 
     /// Apply futuristic shadow effect to the view
     func applyFuturisticShadow() {
-        layer.masksToBounds = false
-        layer.shadowColor = UIColor.systemBlue.cgColor
-        layer.shadowOffset = CGSize(width: 0, height: 4)
-        layer.shadowOpacity = 0.2
-        layer.shadowRadius = 8
+        layer.applyBlueTintedShadow()
     }
 }
 
