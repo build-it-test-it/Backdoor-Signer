@@ -257,32 +257,22 @@ struct TabbarView: View {
                             .flatMap { $0.windows }
                             .compactMap { $0.rootViewController as? UITabBarController }
                             .forEach { tabController in
-                                // Check if the method exists before calling it
-                                if tabController.tabBar.responds(to: #selector(UITabBar.addFlowingLEDEffect)) {
-                                    tabController.tabBar.addFlowingLEDEffect(
-                                        color: UIColor(hex: "#FF6482"),
-                                        intensity: 0.3, // Reduced intensity
-                                        width: 2,
-                                        speed: 5.0
-                                    )
-                                }
+                                // Use the method directly since it's defined in our extension
+                                tabController.tabBar.addTabBarLEDEffect(
+                                    color: UIColor(hex: "#FF6482")
+                                )
                             }
                     } else {
                         // Use deprecated windows property on older iOS versions
                         UIApplication.shared.windows.compactMap { $0.rootViewController as? UITabBarController }
                             .forEach { tabController in
-                                // Check if the method exists before calling it
-                                if tabController.tabBar.responds(to: #selector(UITabBar.addFlowingLEDEffect)) {
-                                    tabController.tabBar.addFlowingLEDEffect(
-                                        color: UIColor(hex: "#FF6482"),
-                                        intensity: 0.3, // Reduced intensity
-                                        width: 2,
-                                        speed: 5.0
-                                    )
-                                }
+                                // Use the method directly since it's defined in our extension
+                                tabController.tabBar.addTabBarLEDEffect(
+                                    color: UIColor(hex: "#FF6482")
+                                )
                             }
                     }
-                } catch {
+                } catch let error as NSError {
                     Debug.shared.log(message: "Error applying LED effect: \(error.localizedDescription)", type: .error)
                 }
             }

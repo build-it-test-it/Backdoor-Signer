@@ -90,16 +90,17 @@ extension AppDelegate {
         // Use try-catch blocks to prevent crashes during initialization
         do {
             // Phase 1 - safe to run immediately
-            setupPhaseOne()
+            try? setupPhaseOne()
             
             // Phase 2 - defer slightly
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
                 guard let self = self else { return }
                 
-                // Use try-catch to prevent crashes in Phase 2
+                // Execute Phase 2 setup with error handling
                 do {
-                    self.setupPhaseTwo()
-                } catch {
+                    // Wrap in try to allow for potential future throwing functions
+                    try? self.setupPhaseTwo()
+                } catch let error as NSError {
                     Debug.shared.log(message: "Error in Phase 2 initialization: \(error.localizedDescription)", type: .error)
                 }
             }
@@ -110,10 +111,11 @@ extension AppDelegate {
                 
                 // Check memory before heavy operations
                 if self.shouldProceedWithMemoryCheck() {
-                    // Use try-catch to prevent crashes in Phase 3
+                    // Execute Phase 3 setup with error handling
                     do {
-                        self.setupPhaseThree()
-                    } catch {
+                        // Wrap in try to allow for potential future throwing functions
+                        try? self.setupPhaseThree()
+                    } catch let error as NSError {
                         Debug.shared.log(message: "Error in Phase 3 initialization: \(error.localizedDescription)", type: .error)
                     }
                 } else {
@@ -126,14 +128,23 @@ extension AppDelegate {
                 NotificationCenter.default.post(name: .appInitializationCompleted, object: nil)
                 Debug.shared.log(message: "App initialization complete", type: .success)
             }
-        } catch {
+        } catch let error as NSError {
             // Log error but continue app launch with minimal functionality
             Debug.shared.log(message: "Critical error during initialization: \(error.localizedDescription)", type: .error)
             
             // Ensure UI is still responsive even if initialization fails
             DispatchQueue.main.async {
-                if let rootVC = UIApplication.shared.windows.first?.rootViewController {
-                    rootVC.view.isUserInteractionEnabled = true
+                // Use UIWindowScene.windows on iOS 15+ instead of deprecated UIApplication.shared.windows
+                if #available(iOS 15.0, *) {
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let rootVC = windowScene.windows.first?.rootViewController {
+                        rootVC.view.isUserInteractionEnabled = true
+                    }
+                } else {
+                    // Fallback for older iOS versions
+                    if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+                        rootVC.view.isUserInteractionEnabled = true
+                    }
                 }
             }
         }
