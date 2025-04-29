@@ -120,17 +120,16 @@ extension AppDelegate {
         
         // Ensure UI is responsive regardless of initialization state
         DispatchQueue.main.async {
-                // Use UIWindowScene.windows on iOS 15+ instead of deprecated UIApplication.shared.windows
-                if #available(iOS 15.0, *) {
-                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                       let rootVC = windowScene.windows.first?.rootViewController {
-                        rootVC.view.isUserInteractionEnabled = true
-                    }
-                } else {
-                    // Fallback for older iOS versions
-                    if let rootVC = UIApplication.shared.windows.first?.rootViewController {
-                        rootVC.view.isUserInteractionEnabled = true
-                    }
+            // Use UIWindowScene.windows on iOS 15+ instead of deprecated UIApplication.shared.windows
+            if #available(iOS 15.0, *) {
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first?.rootViewController {
+                    rootVC.view.isUserInteractionEnabled = true
+                }
+            } else {
+                // Fallback for older iOS versions
+                if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+                    rootVC.view.isUserInteractionEnabled = true
                 }
             }
         }
