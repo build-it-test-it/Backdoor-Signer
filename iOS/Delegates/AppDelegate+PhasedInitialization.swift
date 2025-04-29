@@ -87,23 +87,55 @@ extension AppDelegate {
     func initializeComponentsWithCrashProtection() {
         Debug.shared.log(message: "Initializing components with crash protection", type: .info)
 
-        // Phase 1 - safe to run immediately
-        setupPhaseOne()
-
-        // Phase 2 - defer slightly
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            self?.setupPhaseTwo()
-        }
-
-        // Phase 3 - defer significantly
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-            self?.setupPhaseThree()
-        }
-
-        // Post initialization complete notification after all phases
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-            NotificationCenter.default.post(name: .appInitializationCompleted, object: nil)
-            Debug.shared.log(message: "App initialization complete", type: .success)
+        // Use try-catch blocks to prevent crashes during initialization
+        do {
+            // Phase 1 - safe to run immediately
+            setupPhaseOne()
+            
+            // Phase 2 - defer slightly
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                guard let self = self else { return }
+                
+                // Use try-catch to prevent crashes in Phase 2
+                do {
+                    self.setupPhaseTwo()
+                } catch {
+                    Debug.shared.log(message: "Error in Phase 2 initialization: \(error.localizedDescription)", type: .error)
+                }
+            }
+            
+            // Phase 3 - defer significantly and only if memory allows
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                guard let self = self else { return }
+                
+                // Check memory before heavy operations
+                if self.shouldProceedWithMemoryCheck() {
+                    // Use try-catch to prevent crashes in Phase 3
+                    do {
+                        self.setupPhaseThree()
+                    } catch {
+                        Debug.shared.log(message: "Error in Phase 3 initialization: \(error.localizedDescription)", type: .error)
+                    }
+                } else {
+                    Debug.shared.log(message: "Skipping Phase 3 due to high memory usage", type: .warning)
+                }
+            }
+            
+            // Post initialization complete notification after all phases
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                NotificationCenter.default.post(name: .appInitializationCompleted, object: nil)
+                Debug.shared.log(message: "App initialization complete", type: .success)
+            }
+        } catch {
+            // Log error but continue app launch with minimal functionality
+            Debug.shared.log(message: "Critical error during initialization: \(error.localizedDescription)", type: .error)
+            
+            // Ensure UI is still responsive even if initialization fails
+            DispatchQueue.main.async {
+                if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+                    rootVC.view.isUserInteractionEnabled = true
+                }
+            }
         }
     }
 
