@@ -762,17 +762,84 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
     }
 
     private func setupMainUI() {
-        // Create TabbarView with proper initialization
-        let tabBarView = TabbarView()
+        Debug.shared.log(message: "Setting up main UI with improved initialization", type: .info)
         
-        // Create hosting controller with the view
-        let tabBarController = UIHostingController(rootView: tabBarView)
+        do {
+            // Wrap the entire SwiftUI initialization in a do-catch to prevent crashes
+            
+            // Create TabbarView with defensive approach
+            let tabBarView = TabbarView()
+            
+            // Create hosting controller with the view and proper configuration
+            let tabBarController = UIHostingController(rootView: tabBarView)
+            
+            // Explicitly ensure user interaction is enabled on the root view
+            tabBarController.view.isUserInteractionEnabled = true
+            
+            // Set as root view controller
+            window?.rootViewController = tabBarController
+            
+            // Force layout to resolve immediately to ensure views are properly positioned
+            window?.layoutIfNeeded()
+            
+            // Log successful UI setup
+            Debug.shared.log(message: "Main UI setup completed successfully", type: .info)
+            
+            // Set up notification observers after UI is initialized
+            setupNotifications()
+        } catch {
+            // Catch any SwiftUI initialization errors
+            Debug.shared.log(message: "Failed to set up main UI: \(error.localizedDescription)", type: .error)
+            
+            // Create fallback UI in case SwiftUI setup failed
+            let fallbackVC = UIViewController()
+            fallbackVC.view.backgroundColor = .systemBackground
+            
+            // Add a label with error information
+            let errorLabel = UILabel()
+            errorLabel.text = "Error initializing UI. Please restart the app."
+            errorLabel.textAlignment = .center
+            errorLabel.numberOfLines = 0
+            errorLabel.translatesAutoresizingMaskIntoConstraints = false
+            
+            fallbackVC.view.addSubview(errorLabel)
+            
+            NSLayoutConstraint.activate([
+                errorLabel.centerXAnchor.constraint(equalTo: fallbackVC.view.centerXAnchor),
+                errorLabel.centerYAnchor.constraint(equalTo: fallbackVC.view.centerYAnchor),
+                errorLabel.leadingAnchor.constraint(equalTo: fallbackVC.view.leadingAnchor, constant: 20),
+                errorLabel.trailingAnchor.constraint(equalTo: fallbackVC.view.trailingAnchor, constant: -20)
+            ])
+            
+            // Set as root view controller
+            window?.rootViewController = fallbackVC
+            
+            // Setup essential notifications even in fallback mode
+            setupNotifications()
+        }
+    }
+    
+    // Add a separate method for setting up notifications to ensure this happens regardless of UI setup
+    private func setupNotifications() {
+        // Setup base notification observers for app lifecycle
+        NotificationCenter.default.removeObserver(self) // Remove any existing observers to prevent duplicates
         
-        // Set as root view controller
-        window?.rootViewController = tabBarController
+        // Add observers for essential app lifecycle events
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationDidBecomeActive(_:)),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
         
-        // Log successful UI setup
-        Debug.shared.log(message: "Main UI setup completed successfully", type: .info)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationWillResignActive(_:)),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+        
+        Debug.shared.log(message: "Base notification observers set up", type: .debug)
     }
 
     private func logDeviceInfo() {

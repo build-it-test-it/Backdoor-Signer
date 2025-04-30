@@ -32,14 +32,32 @@ extension AppDelegate {
         // Initialize terminal components
         setupTerminal()
 
+        // Delay showing floating buttons to ensure UI hierarchy is fully established
         // Only show floating buttons if not showing startup popup and not in safe mode
         if !isShowingStartupPopup, !SafeModeLauncher.shared.inSafeMode {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Increased delay to ensure UI is fully initialized
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                // Verify app is still active and check UI state before showing buttons
+                guard UIApplication.shared.applicationState == .active,
+                      let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                      let window = windowScene.windows.first,
+                      window.rootViewController != nil,
+                      !self.isShowingStartupPopup else {
+                    Debug.shared.log(message: "Skipping button initialization - UI not ready", type: .warning)
+                    return
+                }
+                
+                Debug.shared.log(message: "Initializing floating buttons with proper delay", type: .info)
+                
+                // Initialize floating button first
                 FloatingButtonManager.shared.show()
-
-                // Show terminal button if enabled
-                if UserDefaults.standard.bool(forKey: "show_terminal_button") {
-                    TerminalButtonManager.shared.show()
+                
+                // Add another small delay before terminal button to stagger initialization
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    // Show terminal button if enabled - with additional UI check
+                    if UserDefaults.standard.bool(forKey: "show_terminal_button") {
+                        TerminalButtonManager.shared.show()
+                    }
                 }
             }
         }

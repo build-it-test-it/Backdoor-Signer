@@ -100,65 +100,100 @@ extension UIView {
         width: CGFloat = 5,
         speed: TimeInterval = 2.0
     ) {
+        // Skip if view bounds are invalid or very small
+        guard bounds.width > 10, bounds.height > 10, window != nil else {
+            Debug.shared.log(message: "Skipping LED effect - invalid view dimensions or not in window", type: .warning)
+            return
+        }
+        
         // Remove any existing LED effect
         removeLEDEffect()
+        
+        // Use main thread for UI updates
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, self.window != nil else { return }
+            
+            // Create the gradient layer with defensive bounds checking
+            let gradientLayer = CAGradientLayer()
+            let safeWidth = min(width, min(self.bounds.width, self.bounds.height) / 4)
+            
+            gradientLayer.frame = CGRect(
+                x: -safeWidth,
+                y: -safeWidth,
+                width: self.bounds.width + safeWidth * 2,
+                height: self.bounds.height + safeWidth * 2
+            )
 
-        // Create the gradient layer
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.frame = CGRect(
-            x: -width,
-            y: -width,
-            width: bounds.width + width * 2,
-            height: bounds.height + width * 2
-        )
+            // Use safer intensity value to prevent visual issues
+            let safeIntensity = min(intensity, 0.6)
+            
+            // Create gradient of the LED effect going around the view
+            gradientLayer.colors = [
+                color.withAlphaComponent(0).cgColor,
+                color.withAlphaComponent(safeIntensity).cgColor,
+                color.withAlphaComponent(safeIntensity).cgColor,
+                color.withAlphaComponent(0).cgColor,
+            ]
 
-        // Create gradient of the LED effect going around the view
-        gradientLayer.colors = [
-            color.withAlphaComponent(0).cgColor,
-            color.withAlphaComponent(intensity).cgColor,
-            color.withAlphaComponent(intensity).cgColor,
-            color.withAlphaComponent(0).cgColor,
-        ]
+            // Set initial position for animation
+            gradientLayer.startPoint = CGPoint.zero
+            gradientLayer.endPoint = CGPoint(x: 1, y: 0)
 
-        // Set initial position for animation
-        gradientLayer.startPoint = CGPoint.zero
-        gradientLayer.endPoint = CGPoint(x: 1, y: 0)
+            // Create a mask to only show the border - with crash protection
+            let maskLayer = CAShapeLayer()
+            
+            // Create mask paths with defensive bounds checking
+            let outerRect = CGRect(
+                x: safeWidth / 2,
+                y: safeWidth / 2,
+                width: self.bounds.width + safeWidth,
+                height: self.bounds.height + safeWidth
+            )
+            
+            // Calculate safe corner radius
+            let safeCornerRadius = min(
+                self.layer.cornerRadius + safeWidth / 2,
+                min(outerRect.width, outerRect.height) / 2
+            )
+            
+            let maskPath = UIBezierPath(
+                roundedRect: outerRect,
+                cornerRadius: safeCornerRadius
+            )
 
-        // Create a mask to only show the border
-        let maskLayer = CAShapeLayer()
-        let maskPath = UIBezierPath(
-            roundedRect: CGRect(
-                x: width / 2,
-                y: width / 2,
-                width: bounds.width + width,
-                height: bounds.height + width
-            ),
-            cornerRadius: layer.cornerRadius + width / 2
-        )
+            // Create inner path with safer values
+            let innerRect = CGRect(
+                x: safeWidth * 1.5,
+                y: safeWidth * 1.5,
+                width: max(1, self.bounds.width - safeWidth),
+                height: max(1, self.bounds.height - safeWidth)
+            )
+            
+            let innerPath = UIBezierPath(
+                roundedRect: innerRect,
+                cornerRadius: max(0, self.layer.cornerRadius)
+            )
+            
+            // Only append inner path if it's valid
+            if innerRect.width > 0 && innerRect.height > 0 {
+                maskPath.append(innerPath.reversing())
+            }
 
-        // Cut out the inside to create a border-only effect
-        let innerPath = UIBezierPath(
-            roundedRect: CGRect(
-                x: width * 1.5,
-                y: width * 1.5,
-                width: bounds.width,
-                height: bounds.height
-            ),
-            cornerRadius: layer.cornerRadius
-        )
-        maskPath.append(innerPath.reversing())
+            maskLayer.path = maskPath.cgPath
+            maskLayer.fillRule = .evenOdd
 
-        maskLayer.path = maskPath.cgPath
-        maskLayer.fillRule = .evenOdd
+            gradientLayer.mask = maskLayer
 
-        gradientLayer.mask = maskLayer
+            // Add the gradient layer
+            self.layer.insertSublayer(gradientLayer, at: 0)
+            self.ledGradientLayer = gradientLayer
 
-        // Add the gradient layer
-        layer.insertSublayer(gradientLayer, at: 0)
-        ledGradientLayer = gradientLayer
-
-        // Animate the LED flow
-        animateFlowingLED(speed: speed)
+            // Animate the LED flow with a slightly slower speed for better performance
+            let safeSpeed = max(speed, 3.0) // Ensure minimum animation time for performance
+            self.animateFlowingLED(speed: safeSpeed)
+            
+            Debug.shared.log(message: "Added flowing LED effect successfully", type: .debug)
+        }
     }
 
     /// Remove any LED lighting effects from the view
