@@ -1072,7 +1072,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 ),
                 url: "https://raw.githubusercontent.com/BDGHubNoKey/Backdoor/refs/heads/main/App-repo.json"
             ) { _ in
-                Debug.shared.log(message: "Added(pid:default repos!")
+                Debug.shared.log(message: "Added default repos!")
                 Preferences.defaultRepos = false
             }
         }

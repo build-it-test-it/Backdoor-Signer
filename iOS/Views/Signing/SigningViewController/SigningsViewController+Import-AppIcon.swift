@@ -10,9 +10,14 @@ extension SigningsViewController: UIDocumentPickerDelegate & UIImagePickerContro
 
         let altIconAction = UIAlertAction(title: "Select Alt Icon", style: .default) { _ in
 
+            guard let downloadedApp = self.application as? DownloadedApps else {
+                Debug.shared.log(message: "Failed to cast application to DownloadedApps")
+                return
+            }
+            
             let settingsAltIconView = SettingsAltIconView(
                 mainOptions: self.mainOptions,
-                app: self.getFilesForDownloadedApps(app: self.application as! DownloadedApps, getuuidonly: false)
+                app: self.getFilesForDownloadedApps(app: downloadedApp, getuuidonly: false)
             )
             let hostingcontroller = UIHostingController(rootView: settingsAltIconView)
 
