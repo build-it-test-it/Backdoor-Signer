@@ -387,7 +387,12 @@ class EnhancedDropboxService {
         }
 
         // Create request to refresh token
-        var request = URLRequest(url: URL(string: dropboxRefreshURL)!)
+        guard let refreshURL = URL(string: dropboxRefreshURL) else {
+            Debug.shared.log(message: "Invalid Dropbox refresh URL", type: .error)
+            completion(false)
+            return
+        }
+        var request = URLRequest(url: refreshURL)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
 
@@ -447,8 +452,12 @@ class EnhancedDropboxService {
     }
 
     /// Prepare upload request
-    private func prepareUploadRequest(token: String, path: String, fileData: Data) -> URLRequest {
-        var request = URLRequest(url: URL(string: dropboxUploadURL)!)
+    private func prepareUploadRequest(token: String, path: String, fileData: Data) -> URLRequest? {
+        guard let uploadURL = URL(string: dropboxUploadURL) else {
+            Debug.shared.log(message: "Invalid Dropbox upload URL", type: .error)
+            return nil
+        }
+        var request = URLRequest(url: uploadURL)
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
@@ -547,8 +556,12 @@ class EnhancedDropboxService {
             if success {
                 Debug.shared.log(message: "Successfully uploaded file to Dropbox: \(path)", type: .debug)
             } else {
-                let responseString = data != nil ?
-                    String(data: data!, encoding: .utf8) ?? "No response data" : "No response data"
+                let responseString: String
+                if let data = data, let dataString = String(data: data, encoding: .utf8) {
+                    responseString = dataString
+                } else {
+                    responseString = "No response data"
+                }
                 Debug.shared.log(
                     message: "Dropbox upload failed with status \(httpResponse.statusCode): \(responseString)",
                     type: .error
