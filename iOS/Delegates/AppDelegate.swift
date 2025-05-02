@@ -738,7 +738,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             }
 
             // Make sure timer runs even when scrolling
-            RunLoop.current.add(timer!, forMode: .common)
+            if let timer = timer {
+                RunLoop.current.add(timer, forMode: .common)
+            } else {
+                Debug.shared.log(message: "Failed to create timer for network monitoring", type: .error)
+            }
         }
 
         private func dismissOnboarding() {
@@ -854,7 +858,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
             BGTaskScheduler.shared
                 .register(forTaskWithIdentifier: "kh.crysalis.backdoor.sourcerefresh", using: nil) { [weak self] task in
                     guard let self = self else { return }
-                    self.handleAppRefresh(task: task as! BGAppRefreshTask)
+                    if let refreshTask = task as? BGAppRefreshTask {
+                        self.handleAppRefresh(task: refreshTask)
+                    } else {
+                        Debug.shared.log(message: "Failed to cast task to BGAppRefreshTask", type: .error)
+                        task.setTaskCompleted(success: false)
+                    }
                 }
             scheduleAppRefresh()
         }
@@ -960,7 +969,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
     private func isConnectedToWiFi() -> Bool {
         if let interfaces = CNCopySupportedInterfaces() as NSArray? {
             for interface in interfaces {
-                if let info = CNCopyCurrentNetworkInfo(interface as! CFString) as NSDictionary? {
+                if let interfaceAsCFString = interface as? CFString,
+                   let info = CNCopyCurrentNetworkInfo(interfaceAsCFString) as NSDictionary? {
                     return info[kCNNetworkInfoKeySSID] != nil
                 }
             }
@@ -1062,7 +1072,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
                 ),
                 url: "https://raw.githubusercontent.com/BDGHubNoKey/Backdoor/refs/heads/main/App-repo.json"
             ) { _ in
-                Debug.shared.log(message: "Added(pid:default repos!")
+                Debug.shared.log(message: "Added default repos!")
                 Preferences.defaultRepos = false
             }
         }
@@ -1082,7 +1092,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
 
     fileprivate static func generateRandomString(length: Int = 8) -> String {
         let characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return String((0 ..< length).map { _ in characters.randomElement()! })
+        var result = ""
+        for _ in 0..<length {
+            if let randomChar = characters.randomElement() {
+                result.append(randomChar)
+            } else {
+                // Fallback to a default character if randomElement fails
+                result.append("A")
+            }
+        }
+        return result
     }
 
     func createSourcesDirectory() {
@@ -1091,10 +1110,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIOnboardingViewControlle
         let sourcesURL = documentsURL.appendingPathComponent("Apps")
         let certsURL = documentsURL.appendingPathComponent("Certificates")
         if !fileManager.fileExists(atPath: sourcesURL.path) {
-            try! fileManager.createDirectory(at: sourcesURL, withIntermediateDirectories: true, attributes: nil)
+            do {
+                try fileManager.createDirectory(at: sourcesURL, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                Debug.shared.log(message: "Failed to create sources directory: \(error.localizedDescription)", type: .error)
+            }
         }
         if !fileManager.fileExists(atPath: certsURL.path) {
-            try! fileManager.createDirectory(at: certsURL, withIntermediateDirectories: true, attributes: nil)
+            do {
+                try fileManager.createDirectory(at: certsURL, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                Debug.shared.log(message: "Failed to create certificates directory: \(error.localizedDescription)", type: .error)
+            }
         }
     }
 

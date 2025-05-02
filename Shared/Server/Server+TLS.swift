@@ -10,8 +10,8 @@ func getLocalIPAddress() -> String? {
 
     if getifaddrs(&ifaddr) == 0 {
         var ptr = ifaddr
-        while ptr != nil {
-            let interface = ptr!.pointee
+        while let currentPtr = ptr {
+            let interface = currentPtr.pointee
             let addrFamily = interface.ifa_addr.pointee.sa_family
 
             if addrFamily == UInt8(AF_INET) {
@@ -22,12 +22,14 @@ func getLocalIPAddress() -> String? {
                                    &hostname, socklen_t(hostname.count),
                                    nil, socklen_t(0), NI_NUMERICHOST) == 0
                     {
-                        address = String(cString: hostname)
-                        Debug.shared.log(message: "Testing (\(name)): \(address!)")
+                        if let ipAddress = String(cString: hostname) {
+                            address = ipAddress
+                            Debug.shared.log(message: "Testing (\(name)): \(ipAddress)")
+                        }
                     }
                 }
             }
-            ptr = ptr!.pointee.ifa_next
+            ptr = currentPtr.pointee.ifa_next
         }
         freeifaddrs(ifaddr)
     }

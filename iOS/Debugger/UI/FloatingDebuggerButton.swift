@@ -8,7 +8,7 @@ class FloatingDebuggerButton: UIButton {
     private let buttonSize: CGFloat = 50
 
     // Pan gesture for dragging the button
-    private var panGesture: UIPanGestureRecognizer!
+    private var panGesture: UIPanGestureRecognizer?
 
     // Logger instance
     private let logger = Debug.shared
@@ -57,10 +57,11 @@ class FloatingDebuggerButton: UIButton {
 
     private func setupGestures() {
         // Pan gesture for dragging
-        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-        panGesture.minimumNumberOfTouches = 1
-        panGesture.maximumNumberOfTouches = 1
-        addGestureRecognizer(panGesture)
+        let newPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+        newPanGesture.minimumNumberOfTouches = 1
+        newPanGesture.maximumNumberOfTouches = 1
+        addGestureRecognizer(newPanGesture)
+        panGesture = newPanGesture
     }
 
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {

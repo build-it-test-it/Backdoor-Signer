@@ -402,12 +402,14 @@ final class CoreMLManager {
                 indicator.startAnimating()
 
                 // Position indicator
-                NSLayoutConstraint.activate([
-                    indicator.centerXAnchor.constraint(equalTo: loadingAlert!.view.centerXAnchor),
-                    indicator.topAnchor.constraint(equalTo: loadingAlert!.view.topAnchor, constant: 80),
-                    indicator.widthAnchor.constraint(equalToConstant: 40),
-                    indicator.heightAnchor.constraint(equalToConstant: 40),
-                ])
+                if let alertView = loadingAlert?.view {
+                    NSLayoutConstraint.activate([
+                        indicator.centerXAnchor.constraint(equalTo: alertView.centerXAnchor),
+                        indicator.topAnchor.constraint(equalTo: alertView.topAnchor, constant: 80),
+                        indicator.widthAnchor.constraint(equalToConstant: 40),
+                        indicator.heightAnchor.constraint(equalToConstant: 40)
+                    ])
+                }
 
                 // Add cancel button
                 loadingAlert?.addAction(UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in

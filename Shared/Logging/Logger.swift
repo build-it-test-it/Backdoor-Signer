@@ -25,7 +25,9 @@ public enum LogType {
 
 final class Debug {
     static let shared = Debug()
-    private let subsystem = Bundle.main.bundleIdentifier!
+    private let subsystem: String = {
+        return Bundle.main.bundleIdentifier ?? "dev.backdoor.signer"
+    }()
 
     private var logFilePath: URL {
         return getDocumentsDirectory().appendingPathComponent("logs.txt")

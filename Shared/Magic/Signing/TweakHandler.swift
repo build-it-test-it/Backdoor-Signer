@@ -40,14 +40,18 @@ class TweakHandler {
             // it will extract then add a url, if theres no url, i.e.
             // you haven't added a deb, it will skip
             for url in urls {
-                let urlf = URL(string: url)
-                switch urlf!.pathExtension.lowercased() {
+                guard let urlf = URL(string: url) else {
+                    Debug.shared.log(message: "Invalid URL: \(url), skipping.")
+                    continue
+                }
+                
+                switch urlf.pathExtension.lowercased() {
                 case "dylib":
-                    try handleDylib(at: urlf!)
+                    try handleDylib(at: urlf)
                 case "deb":
-                    try handleDeb(at: urlf!, baseTmpDir: baseTmpDir)
+                    try handleDeb(at: urlf, baseTmpDir: baseTmpDir)
                 default:
-                    Debug.shared.log(message: "Unsupported file type: \(urlf!.lastPathComponent), skipping.")
+                    Debug.shared.log(message: "Unsupported file type: \(urlf.lastPathComponent), skipping.")
                 }
             }
 

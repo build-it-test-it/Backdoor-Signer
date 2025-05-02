@@ -43,7 +43,9 @@ class OfflineSigningManager {
 
     private init() {
         // Setup local certificate paths
-        let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        guard let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            fatalError("Failed to access documents directory")
+        }
         serverCertPath = docsDir.appendingPathComponent("server.crt")
         serverKeyPath = docsDir.appendingPathComponent("server.pem")
 

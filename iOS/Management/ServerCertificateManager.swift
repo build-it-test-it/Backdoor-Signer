@@ -22,7 +22,9 @@ class ServerCertificateManager {
 
     private init() {
         // Get paths from documents directory - these must match the paths in Server+TLS.swift
-        let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        guard let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            fatalError("Failed to access documents directory")
+        }
         serverCrtPath = docsDir.appendingPathComponent("server.crt")
         serverPemPath = docsDir.appendingPathComponent("server.pem")
 

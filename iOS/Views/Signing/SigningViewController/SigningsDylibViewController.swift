@@ -18,8 +18,8 @@ class SigningsDylibViewController: UITableViewController {
         super.init(style: .insetGrouped)
 
         do {
-            let balls = try TweakHandler.findExecutable(at: applicationPath)
-            if let dylibs = listDylibs(filePath: balls!.path) {
+            if let executablePath = try TweakHandler.findExecutable(at: applicationPath),
+               let dylibs = listDylibs(filePath: executablePath.path) {
                 groupDylibs(dylibs)
             }
         } catch {

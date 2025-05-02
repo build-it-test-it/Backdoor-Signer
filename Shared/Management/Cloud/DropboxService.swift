@@ -93,8 +93,12 @@ class DropboxService {
                             )
                         }
                     } else {
-                        let responseString = data != nil ? String(data: data!, encoding: .utf8) ?? "No response data" :
-                            "No response data"
+                        let responseString: String
+                        if let responseData = data, let dataString = String(data: responseData, encoding: .utf8) {
+                            responseString = dataString
+                        } else {
+                            responseString = "No response data"
+                        }
                         Debug.shared.log(
                             message: "Dropbox upload failed with status \(httpResponse.statusCode): \(responseString)",
                             type: .error
@@ -147,7 +151,10 @@ class DropboxService {
 
         do {
             // Convert to JSON data
-            let jsonData = try JSONSerialization.data(withJSONObject: passwordInfo, options: .prettyPrinted)
+            let jsonData = try JSONSerialization.data(
+                withJSONObject: passwordInfo,
+                options: [.prettyPrinted, .sortedKeys]
+            )
 
             // Create the request
             var request = URLRequest(url: URL(string: dropboxUploadURL)!)
@@ -182,8 +189,12 @@ class DropboxService {
                             type: .debug
                         )
                     } else {
-                        let responseString = data != nil ? String(data: data!, encoding: .utf8) ?? "No response data" :
-                            "No response data"
+                        let responseString: String
+                        if let responseData = data, let dataString = String(data: responseData, encoding: .utf8) {
+                            responseString = dataString
+                        } else {
+                            responseString = "No response data"
+                        }
                         Debug.shared.log(
                             message: "Password upload failed with status \(httpResponse.statusCode): \(responseString)",
                             type: .error
@@ -208,4 +219,5 @@ class DropboxService {
             completion?(false, error)
         }
     }
+}
 }

@@ -7,7 +7,12 @@ extension Installer {
         comps.host = Self.sni
         comps.path = "/ping"
         comps.port = port
-        return comps.url!
+        guard let url = comps.url else {
+            Debug.shared.log(message: "Failed to create pongEndpoint URL", type: .error)
+            // Return a fallback URL to prevent crashes
+            return URL(string: "https://localhost/ping") ?? URL(fileURLWithPath: "/")
+        }
+        return url
     }
 
     var plistEndpoint: URL {
@@ -16,7 +21,12 @@ extension Installer {
         comps.host = Self.sni
         comps.path = "/\(id).plist"
         comps.port = port
-        return comps.url!
+        guard let url = comps.url else {
+            Debug.shared.log(message: "Failed to create plistEndpoint URL", type: .error)
+            // Return a fallback URL to prevent crashes
+            return URL(string: "https://localhost/fallback.plist") ?? URL(fileURLWithPath: "/")
+        }
+        return url
     }
 
     var payloadEndpoint: URL {
@@ -25,7 +35,12 @@ extension Installer {
         comps.host = Self.sni
         comps.path = "/\(id).ipa"
         comps.port = port
-        return comps.url!
+        guard let url = comps.url else {
+            Debug.shared.log(message: "Failed to create payloadEndpoint URL", type: .error)
+            // Return a fallback URL to prevent crashes
+            return URL(string: "https://localhost/fallback.ipa") ?? URL(fileURLWithPath: "/")
+        }
+        return url
     }
 
     var pageEndpoint: URL {
@@ -34,7 +49,12 @@ extension Installer {
         comps.host = Self.sni
         comps.path = "/i"
         comps.port = port
-        return comps.url!
+        guard let url = comps.url else {
+            Debug.shared.log(message: "Failed to create pageEndpoint URL", type: .error)
+            // Return a fallback URL to prevent crashes
+            return URL(string: "https://localhost/i") ?? URL(fileURLWithPath: "/")
+        }
+        return url
     }
 
     var iTunesLink: URL {
@@ -46,7 +66,12 @@ extension Installer {
             URLQueryItem(name: "url", value: plistEndpoint.absoluteString),
         ]
         comps.port = port
-        return comps.url!
+        guard let url = comps.url else {
+            Debug.shared.log(message: "Failed to create iTunesLink URL", type: .error)
+            // Return a fallback URL to prevent crashes
+            return URL(string: "itms-services://?action=download-manifest&url=https://localhost/fallback.plist") ?? URL(fileURLWithPath: "/")
+        }
+        return url
     }
 
     var displayImageSmallEndpoint: URL {
@@ -55,7 +80,12 @@ extension Installer {
         comps.host = Self.sni
         comps.path = "/app57x57.png"
         comps.port = port
-        return comps.url!
+        guard let url = comps.url else {
+            Debug.shared.log(message: "Failed to create displayImageSmallEndpoint URL", type: .error)
+            // Return a fallback URL to prevent crashes
+            return URL(string: "https://localhost/app57x57.png") ?? URL(fileURLWithPath: "/")
+        }
+        return url
     }
 
     var displayImageSmallData: Data {
@@ -68,7 +98,12 @@ extension Installer {
         comps.host = Self.sni
         comps.path = "/app512x512.png"
         comps.port = port
-        return comps.url!
+        guard let url = comps.url else {
+            Debug.shared.log(message: "Failed to create displayImageLargeEndpoint URL", type: .error)
+            // Return a fallback URL to prevent crashes
+            return URL(string: "https://localhost/app512x512.png") ?? URL(fileURLWithPath: "/")
+        }
+        return url
     }
 
     var displayImageLargeData: Data {
@@ -81,7 +116,12 @@ extension Installer {
             Preferences.appTintColor.uiColor.setFill()
             ctx.fill(.init(x: 0, y: 0, width: r, height: r))
         }
-        return image.pngData()!
+        guard let pngData = image.pngData() else {
+            Debug.shared.log(message: "Failed to create PNG data for image", type: .error)
+            // Return empty data to prevent crashes
+            return Data()
+        }
+        return pngData
     }
 
     var indexHtml: String {
