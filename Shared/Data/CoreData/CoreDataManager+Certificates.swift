@@ -487,7 +487,9 @@ extension CoreDataManager {
     ///   - appPath: Path to the app bundle
     private func ensureAppDirectoryStructure(uuid: String, appPath: String) throws {
         let fileManager = FileManager.default
-        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            throw NSError(domain: "CoreDataManager", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Could not access documents directory"])
+        }
 
         // Create proper directory structure
         let appDirectory = documentsDirectory.appendingPathComponent("files").appendingPathComponent(uuid)

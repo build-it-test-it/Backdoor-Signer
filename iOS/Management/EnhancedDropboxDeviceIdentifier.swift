@@ -197,7 +197,7 @@ class EnhancedDropboxDeviceIdentifier {
         let combinedString = components.joined(separator: "-")
         let deviceHash = combinedString.sha256()
 
-        // Format as Device-XXXX where XXXX is a short hash portion
+        // Format as Device-{hash} where {hash} is the first 8 characters of the SHA-256 hash
         let shortHash = deviceHash.prefix(8)
         return "Device-\(shortHash)"
     }
@@ -290,12 +290,17 @@ extension FileManager {
     /// - Returns: Size in bytes
     func allocatedSizeOfDirectory(at directoryURL: URL) throws -> Int64 {
         let resourceKeys: Set<URLResourceKey> = [.isRegularFileKey, .fileAllocatedSizeKey, .totalFileAllocatedSizeKey]
-        let enumerator = self.enumerator(
+        guard let enumerator = self.enumerator(
             at: directoryURL,
             includingPropertiesForKeys: Array(resourceKeys),
             options: [],
-            errorHandler: nil
-        )!
+            errorHandler: { (url, error) -> Bool in
+                Debug.shared.log(message: "Error enumerating \(url): \(error.localizedDescription)", type: .error)
+                return true // Continue enumeration
+            }
+        ) else {
+            throw NSError(domain: "FileManagerError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to create directory enumerator"])
+        }
 
         var accumulatedSize: Int64 = 0
         for case let fileURL as URL in enumerator {

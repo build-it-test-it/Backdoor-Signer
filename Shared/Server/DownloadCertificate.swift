@@ -2,7 +2,11 @@ import Foundation
 
 func getCertificates(completion: (() -> Void)? = nil) {
     let sourceGET = SourceGET()
-    let uri = URL(string: "https://backloop.dev/pack.json")!
+    guard let uri = URL(string: "https://backloop.dev/pack.json") else {
+        Debug.shared.log(message: "Invalid certificate URL", type: .error)
+        completion?()
+        return
+    }
 
     func writeToFile(content: String, filename: String) throws {
         let path = getDocumentsDirectory().appendingPathComponent(filename)

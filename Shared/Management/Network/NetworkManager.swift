@@ -90,7 +90,12 @@ final class NetworkManager {
         responseCache.totalCostLimit = 50 * 1024 * 1024
 
         // Configure disk cache directory
-        let cachesDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        guard let cachesDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+            Debug.shared.log(message: "Failed to access caches directory", type: .error)
+            // Fallback to temporary directory if caches directory is not available
+            cacheDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("NetworkCache", isDirectory: true)
+            return
+        }
         cacheDirectory = cachesDirectory.appendingPathComponent("NetworkCache", isDirectory: true)
 
         // Create cache directory if it doesn't exist

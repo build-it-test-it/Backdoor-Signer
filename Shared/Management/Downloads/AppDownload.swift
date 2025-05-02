@@ -35,13 +35,22 @@ class AppDownload: NSObject {
         session = URLSession(configuration: sessionConfig, delegate: self, delegateQueue: nil)
         downloadTask = session?.downloadTask(with: url)
 
-        downloads[downloadTask!] = (
+        guard let task = downloadTask else {
+            completion(
+                nil,
+                nil,
+                NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create download task"])
+            )
+            return
+        }
+        
+        downloads[task] = (
             uuid: uuid,
             appuuid: appuuid,
             destinationUrl: destinationUrl,
             completion: completion
         )
-        downloadTask!.resume()
+        task.resume()
     }
 
     func importFile(url: URL, uuid: String, completion: @escaping (URL?, Error?) -> Void) {
@@ -180,10 +189,17 @@ class AppDownload: NSObject {
                 iconURL = "\(URL(string: iconPath)?.lastPathComponent ?? "")"
             }
 
+            // Extract app information with safe fallbacks
+            let version = infoDict["CFBundleShortVersionString"] as? String ?? "1.0"
+            let name = infoDict["CFBundleDisplayName"] as? String ?? 
+                       infoDict["CFBundleName"] as? String ?? 
+                       "Unknown App"
+            let bundleID = infoDict["CFBundleIdentifier"] as? String ?? "com.unknown.app"
+            
             CoreDataManager.shared.addToDownloadedApps(
-                version: (infoDict["CFBundleShortVersionString"] as? String)!,
-                name: (infoDict["CFBundleDisplayName"] as? String ?? infoDict["CFBundleName"] as? String)!,
-                bundleidentifier: (infoDict["CFBundleIdentifier"] as? String)!,
+                version: version,
+                name: name,
+                bundleidentifier: bundleID,
                 iconURL: iconURL,
                 uuid: uuid,
                 appPath: "\(URL(string: bundlePath)?.lastPathComponent ?? "")",
@@ -219,13 +235,20 @@ extension AppDownload: URLSessionDownloadDelegate {
     }
 
     func urlSession(_: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        guard let download = downloads[task as! URLSessionDownloadTask] else {
+        guard let downloadTask = task as? URLSessionDownloadTask else {
+            Debug.shared.log(message: "Task is not a download task", type: .error)
             return
         }
+        
+        guard let download = downloads[downloadTask] else {
+            return
+        }
+        
         if let error = error {
             download.completion(download.uuid, download.destinationUrl.path, error)
         }
-        downloads.removeValue(forKey: task as! URLSessionDownloadTask)
+        
+        downloads.removeValue(forKey: downloadTask)
     }
 
     func urlSession(
