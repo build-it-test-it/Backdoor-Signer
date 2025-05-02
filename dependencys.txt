@@ -1,36 +1,56 @@
-Dependencies
+Complete List of Dependencies
+Combining the direct dependencies from the project.pbxproj and the transitive dependencies from the build log, here is the complete list of dependencies for your “backdoor” project:
 1.  Nuke
-	•  Repository URL: https://github.com/kean/Nuke
-	•  Requirement: Up to next major version from 12.7.0
-	•  Modules:
-		•  Nuke: Core framework for image loading, caching, and processing.
-		•  NukeExtensions: Extensions for UIImageView (UIKit, AppKit).
-		•  NukeUI: UI components like LazyImage (SwiftUI) and ImageView (UIKit, AppKit).
-		•  NukeVideo: Components for decoding and playing short videos.
-	•  Description: An image loading system for Swift, offering features like memory and disk caching, image processing, request coalescing, prefetching, and support for formats like Progressive JPEG, HEIF, WebP, and GIF. It is optimized for performance and supports SwiftUI and async/await.
+	•  URL: https://github.com/kean/Nuke
+	•  Version: Up to next major from 12.7.0
+	•  Modules: Nuke, NukeExtensions, NukeUI, NukeVideo
+	•  Description: Image loading system with caching, processing, and format support (JPEG, HEIF, WebP, GIF).
 2.  ZIPFoundation
-	•  Repository URL: https://github.com/weichsel/ZIPFoundation
-	•  Requirement: Up to next major version from 0.9.19
-	•  Description: A Swift library for creating, reading, and modifying ZIP archive files. It uses Apple’s libcompression for high performance and supports features like large file handling, in-memory archives, and deterministic memory consumption. It is compatible with iOS, macOS, tvOS, watchOS, visionOS, and Linux.
+	•  URL: https://github.com/weichsel/ZIPFoundation
+	•  Version: Up to next major from 0.9.19
+	•  Description: ZIP archive creation, reading, and modification with high performance.
 3.  UIOnboarding
-	•  Repository URL: https://github.com/khcrysalis/UIOnboarding-18
-	•  Requirement: main branch
-	•  Description: An Apple-inspired animated welcome screen for iOS and iPadOS, configurable for UIKit and SwiftUI. It supports accessibility features like Dynamic Type, Reduce Motion, and VoiceOver, and is compatible with Split View and Slide Over on iPad. Requires iOS/iPadOS 13 or higher.
+	•  URL: https://github.com/khcrysalis/UIOnboarding-18
+	•  Version: main branch
+	•  Description: Apple-inspired animated welcome screen for iOS/iPadOS, supporting UIKit and SwiftUI.
 4.  Vapor
-	•  Repository URL: https://github.com/vapor/vapor
-	•  Requirement: Up to next major version from 4.104.0
-	•  Description: A server-side Swift HTTP web framework for building websites, APIs, and cloud projects. It provides an expressive and easy-to-use API for server-side development.
+	•  URL: https://github.com/vapor/vapor
+	•  Version: Up to next major from 4.104.0
+	•  Description: Server-side Swift HTTP web framework for websites, APIs, and cloud projects.
+	•  Transitive Dependencies (inferred from log):
+		•  swift-nio: Networking framework for asynchronous I/O (modules: NIOFileSystem, NIOPosix).
+		•  swift-nio-ssl: SSL/TLS support for secure communication.
+		•  swift-crypto: Cryptographic primitives for secure data handling.
 5.  SWCompression
-	•  Repository URL: https://github.com/tsolomko/SWCompression
-	•  Requirement: Up to next major version from 4.8.6
-	•  Description: A Swift framework for compression, decompression, and handling archives and containers (e.g., ZIP, TAR, 7-Zip). It supports algorithms like Deflate, BZip2, LZMA/LZMA2, and LZ4, and works on Apple platforms, Linux, and Windows.
+	•  URL: https://github.com/tsolomko/SWCompression
+	•  Version: Up to next major from 4.8.6
+	•  Description: Compression/decompression and archive/container handling (ZIP, TAR, 7-Zip).
+	•  Transitive Dependency:
+		•  BitByteData: Bit and byte manipulation for archive operations.
 6.  AlertKit
-	•  Repository URL: https://github.com/sparrowcode/AlertKit
-	•  Requirement: Up to next major version from 5.1.9
-	•  Description: A library for native-style alerts inspired by Apple Music and App Store feedback. It includes presets like Done, Heart, and Error, supports UIKit and SwiftUI, and works on iOS 13+ and visionOS with Dark Mode compatibility.
+	•  URL: https://github.com/sparrowcode/AlertKit
+	•  Version: Up to next major from 5.1.9
+	•  Description: Native-style alerts inspired by Apple Music/App Store, supporting UIKit and SwiftUI.
 7.  OpenSSL-Swift-Package
-	•  Repository URL: https://github.com/HAHALOSAH/OpenSSL-Swift-Package
-	•  Requirement: main branch
-	•  Description: A Swift Package Manager package providing OpenSSL for iOS, macOS, tvOS, and visionOS. It includes precompiled libraries and a script to build newer versions, serving as a complete solution for OpenSSL integration.
-9.  MobileCoreServices.framework
-	•  Description: A system framework provided by Apple, included in the project for iOS. It provides support for Uniform Type Identifiers (UTIs) and related functionality. This is not an external dependency but a built-in iOS framework.
+	•  URL: https://github.com/HAHALOSAH/OpenSSL-Swift-Package
+	•  Version: main branch
+	•  Description: OpenSSL integration for iOS, macOS, tvOS, and visionOS with precompiled libraries.
+8.  MobileCoreServices.framework
+	•  Description: Apple system framework for Uniform Type Identifiers (UTIs), included directly.
+9.  swift-nio
+	•  URL: https://github.com/apple/swift-nio
+	•  Version: Not explicitly specified (transitive via Vapor)
+	•  Modules: NIOFileSystem, NIOPosix
+	•  Description: Asynchronous networking framework for high-performance I/O.
+10.  swift-nio-ssl
+	•  URL: https://github.com/apple/swift-nio-ssl
+	•  Version: Not explicitly specified (transitive via Vapor)
+	•  Description: SSL/TLS support for SwiftNIO, likely using OpenSSL.
+11.  swift-crypto
+	•  URL: https://github.com/apple/swift-crypto
+	•  Version: Not explicitly specified (transitive via Vapor or swift-nio-ssl)
+	•  Description: Cryptographic primitives for secure operations.
+12.  BitByteData
+	•  URL: https://github.com/tsolomko/BitByteData
+	•  Version: Not explicitly specified (transitive via SWCompression)
+	•  Description: Low-level bit and byte manipulation for archive processing.
