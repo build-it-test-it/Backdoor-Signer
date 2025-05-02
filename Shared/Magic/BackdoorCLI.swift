@@ -204,7 +204,7 @@ class BackdoorCLI {
                     forceMinimumVersion: "Automatic",
                     forceLightDarkAppearence: "Automatic",
                     forceTryToLocalize: true,
-                    toInject: dylibPath != nil ? [dylibPath!] : []
+                    toInject: dylibPath.map { [$0] } ?? []
                 ))
                 
                 // Create bundle options

@@ -145,9 +145,12 @@ class BackdoorDecoder {
         // Evaluate trust to verify certificate validity using modern API (iOS 12+)
         var error: CFError?
         guard SecTrustEvaluateWithError(trustObject, &error) else {
-            let errorMessage = error != nil ?
-                CFErrorCopyDescription(error!) as String :
-                "Certificate failed trust evaluation"
+            let errorMessage: String
+            if let cfError = error {
+                errorMessage = CFErrorCopyDescription(cfError) as String
+            } else {
+                errorMessage = "Certificate failed trust evaluation"
+            }
             throw DecodingError.invalidCertificate(errorMessage)
         }
 
