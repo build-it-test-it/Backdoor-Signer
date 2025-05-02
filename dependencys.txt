@@ -1,0 +1,36 @@
+Dependencies
+1.  Nuke
+	•  Repository URL: https://github.com/kean/Nuke
+	•  Requirement: Up to next major version from 12.7.0
+	•  Modules:
+		•  Nuke: Core framework for image loading, caching, and processing.
+		•  NukeExtensions: Extensions for UIImageView (UIKit, AppKit).
+		•  NukeUI: UI components like LazyImage (SwiftUI) and ImageView (UIKit, AppKit).
+		•  NukeVideo: Components for decoding and playing short videos.
+	•  Description: An image loading system for Swift, offering features like memory and disk caching, image processing, request coalescing, prefetching, and support for formats like Progressive JPEG, HEIF, WebP, and GIF. It is optimized for performance and supports SwiftUI and async/await.
+2.  ZIPFoundation
+	•  Repository URL: https://github.com/weichsel/ZIPFoundation
+	•  Requirement: Up to next major version from 0.9.19
+	•  Description: A Swift library for creating, reading, and modifying ZIP archive files. It uses Apple’s libcompression for high performance and supports features like large file handling, in-memory archives, and deterministic memory consumption. It is compatible with iOS, macOS, tvOS, watchOS, visionOS, and Linux.
+3.  UIOnboarding
+	•  Repository URL: https://github.com/khcrysalis/UIOnboarding-18
+	•  Requirement: main branch
+	•  Description: An Apple-inspired animated welcome screen for iOS and iPadOS, configurable for UIKit and SwiftUI. It supports accessibility features like Dynamic Type, Reduce Motion, and VoiceOver, and is compatible with Split View and Slide Over on iPad. Requires iOS/iPadOS 13 or higher.
+4.  Vapor
+	•  Repository URL: https://github.com/vapor/vapor
+	•  Requirement: Up to next major version from 4.104.0
+	•  Description: A server-side Swift HTTP web framework for building websites, APIs, and cloud projects. It provides an expressive and easy-to-use API for server-side development.
+5.  SWCompression
+	•  Repository URL: https://github.com/tsolomko/SWCompression
+	•  Requirement: Up to next major version from 4.8.6
+	•  Description: A Swift framework for compression, decompression, and handling archives and containers (e.g., ZIP, TAR, 7-Zip). It supports algorithms like Deflate, BZip2, LZMA/LZMA2, and LZ4, and works on Apple platforms, Linux, and Windows.
+6.  AlertKit
+	•  Repository URL: https://github.com/sparrowcode/AlertKit
+	•  Requirement: Up to next major version from 5.1.9
+	•  Description: A library for native-style alerts inspired by Apple Music and App Store feedback. It includes presets like Done, Heart, and Error, supports UIKit and SwiftUI, and works on iOS 13+ and visionOS with Dark Mode compatibility.
+7.  OpenSSL-Swift-Package
+	•  Repository URL: https://github.com/HAHALOSAH/OpenSSL-Swift-Package
+	•  Requirement: main branch
+	•  Description: A Swift Package Manager package providing OpenSSL for iOS, macOS, tvOS, and visionOS. It includes precompiled libraries and a script to build newer versions, serving as a complete solution for OpenSSL integration.
+9.  MobileCoreServices.framework
+	•  Description: A system framework provided by Apple, included in the project for iOS. It provides support for Uniform Type Identifiers (UTIs) and related functionality. This is not an external dependency but a built-in iOS framework.
