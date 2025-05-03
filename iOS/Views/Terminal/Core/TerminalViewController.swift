@@ -209,44 +209,78 @@ class TerminalViewController: UIViewController {
     }
 
     private func updateConnectionStatus() {
-        // Check if WebSocket is connected, respecting user preference
-        isWebSocketConnected = userPreferenceWebSockets && TerminalService.shared.isWebSocketActive
+        // Check if local terminal service is active
+        isWebSocketConnected = TerminalService.shared.isWebSocketActive
 
-        // Update connection status indicator
-        if isWebSocketConnected {
-            connectionStatusView.backgroundColor = .systemGreen
-        } else if !userPreferenceWebSockets {
-            // Red when user has disabled WebSockets
-            connectionStatusView.backgroundColor = .systemRed
-        } else {
-            // Gray when WebSockets are enabled but not connected
-            connectionStatusView.backgroundColor = .systemGray
-        }
+        // Update connection status indicator - always green for local implementation
+        connectionStatusView.backgroundColor = .systemGreen
 
-        // Update toolbar buttons to reflect current status
+        // Update title to show local mode
+        title = "Terminal [Local]"
+        
+        // Update toolbar buttons
         updateToolbarButtons()
     }
 
-    @objc private func toggleWebSocketMode() {
-        // Toggle user preference for WebSockets
-        userPreferenceWebSockets = !userPreferenceWebSockets
-
-        // Save the preference
-        saveUserPreferences()
-
-        // Update connection status
-        updateConnectionStatus()
-
-        // Update title to reflect new mode
-        updateTitle()
-
-        // Inform the user about the change
-        let message = userPreferenceWebSockets
-            ? "WebSocket mode enabled"
-            : "WebSocket mode disabled, using HTTP fallback"
-
-        logger.log(message: message, type: .info)
-        appendToTerminal("\n\(message)\n$ ", isInput: false)
+    @objc private func showLanguageHelp() {
+        // Display help about the custom programming language
+        appendToTerminal("\n", isInput: false)
+        
+        let helpText = """
+        Backdoor Custom Programming Language
+        ===================================
+        
+        The custom language supports both Swift and Python execution with 
+        seamless interoperability between them.
+        
+        Single Language Execution:
+        --------------------------
+        
+        1. Swift Execution:
+          swift: print("Hello from Swift!")
+          
+        2. Python Execution:
+          python: print("Hello from Python")
+          
+        Mixed Language Execution:
+        ------------------------
+        
+        Use the shebang directive to start mixed code:
+        
+        #!/bin/backdoor
+        
+        # Swift code block
+        swift: {
+            let message = "Hello from Swift!"
+            print(message)
+            // Export variables for Python
+            export message
+        }
+        
+        # Python code block
+        python: {
+            # Import variables from Swift
+            from swift import message
+            print(f"Swift said: {message}")
+            
+            # Export variables for Swift
+            response = "Hello from Python!"
+            export response
+        }
+        
+        # Back to Swift
+        swift: {
+            // Import variables from Python
+            import python.response
+            print("Python said: \\(response)")
+        }
+        
+        Type 'help' for general terminal commands.
+        
+        """
+        
+        appendToTerminal(helpText, isInput: false)
+        appendToTerminal("\n$ ", isInput: false)
     }
 
     private func setupToolbar() {
@@ -291,17 +325,14 @@ class TerminalViewController: UIViewController {
         )
         ctrlCButton.accessibilityLabel = "Interrupt Command"
 
-        // WebSocket toggle button
-        let wsImage =
-            UIImage(systemName: isWebSocketConnected ? "antenna.radiowaves.left.and.right" :
-                "antenna.radiowaves.left.and.right.slash")
-        let wsButton = UIBarButtonItem(
-            image: wsImage,
+        // Language help button
+        let languageButton = UIBarButtonItem(
+            image: UIImage(systemName: "text.book.closed"),
             style: .plain,
             target: self,
-            action: #selector(toggleWebSocketMode)
+            action: #selector(showLanguageHelp)
         )
-        wsButton.accessibilityLabel = isWebSocketConnected ? "Disable WebSocket" : "Enable WebSocket"
+        languageButton.accessibilityLabel = "Language Help"
 
         // NEW: Added View Files button
         let viewFilesButton = UIBarButtonItem(
@@ -324,23 +355,14 @@ class TerminalViewController: UIViewController {
             flexSpace,
             viewFilesButton,
             flexSpace,
-            wsButton,
+            languageButton,
         ]
         toolbar.sizeToFit()
         commandInputView.inputAccessoryView = toolbar
     }
 
     private func updateToolbarButtons() {
-        guard let items = toolbar.items else { return }
-
-        // Update WebSocket toggle button (last item)
-        if let wsButton = items.last {
-            wsButton
-                .image =
-                UIImage(systemName: isWebSocketConnected ? "antenna.radiowaves.left.and.right" :
-                    "antenna.radiowaves.left.and.right.slash")
-            wsButton.accessibilityLabel = isWebSocketConnected ? "Disable WebSocket" : "Enable WebSocket"
-        }
+        // No WebSocket status to update - always in local mode
     }
 
     private func setupConstraints() {
