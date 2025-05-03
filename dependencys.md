@@ -83,11 +83,6 @@ The model **MUST** strictly follow these rules when adding new frameworks or dep
    - If web access is unavailable, the model **MUST** download the dependency’s source code directly into the project workspace using a fallback mechanism (e.g., cloning the repository via Git).
    - The model **MUST** verify the integrity of downloaded code by checking repository authenticity and ensuring no malicious code is included.
 
-7. **Commit and Version Control:**
-   - The model **MUST** commit changes to `Package.swift`, `project.pbxproj`, `package.resolved`, and this document to the project’s version control system (e.g., Git).
-   - The commit message **MUST** clearly describe the added dependency, its purpose, and any configuration changes.
-   - The model **MUST** ensure no sensitive information (e.g., API keys) is included in the committed files.
-
 ---
 
 ## Important Notes
