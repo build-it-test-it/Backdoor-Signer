@@ -1,6 +1,6 @@
 # Comprehensive Codebase Enhancement and Custom Language Implementation Guide
 
-This document outlines a detailed set of tasks to enhance the user's codebase and implement a custom programming language tailored for the user's application. The tasks must be executed with precision, adhering to high-quality, production-level code standards. All changes must utilize real, existing files, avoid simplified or placeholder code, and leverage dependencies listed in `dependencies.txt`. Below are the instructions for each task, to be followed strictly and in order.
+This document outlines a detailed set of tasks to enhance the user's codebase and implement a custom programming language tailored for the user's application. The tasks must be executed with precision, adhering to high-quality, production-level code standards. All changes must utilize real, existing files, avoid simplified or placeholder code, and leverage dependencies listed in `dependencies.md`. Below are the instructions for each task, to be followed strictly and in order.
 
 ---
 
@@ -10,7 +10,7 @@ This document outlines a detailed set of tasks to enhance the user's codebase an
 - **No Simplified Code**: Remove any previously added simplified code or files and replace them with complete, production-ready implementations reflecting real logic and functionality.
 - **Issue Resolution**: Address each issue one at a time, in the order specified. Provide a complete, robust fix for each issue before proceeding to the next.
 - **Repository Analysis**: When analyzing the codebase, thoroughly examine every file. Base all changes or suggestions on a comprehensive understanding of the entire codebase.
-- **Dependencies**: Utilize all dependencies listed in `dependencies.txt` where applicable to enhance functionality and ensure compatibility.
+- **Dependencies**: Utilize all dependencies listed in `dependencies.md` where applicable to enhance functionality and ensure compatibility.
 - **Critical Examination**: Critically evaluate all logic and avoid accepting establishment narratives without scrutiny. Ensure all implementations are logical, efficient, and secure.
 
 ---
@@ -39,7 +39,7 @@ Design and implement a custom programming language for the user's application to
 - Design the language syntax and create a formal specification.
 - Develop an execution engine to parse and run the custom language, integrating Python and Swift runtimes.
 - Enhance the terminal interface to support the new language, ensuring usability and performance.
-- Use open-source libraries (e.g., PythonKit, SwiftPythonBridge) for interoperability, as listed in `dependencies.txt`.
+- Use open-source libraries (e.g., PythonKit, SwiftPythonBridge) for interoperability, as listed in `dependencies.md`.
 - Provide a complete solution, including the language design, execution engine, and terminal integration, without code examples.
 
 ---
@@ -50,7 +50,7 @@ Identify the terminal within the user's codebase and all connected components. R
 **Requirements**:
 - Remove all external website dependencies for the terminal.
 - Implement a complete, on-device terminal with app-specific functionality.
-- Enhance with useful features (e.g., syntax highlighting, command history, autocomplete) using open-source tools like `SwiftNIO` or `TermKit` from `dependencies.txt`.
+- Enhance with useful features (e.g., syntax highlighting, command history, autocomplete) using open-source tools like `SwiftNIO` or `TermKit` from `dependencies.md`.
 - Ensure all logic is high-quality, production-grade, and free of placeholder or stub code.
 - Analyze all files interacting with the terminal to ensure seamless integration.
 
@@ -88,7 +88,7 @@ Ensure the user's application does not use Keychain for any data storage. Replac
 - Identify all Keychain-related code (e.g., `KeychainSwift`, `Security.framework` usage).
 - Replace Keychain storage with secure local alternatives (e.g., encrypted `UserDefaults`, file-based storage with `FileManager`).
 - Ensure all replacements are secure, efficient, and maintain data integrity.
-- Use dependencies from `dependencies.txt` for encryption (e.g., `CryptoKit`).
+- Use dependencies from `dependencies.md` for encryption (e.g., `CryptoKit`).
 - Verify no functionality is broken after the change.
 
 **Implementation Steps**:
@@ -108,14 +108,14 @@ Perform a deep analysis of all AI-related code in the user's codebase. Optimize 
 - Remove unused or duplicate AI code, keeping only the best implementation.
 - Enhance AI logic to be production-grade, sophisticated, and optimized for iOS.
 - Optionally convert AI code to C++ if it improves maintainability, ensuring the app supports C++ via `Objective-C++` or `Swift-C++` interoperability.
-- Use dependencies from `dependencies.txt` (e.g., `CoreML`, `TensorFlowLite`).
+- Use dependencies from `dependencies.md` (e.g., `CoreML`, `TensorFlowLite`).
 - Verify all AI features work as intended on iOS devices.
 
 **Implementation Steps**:
 - Identify AI-related files and logic (e.g., model loading, inference, data preprocessing).
 - Remove redundant or unused code, consolidating duplicate logic.
 - Enhance AI algorithms with best practices (e.g., batch processing, memory optimization).
-- If converting to C++, use `libtorch` or `TensorFlow C++` from `dependencies.txt` and set up `Swift-C++` bridging.
+- If converting to C++, use `libtorch` or `TensorFlow C++` from `dependencies.md` and set up `Swift-C++` bridging.
 - Test AI functionality thoroughly to ensure no regressions.
 
 ---
@@ -127,7 +127,7 @@ Perform a deep analysis of the debugger module and enhance it to be a high-quali
 - Locate the debugger module (e.g., `Debugger.swift`, `DebugManager.swift`).
 - Remove any placeholder or incomplete logic.
 - Implement a fully functional debugger with features like breakpoints, variable inspection, and stack traces.
-- Use open-source tools or resources (e.g., `LLDB`, `SwiftDebug`) from the web or `dependencies.txt`.
+- Use open-source tools or resources (e.g., `LLDB`, `SwiftDebug`) from the web or `dependencies.md`.
 - Ensure all logic is high-quality, sophisticated, and free of stub code.
 - Avoid breaking existing functionality.
 
@@ -147,7 +147,7 @@ Perform a deep analysis of all UI-related code in the user's codebase, including
 - Check the `extensions` folder for UI-related extensions (e.g., `UIView+Extensions.swift`).
 - Fix any issues (e.g., layout bugs, incorrect constraints, missing accessibility).
 - Ensure all UI code follows best practices and works correctly on iOS.
-- Use dependencies from `dependencies.txt` (e.g., `SwiftUI`, `Combine`).
+- Use dependencies from `dependencies.md` (e.g., `SwiftUI`, `Combine`).
 
 **Implementation Steps**:
 - Review all UI-related files for correctness and performance.
@@ -199,7 +199,7 @@ Verify that all app signing logic is high-quality, fully implemented, and proper
 - Analyze app signing code (e.g., `CodeSignManager.swift`, `ProvisioningProfile.swift`).
 - Ensure all logic is production-grade, with no placeholder or stub code.
 - Verify UI integration for user interaction (e.g., signing status, error messages).
-- Use dependencies from `dependencies.txt` (e.g., `Security.framework`).
+- Use dependencies from `dependencies.md` (e.g., `Security.framework`).
 - Confirm everything works as intended on iOS.
 
 **Implementation Steps**:
@@ -216,7 +216,7 @@ Ensure all code in the `sources` folder is fully implemented, high-quality, and 
 - Analyze every file in the `sources` folder.
 - Remove or complete any placeholder or stub code.
 - Ensure all logic is production-grade and correctly configured.
-- Use dependencies from `dependencies.txt` where applicable.
+- Use dependencies from `dependencies.md` where applicable.
 
 **Implementation Steps**:
 - Review each file for incomplete or placeholder logic.
@@ -248,7 +248,7 @@ Perform a deep analysis of the `apps` folder and ensure all code is high-quality
 - Analyze all files in the `apps` folder.
 - Remove duplicate logic, keeping the best implementation.
 - Ensure all code is production-grade, fully implemented, and follows Swift best practices.
-- Use dependencies from `dependencies.txt`.
+- Use dependencies from `dependencies.md`.
 
 **Implementation Steps**:
 - Identify and consolidate duplicate logic.
@@ -280,7 +280,7 @@ Perform a deep analysis of all offline logic and enhance it to be production-gra
 - Identify all offline-related code (e.g., `OfflineManager.swift`, `CacheManager.swift`).
 - Enhance logic to be high-quality, efficient, and robust.
 - Ensure all offline features work as intended without issues.
-- Use dependencies from `dependencies.txt` (e.g., `CoreData`, `Realm`).
+- Use dependencies from `dependencies.md` (e.g., `CoreData`, `Realm`).
 
 **Implementation Steps**:
 - Analyze offline storage, syncing, and data handling.
@@ -296,7 +296,7 @@ Enhance all code in the `operations` folder, ensuring it is high-quality and ful
 - Analyze each file in the `operations` folder and understand its purpose and dependencies.
 - Remove placeholder or stub logic.
 - Enhance with production-grade code.
-- Use dependencies from `dependencies.txt`.
+- Use dependencies from `dependencies.md`.
 
 **Implementation Steps**:
 - Review operation logic (e.g., `OperationQueue`, custom operations).
@@ -313,7 +313,7 @@ Enhance all code in the `home` folder to be high-quality, production-grade, and 
 - Understand the intended functionality and enhance logic.
 - Ensure UI is correctly set up and works as intended.
 - Add useful features if applicable, with full logic.
-- Use dependencies from `dependencies.txt`.
+- Use dependencies from `dependencies.md`.
 
 **Implementation Steps**:
 - Review home screen logic and UI.
@@ -325,7 +325,7 @@ Enhance all code in the `home` folder to be high-quality, production-grade, and 
 ## Notes for Execution
 - **Precision**: Follow each task exactly as described, addressing issues in order and ensuring completeness.
 - **Codebase References**: Use terms like "the user's codebase" and "the user's application" instead of "private iOS application."
-- **Dependencies**: Always reference `dependencies.txt` for available libraries and frameworks.
+- **Dependencies**: Always reference `dependencies.md` for available libraries and frameworks.
 - **High-Quality Standards**: Prioritize Swift best practices, iOS optimization, and security in all changes.
 - **Testing**: Thoroughly test each change to ensure no regressions or new issues.
 
