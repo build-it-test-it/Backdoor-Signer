@@ -53,11 +53,7 @@ The model **MUST** strictly follow these rules when adding new frameworks or dep
    - The dependency **MUST** support the platforms targeted by the project (iOS, macOS, tvOS, visionOS, Linux, Windows).
    - The dependency **MUST** have a permissive license (e.g., MIT) to avoid legal conflicts.
 
-2. **Adding Dependencies:**
-   - The model **MUST** update the `Package.swift` file to include the new dependency with an appropriate version range (e.g., `.upToNextMajor` or `.branch` for main branch dependencies).
-   - The model **MUST** ensure transitive dependencies are accounted for and compatible with the existing dependency graph.
-
-3. **Regenerating Project Configuration Files:**
+2. **Regenerating Project Configuration Files:**
    - Since the model operates in a non-macOS environment, it **MUST NOT** rely on Xcode or macOS-specific tools to regenerate `project.pbxproj` and `package.resolved`.
    - Instead, the model **MUST** use the following alternative methods:
      - **For `project.pbxproj`:**
@@ -69,25 +65,25 @@ The model **MUST** strictly follow these rules when adding new frameworks or dep
        - If `swift package resolve` is unavailable in the environment, the model **MUST** manually generate the `package.resolved` file by querying the Swift Package Manager’s dependency graph and serializing it into the correct JSON format.
        - The model **MUST** verify that the `package.resolved` file reflects the exact versions and dependencies specified in `Package.swift`.
 
-4. **Validation and Testing:**
+3. **Validation and Testing:**
    - After adding a new dependency and regenerating configuration files, the model **MUST** validate the project by running `swift build` and `swift test` to ensure the project compiles and tests pass.
    - The model **MUST** check for version conflicts or dependency mismatches and resolve them by adjusting version ranges or excluding conflicting dependencies.
 
-5. **Documentation Updates:**
+4. **Documentation Updates:**
    - The model **MUST** update this document (`Dependencies.md`) to include the new dependency in the "Dependencies Overview" table.
    - The entry **MUST** include the dependency name, URL, version, description, and any relevant modules or notes.
    - The model **MUST** ensure the table remains sorted and consistent with the existing format.
 
-6. **Error Handling:**
+5. **Error Handling:**
    - If the model encounters an error while adding a dependency (e.g., network issues, version conflicts, or invalid configuration files), it **MUST** halt the process and report the error clearly, including steps to resolve it manually.
    - The model **MUST NOT** proceed with partial or broken configurations.
 
-7. **Open-Source Code Integration:**
+6. **Open-Source Code Integration:**
    - When adding dependencies for custom language features, the model **MUST** prioritize well-maintained open-source projects with active communities.
    - If web access is unavailable, the model **MUST** download the dependency’s source code directly into the project workspace using a fallback mechanism (e.g., cloning the repository via Git).
    - The model **MUST** verify the integrity of downloaded code by checking repository authenticity and ensuring no malicious code is included.
 
-8. **Commit and Version Control:**
+7. **Commit and Version Control:**
    - The model **MUST** commit changes to `Package.swift`, `project.pbxproj`, `package.resolved`, and this document to the project’s version control system (e.g., Git).
    - The commit message **MUST** clearly describe the added dependency, its purpose, and any configuration changes.
    - The model **MUST** ensure no sensitive information (e.g., API keys) is included in the committed files.
