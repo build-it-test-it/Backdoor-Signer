@@ -16,7 +16,7 @@ This document outlines tasks to enhance the user's codebase and implement a cust
 ---
 
 ## Task 1: Custom Programming Language Design and Implementation
-Design and implement a custom programming language for the user's application to enhance terminal integration. The language must integrate with Python and Swift, supporting the following requirements:
+Design and implement a custom programming language for the user's application inside the terminal integration. The language must integrate with Python and Swift, supporting the following requirements:
 
 1. **Python Integration**:
    - Enable writing, executing, and coding in Python.
