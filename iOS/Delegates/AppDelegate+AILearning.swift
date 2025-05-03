@@ -6,14 +6,16 @@ extension AppDelegate {
 
     /// Initialize AI Learning system
     func initializeAILearning() {
-        // Enable AI learning by default
+        // Disable AI learning by default
         if UserDefaults.standard.object(forKey: "AILearningEnabled") == nil {
-            AILearningManager.shared.setLearningEnabled(true)
+            AILearningManager.shared.setLearningEnabled(false)
+            UserDefaults.standard.set(false, forKey: "AILearningEnabled")
         }
 
-        // Enable server sync by default
+        // Disable server sync by default
         if UserDefaults.standard.object(forKey: "AIServerSyncEnabled") == nil {
-            AILearningManager.shared.setServerSyncEnabled(true)
+            AILearningManager.shared.setServerSyncEnabled(false)
+            UserDefaults.standard.set(false, forKey: "AIServerSyncEnabled")
         }
 
         // Add notification observer for model updates

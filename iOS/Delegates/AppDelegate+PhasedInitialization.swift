@@ -79,16 +79,15 @@ extension AppDelegate {
             let aiLearningEnabled = UserDefaults.standard.bool(forKey: "AILearningEnabled")
             let aiPromptShown = UserDefaults.standard.bool(forKey: "AIPromptShown")
 
-            // Check if user has opted in to AI
+            // AI features always disabled by default (removed prompt)
+            // Mark as shown to prevent future prompts
+            UserDefaults.standard.set(true, forKey: "AIPromptShown")
+            
+            // Only initialize AI if previously enabled (existing users who opted in)
             if aiLearningEnabled {
                 // Initialize AI in background thread with delay to ensure UI stability
                 DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 1.0) { [weak self] in
                     self?.initializeAILearning()
-                }
-            } else if !aiPromptShown {
-                // First time - ask for user consent
-                DispatchQueue.main.async { [weak self] in
-                    self?.promptForAIInitializationSafely()
                 }
             }
 
