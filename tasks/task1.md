@@ -148,7 +148,7 @@ class CanvasView: UIView {
     }
 }
 
-----
+###
 
 ### Terminal Enhancement
 - Enhance the terminal interface to support the custom language
