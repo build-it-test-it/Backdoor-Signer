@@ -87,7 +87,7 @@ Design and implement a custom programming language for the application inside th
 - This Code Snippet is only a example dont define the code around it directly
 - The following code snippet demonstrations how a code example of something a user can execute and it should work without a issue.
 
-- # DrawingViewController: A Hypothetical Swift + Python Mix
+- # DrawingViewController: Swift + Python Mix
 
 This file demonstrates a `DrawingViewController` that combines Swift for UIKit-based UI and drawing, and Python for button logic and interaction handling.
 
