@@ -89,7 +89,7 @@ Design and implement a custom programming language for the application inside th
 
 - # DrawingViewController: A Hypothetical Swift + Python Mix
 
-This file demonstrates a hypothetical `DrawingViewController` that combines Swift for UIKit-based UI and drawing, and Python for button logic and interaction handling. The assumption is a runtime environment where Swift and Python can interoperate natively (e.g., via a bridging framework). The app allows users to draw lines on a canvas, change colors, and clear the canvas.
+This file demonstrates a `DrawingViewController` that combines Swift for UIKit-based UI and drawing, and Python for button logic and interaction handling.
 
 ```swift
 // DrawingViewController.swift
