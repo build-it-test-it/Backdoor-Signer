@@ -29,6 +29,59 @@ Design and implement a custom programming language for the application inside th
 - Support data passing between Python and Swift
 - Maintain state and context when switching between languages
 
+### Terminal Enhancement
+- Enhance the terminal interface to support the custom language
+- Provide a user-friendly environment for code input and execution
+- Implement proper error handling and reporting
+
+### Language Features
+- Define a clear, user-friendly syntax for the custom language
+- Support variables, control flow, and function definitions
+- Include language constructs for seamless switching between Python and Swift
+
+### Optimization
+- Ensure the implementation is efficient and optimized for iOS
+- Implement secure execution environments for both languages
+- Note that the application is not subject to App Store restrictions
+
+## Implementation Steps
+1. Design the language syntax and create a formal specification
+   - Define how language switching works
+   - Specify syntax for data passing between languages
+   - Document language constructs and features
+
+2. Develop an execution engine to parse and run the custom language
+   - Integrate Python and Swift runtimes
+   - Implement the parser for the custom language
+   - Create an execution context manager for handling state
+
+3. Enhance the terminal interface to support the new language
+   - Add syntax highlighting if possible
+   - Implement command history for language-specific commands
+   - Add auto-completion for common language constructs
+
+4. Use open-source libraries from `dependencies.md` for interoperability
+   - Leverage any suitable libraries for language processing
+   - Use available tools for Python and Swift integration
+
+5. Provide a complete solution including:
+   - Language design documentation
+   - Execution engine implementation
+   - Terminal UI enhancements
+   - Example programs demonstrating language features
+
+## Expected Deliverables
+- Full implementation of the custom programming language
+- Enhanced terminal interface supporting the new language
+- Documentation of language syntax and features
+- Example programs demonstrating key capabilities
+
+## Notes
+- The language should be intuitive enough for users familiar with either Python or Swift
+- Error reporting should be clear and helpful
+- Performance is important but secondary to functionality
+- Security considerations should be addressed, especially for code execution
+
 ### Code Snippet
 - This is a example of how of user should be allowed todo
 - This Code Snippet is only a example dont define the code around it directly
@@ -147,57 +200,3 @@ class CanvasView: UIView {
         setNeedsDisplay()
     }
 }
-
-'''markdown
-### Terminal Enhancement
-- Enhance the terminal interface to support the custom language
-- Provide a user-friendly environment for code input and execution
-- Implement proper error handling and reporting
-
-### Language Features
-- Define a clear, user-friendly syntax for the custom language
-- Support variables, control flow, and function definitions
-- Include language constructs for seamless switching between Python and Swift
-
-### Optimization
-- Ensure the implementation is efficient and optimized for iOS
-- Implement secure execution environments for both languages
-- Note that the application is not subject to App Store restrictions
-
-## Implementation Steps
-1. Design the language syntax and create a formal specification
-   - Define how language switching works
-   - Specify syntax for data passing between languages
-   - Document language constructs and features
-
-2. Develop an execution engine to parse and run the custom language
-   - Integrate Python and Swift runtimes
-   - Implement the parser for the custom language
-   - Create an execution context manager for handling state
-
-3. Enhance the terminal interface to support the new language
-   - Add syntax highlighting if possible
-   - Implement command history for language-specific commands
-   - Add auto-completion for common language constructs
-
-4. Use open-source libraries from `dependencies.md` for interoperability
-   - Leverage any suitable libraries for language processing
-   - Use available tools for Python and Swift integration
-
-5. Provide a complete solution including:
-   - Language design documentation
-   - Execution engine implementation
-   - Terminal UI enhancements
-   - Example programs demonstrating language features
-
-## Expected Deliverables
-- Full implementation of the custom programming language
-- Enhanced terminal interface supporting the new language
-- Documentation of language syntax and features
-- Example programs demonstrating key capabilities
-
-## Notes
-- The language should be intuitive enough for users familiar with either Python or Swift
-- Error reporting should be clear and helpful
-- Performance is important but secondary to functionality
-- Security considerations should be addressed, especially for code execution
