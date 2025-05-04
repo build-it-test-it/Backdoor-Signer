@@ -17,7 +17,7 @@ Design and implement a custom programming language for the application inside th
 ### Python Integration
 - Enable writing, executing, and coding in Python
 - Support installing Python dependencies, running scripts, and performing Python-related tasks
-- Provide access to Python's standard library and ecosystem
+- Provide full access to Python's librarys and ecosystem
 
 ### Swift Integration
 - Enable writing, executing, and running Swift code
@@ -28,6 +28,125 @@ Design and implement a custom programming language for the application inside th
 - Allow switching between Python and Swift within the same program
 - Support data passing between Python and Swift
 - Maintain state and context when switching between languages
+
+### Code Snippet
+- This is a example of how of user should be allowed todo
+- This Code Snippet is only a example dont define the code around it directly
+- The following code snippet demonstrations how a code example of something a user can execute and it should work without a issue.
+
+- # DrawingViewController: A Hypothetical Swift + Python Mix
+
+This file demonstrates a hypothetical `DrawingViewController` that combines Swift for UIKit-based UI and drawing, and Python for button logic and interaction handling. The assumption is a runtime environment where Swift and Python can interoperate natively (e.g., via a bridging framework). The app allows users to draw lines on a canvas, change colors, and clear the canvas.
+
+```swift
+// DrawingViewController.swift
+import UIKit
+// Hypothetical import for Python interoperability
+import PythonBridge // Assumed module for Swift-Python integration
+
+class DrawingViewController: UIViewController {
+    // UI Elements (Swift)
+    private var canvasView: CanvasView!
+    private var colorButton: UIButton!
+    private var clearButton: UIButton!
+    
+    // Python handler for button logic
+    private var pythonHandler: PythonBridge.PythonObject!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        setupPythonHandler()
+    }
+    
+    // Setup UI with Swift
+    private func setupUI() {
+        view.backgroundColor = .white
+        
+        // Canvas for drawing
+        canvasView = CanvasView(frame: CGRect(x: 0, y: 100, width: view.frame.width, height: view.frame.height - 200))
+        view.addSubview(canvasView)
+        
+        // Color button
+        colorButton = UIButton(frame: CGRect(x: 20, y: 50, width: 100, height: 40))
+        colorButton.setTitle("Change Color", for: .normal)
+        colorButton.backgroundColor = .blue
+        colorButton.addTarget(self, action: #selector(colorButtonTapped), for: .touchUpInside)
+        view.addSubview(colorButton)
+        
+        // Clear button
+        clearButton = UIButton(frame: CGRect(x: view.frame.width - 120, y: 50, width: 100, height: 40))
+        clearButton.setTitle("Clear", for: .normal)
+        clearButton.backgroundColor = .red
+        clearButton.addTarget(self, action: #selector(clearButtonTapped), for: .touchUpInside)
+        view.addSubview(clearButton)
+    }
+    
+    // Initialize Python handler
+    private func setupPythonHandler() {
+        // Hypothetical bridge to load Python code
+        pythonHandler = PythonBridge.loadPythonModule("drawing_logic")
+    }
+    
+    @objc private func colorButtonTapped() {
+        // Call Python function for color change
+        pythonHandler.change_color(canvasView)
+    }
+    
+    @objc private func clearButtonTapped() {
+        // Call Python function for clearing canvas
+        pythonHandler.clear_canvas(canvasView)
+    }
+}
+
+// Custom CanvasView for drawing
+class CanvasView: UIView {
+    private var lines: [[CGPoint]] = []
+    private var currentLine: [CGPoint] = []
+    var currentColor: UIColor = .black
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        currentLine = [touch.location(in: self)]
+        lines.append(currentLine)
+        setNeedsDisplay()
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        currentLine.append(touch.location(in: self))
+        lines[lines.count - 1] = currentLine
+        setNeedsDisplay()
+    }
+    
+    override func draw(_ rect: CGRect) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        context.setLineWidth(2.0)
+        
+        for line in lines {
+            context.setStrokeColor(currentColor.cgColor)
+            guard let firstPoint = line.first else { continue }
+            context.move(to: firstPoint)
+            for point in line.dropFirst() {
+                context.addLine(to: point)
+            }
+            context.strokePath()
+        }
+    }
+    
+    // Expose method to Python for clearing
+    func clear() {
+        lines.removeAll()
+        currentLine.removeAll()
+        setNeedsDisplay()
+    }
+    
+    // Expose method to Python for color change
+    func setColor(_ color: UIColor) {
+        currentColor = color
+        setNeedsDisplay()
+    }
+}
 
 ### Terminal Enhancement
 - Enhance the terminal interface to support the custom language
